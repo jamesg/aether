@@ -1,0 +1,6 @@
+sensor/Makefile.config
+sensor/core.a
+sensor/obj/*.o
+sensor/sketch.eep
+sensor/sketch.elf
+sensor/sketch.hex

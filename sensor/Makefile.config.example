@@ -1,0 +1,12 @@
+# Set ARDUINO_DIR to the location of the Arduino IDE.
+ARDUINO_DIR=/home/james/programs/arduino-1.6.3
+
+# ARDUINO_AVR_DIR contains the Arduino C and C++ framework.
+ARDUINO_AVR_DIR=${ARDUINO_DIR}/hardware/arduino/avr
+
+# Set PROJECT_SRC to a list of C++ files to build as part of this project.
+PROJECT_SRC=sketch.cpp OneWire.cpp
+
+# Set DEVICE to the ttyUSB device representing the Arduino Uno board.
+DEVICE=/dev/ttyUSB0
+
