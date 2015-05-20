@@ -1,12 +1,28 @@
 include Makefile.config
 
+ifeq (${TARGET},DUE)
+	PROGRAM_BAUDRATE=57600
+	TARGET_C_FLAGS=\
+		  -DUSB_VID=null -DUSB_PID=null -DARDUINO=105 \
+		  -D__PROG_TYPES_COMPAT__
+endif
+
+ifeq (${TARGET},UNO)
+	PROGRAM_BAUDRATE=115200
+	TARGET_C_FLAGS=\
+		-DARDUINO=10603 -DARDUINO_AVR_UNO \
+		-DARDUINO_ARCH_AVR
+endif
+
 C_FLAGS=\
 		  -g -Os -w -ffunction-sections -fdata-sections \
 		  -MMD -mmcu=atmega328p \
-		  -DF_CPU=16000000L -DARDUINO=10603 -DARDUINO_AVR_UNO \
-		  -DARDUINO_ARCH_AVR \
+		  -DF_CPU=16000000L \
+		  -DUSB_VID=null -DUSB_PID=null -DARDUINO=105 \
+		  -D__PROG_TYPES_COMPAT__ \
 		  -I${ARDUINO_AVR_DIR}/cores/arduino \
 		  -I${ARDUINO_AVR_DIR}/variants/standard
+
 CXX_FLAGS=\
 	      -fno-exceptions -fno-threadsafe-statics
 MKDIR_P=mkdir -p
@@ -52,7 +68,8 @@ sketch.hex:	sketch.elf
 .PHONY:	upload
 
 upload:	sketch.hex
-	avrdude -v -patmega328p -carduino -P${DEVICE} -b115200 -D -Uflash:w:sketch.hex
+	avrdude -v -patmega328p -carduino -P${DEVICE} -b${PROGRAM_BAUDRATE} -D \
+		-Uflash:w:sketch.hex:i
 
 .PHONY:	monitor
 
