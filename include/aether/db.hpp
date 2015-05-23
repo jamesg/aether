@@ -117,71 +117,87 @@ namespace aether
             public hades::crud<variety_sow_mon>
         {
         };
-        class batch :
-            public hades::tuple<attr::batch_id, attr::kb_variety_id>,
-            public hades::has_candidate_key<attr::batch_id>,
-            public hades::relation<relvar::batch>,
-            public hades::crud<batch>
-        {
-        };
-        class phase :
-            public hades::tuple<attr::phase_id, attr::phase_desc>,
-            public hades::has_candidate_key<attr::phase_id>,
-            public hades::relation<relvar::phase>,
-            public hades::crud<phase>
-        {
-        };
-        class phase_order :
-            public hades::tuple<attr::phase_id, attr::phase_order>,
-            public hades::has_candidate_key<attr::phase_id>,
-            public hades::relation<relvar::phase_order>,
-            public hades::crud<phase_order>
-        {
-        };
-        class batch_phase :
-            public hades::tuple<attr::batch_id, attr::phase_id, attr::start>,
-            public hades::has_candidate_key<attr::batch_id, attr::phase_id>,
-            public hades::relation<relvar::batch_phase>,
-            public hades::crud<batch_phase>
-        {
-        };
-        class batch_phase_history :
-            public hades::tuple<
-                attr::batch_id,
-                attr::phase_id,
-                attr::start,
-                attr::finish>,
-            public hades::has_candidate_key<attr::batch_id, attr::phase_id>,
-            public hades::relation<relvar::batch_phase_history>,
-            public hades::crud<batch_phase_history>
-        {
-        };
-        class sensor :
-            public hades::tuple<attr::sensor_id, attr::sensor_desc>,
-            public hades::has_candidate_key<attr::sensor_id>,
-            public hades::has_flags<
-                flag::moisture_sensor,
-                flag::temperature_sensor>,
-            public hades::relation<relvar::sensor>,
-            public hades::crud<sensor>
-        {
-        };
-        class sensor_at_batch :
-            public hades::tuple<attr::sensor_id, attr::batch_id>,
-            public hades::has_candidate_key<attr::sensor_id>,
-            public hades::relation<relvar::sensor_at_batch>,
-            public hades::crud<sensor_at_batch>
-        {
-        };
-        class moisture_log :
-            public atlas::db::semi_temporal<sensor::id_type, relvar::moisture_log>
-        {
-        };
-        class temperature_log :
-            public atlas::db::semi_temporal<sensor::id_type, relvar::temperature_log>
-        {
-        };
     }
+    class batch :
+        public hades::tuple<attr::batch_id, attr::kb_variety_id>,
+        public hades::has_candidate_key<attr::batch_id>,
+        public hades::relation<relvar::batch>,
+        public hades::crud<batch>
+    {
+    };
+    class phase :
+        public hades::tuple<attr::phase_id, attr::phase_desc>,
+        public hades::has_candidate_key<attr::phase_id>,
+        public hades::relation<relvar::phase>,
+        public hades::crud<phase>
+    {
+    public:
+        phase()
+        {
+        }
+        phase(const styx::element& e) :
+            styx::object(e)
+        {
+        }
+    };
+    class phase_order :
+        public hades::tuple<attr::phase_id, attr::phase_order>,
+        public hades::has_candidate_key<attr::phase_id>,
+        public hades::relation<relvar::phase_order>,
+        public hades::crud<phase_order>
+    {
+    public:
+        phase_order()
+        {
+        }
+        phase_order(const styx::element& e) :
+            styx::object(e)
+        {
+        }
+    };
+    class batch_phase :
+        public hades::tuple<attr::batch_id, attr::phase_id, attr::start>,
+        public hades::has_candidate_key<attr::batch_id, attr::phase_id>,
+        public hades::relation<relvar::batch_phase>,
+        public hades::crud<batch_phase>
+    {
+    };
+    class batch_phase_history :
+        public hades::tuple<
+            attr::batch_id,
+            attr::phase_id,
+            attr::start,
+            attr::finish>,
+        public hades::has_candidate_key<attr::batch_id, attr::phase_id>,
+        public hades::relation<relvar::batch_phase_history>,
+        public hades::crud<batch_phase_history>
+    {
+    };
+    class sensor :
+        public hades::tuple<attr::sensor_id, attr::sensor_desc>,
+        public hades::has_candidate_key<attr::sensor_id>,
+        public hades::has_flags<
+            flag::moisture_sensor,
+            flag::temperature_sensor>,
+        public hades::relation<relvar::sensor>,
+        public hades::crud<sensor>
+    {
+    };
+    class sensor_at_batch :
+        public hades::tuple<attr::sensor_id, attr::batch_id>,
+        public hades::has_candidate_key<attr::sensor_id>,
+        public hades::relation<relvar::sensor_at_batch>,
+        public hades::crud<sensor_at_batch>
+    {
+    };
+    class moisture_log :
+        public atlas::db::semi_temporal<sensor::id_type, relvar::moisture_log>
+    {
+    };
+    class temperature_log :
+        public atlas::db::semi_temporal<sensor::id_type, relvar::temperature_log>
+    {
+    };
 }
 
 #endif

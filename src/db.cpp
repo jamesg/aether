@@ -131,8 +131,8 @@ void aether::db::create(hades::connection& conn)
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_phase_order ( "
         " phase_id INTEGER PRIMARY KEY, "
-        " FOREIGN KEY(phase_id) REFERENCES aether_phase(phase_id), "
-        " phase_order INTEGER "
+        " phase_order INTEGER, "
+        " FOREIGN KEY(phase_id) REFERENCES aether_phase(phase_id) "
         " ) ",
         conn
         );
@@ -169,8 +169,8 @@ void aether::db::create(hades::connection& conn)
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_sensor_at_batch ( "
         " sensor_id INTEGER PRIMARY KEY, "
-        " FOREIGN KEY(sensor_id) REFERENCES aether_sensor(sensor_id), "
-        " batch_id INTEGER REFERENCES aether_batch(batch_id) "
+        " batch_id INTEGER REFERENCES aether_batch(batch_id), "
+        " FOREIGN KEY(sensor_id) REFERENCES aether_sensor(sensor_id) "
         " ) ",
         conn
         );
