@@ -3,8 +3,18 @@ atlas_add_web_library(
     TARGET aether-web
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/static.a
     SOURCES
+        board.html
+        board.js
         index.html
         index.js
+        knowledgebase.html
+        knowledgebase.js
+        knowledgebase_editor.html
+        knowledgebase_editor.js
         models.js
+        sensors.html
+        sensors.js
+        settings.html
+        settings.js
         )
 
