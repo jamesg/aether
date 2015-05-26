@@ -44,7 +44,7 @@ aether::router::router(hades::connection& conn)
         atlas::http::matcher("/api/phase", "GET"),
         [&conn]() {
             return atlas::http::json_response(
-                hades::outer_join<phase, phase_order>(
+                hades::equi_outer_join<phase, phase_order>(
                     conn,
                     hades::order_by("aether_phase_order.phase_order ASC")
                     )
@@ -57,6 +57,43 @@ aether::router::router(hades::connection& conn)
             phase::save_collection(l, conn);
             phase_order::overwrite_collection(l, conn);
             return atlas::http::json_response(l);
+        }
+        );
+    install<int>(
+        atlas::http::matcher("/api/phase/([0-9]+)", "DELETE"),
+        [&conn](const int phase_id) {
+            // TODO reassign batches to 'Unknown' phase.
+            phase::id_type id{phase_id};
+            phase_order po;
+            po.set_id(id);
+            po.destroy(conn);
+            phase p;
+            p.set_id(phase::id_type{po});
+            return atlas::http::json_response(p.destroy(conn));
+        }
+        );
+    install<int>(
+        atlas::http::matcher("/api/phase/([0-9]+)", "GET"),
+        [&conn](const int phase_id) {
+            return atlas::http::json_response(
+                hades::get_by_id<phase>(conn, phase::id_type(phase_id))
+                );
+        }
+        );
+    install_json<styx::element>(
+        atlas::http::matcher("/api/phase", "POST"),
+        [&conn](const styx::element& e) {
+            phase p(e);
+            p.insert(conn);
+            return atlas::http::json_response(p);
+        }
+        );
+    install_json<styx::element, int>(
+        atlas::http::matcher("/api/phase/([0-9]+)", "PUT"),
+        [&conn](const styx::element& e, const int phase_id) {
+            phase p(e);
+            p.update(conn);
+            return atlas::http::json_response(p);
         }
         );
 }
