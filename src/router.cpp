@@ -56,6 +56,10 @@ aether::router::router(hades::connection& conn)
         atlas::http::matcher("/api/batch", "POST"),
         [&conn](batch b) {
             b.insert(conn);
+            batch_phase bp;
+            bp.set_id(b.id());
+            bp.get_int("phase_id") = b.get_int("phase_id");
+            bp.insert(conn);
             return atlas::http::json_response(b);
         }
         );
@@ -121,7 +125,7 @@ aether::router::router(hades::connection& conn)
         atlas::http::matcher("/api/phase/([0-9]+)", "GET"),
         [&conn](const int phase_id) {
             return atlas::http::json_response(
-                hades::get_by_id<phase>(conn, phase::id_type(phase_id))
+                hades::get_by_id<phase>(conn, phase::id_type{phase_id})
                 );
         }
         );
@@ -177,6 +181,17 @@ aether::router::router(hades::connection& conn)
             return atlas::http::json_response(v.destroy(conn));
         }
         );
+    install<int>(
+        atlas::http::matcher("/api/kb/variety/([0-9]+)", "GET"),
+        [&conn](const int variety_id) {
+            return atlas::http::json_response(
+                hades::get_by_id<kb::variety>(
+                    conn,
+                    kb::variety::id_type{variety_id}
+                    )
+                );
+        }
+        );
     install<>(
         atlas::http::matcher("/api/kb/variety", "GET"),
         [&conn]() {
@@ -199,11 +214,61 @@ aether::router::router(hades::connection& conn)
                 hades::get_collection<kb::variety>(
                     conn,
                     hades::where(
-                        "aether_kb_variety.family_id = ?",
+                        "aether_kb_variety.kb_family_id = ?",
                         hades::row<int>(family_id)
                         )
                     )
                 );
+        }
+        );
+
+    //
+    // Sensors.
+    //
+
+    install<>(
+        atlas::http::matcher("/api/sensor", "GET"),
+        [&conn]() {
+            return atlas::http::json_response(
+                hades::equi_outer_join<
+                    sensor,
+                    hades::flag<sensor::id_type, flag::moisture_sensor>,
+                    hades::flag<sensor::id_type, flag::temperature_sensor>
+                    >(conn)
+                );
+        }
+        );
+    install<int>(
+        atlas::http::matcher("/api/sensor/([0-9]+)", "DELETE"),
+        [&conn](const int sensor_id) {
+            sensor s;
+            s.set_id(sensor::id_type{sensor_id});
+            return atlas::http::json_response(s.destroy(conn));
+        }
+        );
+    install<int>(
+        atlas::http::matcher("/api/sensor/([0-9]+)", "GET"),
+        [&conn](const int sensor_id) {
+            return atlas::http::json_response(
+                hades::get_by_id<sensor>(
+                    conn,
+                    sensor::id_type{sensor_id}
+                    )
+                );
+        }
+        );
+    install_json<sensor>(
+        atlas::http::matcher("/api/sensor", "POST"),
+        [&conn](sensor s) {
+            s.insert(conn);
+            return atlas::http::json_response(s);
+        }
+        );
+    install_json<sensor, int>(
+        atlas::http::matcher("/api/sensor/([0-9]+)", "PUT"),
+        [&conn](sensor s, const int sensor_id) {
+            s.update(conn);
+            return atlas::http::json_response(s);
         }
         );
 }

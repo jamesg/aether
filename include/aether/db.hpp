@@ -214,6 +214,14 @@ namespace aether
         public hades::relation<relvar::sensor>,
         public hades::crud<sensor>
     {
+    public:
+        sensor()
+        {
+        }
+        sensor(const styx::element& e) :
+            styx::object(e)
+        {
+        }
     };
     class sensor_at_batch :
         public hades::tuple<attr::sensor_id, attr::batch_id>,
