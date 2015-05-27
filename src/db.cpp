@@ -112,7 +112,7 @@ void aether::db::create(hades::connection& conn)
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_batch ( "
         " batch_id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        " kb_variety_id INTEGER REFERENCES kb_variety(kb_variety_id) "
+        " kb_variety_id INTEGER REFERENCES aether_kb_variety(kb_variety_id) "
         " ) ",
         conn
         );
