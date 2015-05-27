@@ -40,6 +40,51 @@ aether::router::router(hades::connection& conn)
     install_static_text("/settings.html", AETHER_STATIC_STD_STRING(settings_html));
     install_static_text("/settings.js", AETHER_STATIC_STD_STRING(settings_js));
 
+    //
+    // Batches.
+    //
+
+    install<>(
+        atlas::http::matcher("/api/batch", "GET"),
+        [&conn]() {
+            return atlas::http::json_response(
+                hades::equi_outer_join<batch, batch_phase>(conn)
+                );
+        }
+        );
+    install_json<batch>(
+        atlas::http::matcher("/api/batch", "POST"),
+        [&conn](batch b) {
+            b.insert(conn);
+            return atlas::http::json_response(b);
+        }
+        );
+    install_json<batch, int>(
+        atlas::http::matcher("/api/batch/([0-9]+)", "PUT"),
+        [&conn](batch b, const int) {
+            b.update(conn);
+            return atlas::http::json_response(b);
+            }
+        );
+    install<int>(
+        atlas::http::matcher("/api/phase/([0-9]+)/batch", "GET"),
+        [&conn](const int phase_id) {
+            return atlas::http::json_response(
+                hades::equi_outer_join<batch, batch_phase>(
+                    conn,
+                    hades::where(
+                        "aether_batch_phase.phase_id = ?",
+                        hades::row<int>(phase_id)
+                        )
+                    )
+                );
+        }
+        );
+
+    //
+    // Phases.
+    //
+
     install<>(
         atlas::http::matcher("/api/phase", "GET"),
         [&conn]() {
@@ -80,20 +125,85 @@ aether::router::router(hades::connection& conn)
                 );
         }
         );
-    install_json<styx::element>(
+    install_json<phase>(
         atlas::http::matcher("/api/phase", "POST"),
-        [&conn](const styx::element& e) {
-            phase p(e);
+        [&conn](phase p) {
             p.insert(conn);
             return atlas::http::json_response(p);
         }
         );
-    install_json<styx::element, int>(
+    install_json<phase, int>(
         atlas::http::matcher("/api/phase/([0-9]+)", "PUT"),
-        [&conn](const styx::element& e, const int phase_id) {
-            phase p(e);
+        [&conn](phase p, const int phase_id) {
             p.update(conn);
             return atlas::http::json_response(p);
+        }
+        );
+
+    //
+    // Knowledge Base.
+    //
+
+    install<int>(
+        atlas::http::matcher("/api/kb/family/([0-9]+)", "DELETE"),
+        [&conn](const int family_id) {
+            kb::family f;
+            f.set_id(kb::family::id_type{family_id});
+            // TODO reassign varieties
+            return atlas::http::json_response(f.destroy(conn));
+        }
+        );
+    install<>(
+        atlas::http::matcher("/api/kb/family", "GET"),
+        [&conn]() {
+            return atlas::http::json_response(
+                hades::get_collection<kb::family>(conn)
+                );
+        }
+        );
+    install_json<kb::family>(
+        atlas::http::matcher("/api/kb/family", "POST"),
+        [&conn](kb::family f) {
+            f.insert(conn);
+            return atlas::http::json_response(f);
+        }
+        );
+    install<int>(
+        atlas::http::matcher("/api/kb/variety/([0-9]+)", "DELETE"),
+        [&conn](const int variety_id) {
+            kb::variety v;
+            v.set_id(kb::variety::id_type{variety_id});
+            // TODO reassign batches
+            return atlas::http::json_response(v.destroy(conn));
+        }
+        );
+    install<>(
+        atlas::http::matcher("/api/kb/variety", "GET"),
+        [&conn]() {
+            return atlas::http::json_response(
+                hades::get_collection<kb::variety>(conn)
+                );
+        }
+        );
+    install_json<kb::variety>(
+        atlas::http::matcher("/api/kb/variety", "POST"),
+        [&conn](kb::variety v) {
+            v.insert(conn);
+            return atlas::http::json_response(v);
+        }
+        );
+    install<int>(
+        atlas::http::matcher("/api/kb/family/([0-9]+)/variety", "GET"),
+        [&conn](const int family_id) {
+            return atlas::http::json_response(
+                hades::get_collection<kb::variety>(
+                    conn,
+                    hades::where(
+                        "aether_kb_variety.family_id = ?",
+                        hades::row<int>(family_id)
+                        )
+                    )
+                );
         }
         );
 }

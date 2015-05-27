@@ -124,6 +124,14 @@ namespace aether
         public hades::relation<relvar::batch>,
         public hades::crud<batch>
     {
+    public:
+        batch()
+        {
+        }
+        batch(const styx::element& e) :
+            styx::object(e)
+        {
+        }
     };
     class phase :
         public hades::tuple<attr::phase_id, attr::phase_desc>,
@@ -157,10 +165,18 @@ namespace aether
     };
     class batch_phase :
         public hades::tuple<attr::batch_id, attr::phase_id, attr::start>,
-        public hades::has_candidate_key<attr::batch_id, attr::phase_id>,
+        public hades::has_candidate_key<attr::batch_id>,
         public hades::relation<relvar::batch_phase>,
         public hades::crud<batch_phase>
     {
+    public:
+        batch_phase()
+        {
+        }
+        batch_phase(const styx::element& e) :
+            styx::object(e)
+        {
+        }
     };
     class batch_phase_history :
         public hades::tuple<
