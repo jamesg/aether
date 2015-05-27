@@ -52,3 +52,101 @@ var PhaseCollection = RestCollection.extend(
     }
     );
 
+var Batch = RestModel.extend(
+        {
+            defaults: {
+                kb_variety_id: 0
+            },
+            url: function() {
+                return this.isNew() ?
+                    restUri('batch') :
+                    restUri('batch/' + this.get('batch_id'));
+            }
+        }
+        );
+
+var BatchCollection = RestCollection.extend(
+        {
+            model: Batch,
+            url: restUri('batch')
+        }
+        );
+
+//
+// Knowledge base types.
+//
+
+var Family = RestModel.extend(
+        {
+            idAttribute: 'kb_family_id',
+            defaults: {
+                kb_family_cname: '',
+                kb_family_lname: '',
+                kb_family_desc: ''
+            },
+            url: function() {
+                return restUri(
+                    this.isNew() ? 'kb/family' : 'kb/family/' + this.get('kb_family_id')
+                    );
+            }
+        }
+        );
+
+var FamilyCollection = RestCollection.extend(
+        {
+            model: Family,
+            url: restUri('kb/family')
+        }
+        );
+
+var Variety = RestModel.extend(
+        {
+            idAttribute: 'kb_variety_id',
+            defaults: {
+                kb_variety_cname: '',
+                kb_variety_lname: '',
+                kb_variety_weeks: '',
+                kb_family_id: 0
+            },
+            url: function() {
+                return restUri(
+                    this.isNew() ? 'kb/variety' : 'kb/variety/' + this.get('kb_variety_id')
+                    );
+            }
+        }
+        );
+
+var VarietyCollection = RestCollection.extend(
+        {
+            model: Variety,
+            url: restUri('kb/variety')
+        }
+        );
+
+//
+// Sensors.
+//
+
+var Sensor = RestModel.extend(
+        {
+            idAttribute: 'sensor_id',
+            defaults: {
+                sensor_desc: '',
+                aether_temperature_sensor: false,
+                aether_moisture_sensor: false
+            },
+            url: function() {
+                return restUri(
+                    this.isNew() ? 'sensor' : 'sensor/' + this.get('sensor_id')
+                    );
+            }
+        }
+        );
+
+var SensorCollection = RestCollection.extend(
+        {
+            model: Sensor,
+            url: restUri('sensor')
+        }
+        );
+
