@@ -91,6 +91,14 @@ namespace aether
             public hades::relation<relvar::kb_family>,
             public hades::crud<family>
         {
+        public:
+            family()
+            {
+            }
+            family(const styx::element& e) :
+                styx::object(e)
+            {
+            }
         };
         class variety :
             public hades::tuple<
@@ -107,6 +115,14 @@ namespace aether
             public hades::relation<relvar::kb_variety>,
             public hades::crud<variety>
         {
+        public:
+            variety()
+            {
+            }
+            variety(const styx::element& e) :
+                styx::object(e)
+            {
+            }
         };
         class variety_sow_mon :
             public hades::tuple<
