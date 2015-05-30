@@ -16,6 +16,7 @@
     rel="stylesheet"
     type="text/css"
     media="all">
+<link href="aether.css" rel="stylesheet" type="text/css" media="all"></link>
 </link>
 
 </head>
@@ -49,8 +50,159 @@
 <ul id="navigation" class="navigation"></ul>
 <div id="template-content" class="content"></div>
 
-<script type="text/template" id="homepage-template">
-<button name="show-modal">Show Modal</button>
+<script type="text/template" id="familiespage-template">
+<h1>Families</h1>
+<div class="button-box">
+    <button type="button" name="new">
+        <span class="oi" data-glyph="plus" aria-hidden="true"> </span>
+        New Family
+    </button>
+</div>
+<ul name="families" class="action-list"></ul>
+</script>
+
+<script type="text/template" id="familyform-template">
+<h1>Family</h1>
+<div class="aligned">
+    <h2>Name</h2>
+    <div class="group">
+        <label>
+            Latin Name
+            <input type="text" name="kb_family_lname" value="<%-kb_family_lname%>"></input>
+        </label>
+    </div>
+    <p class="advice">
+        Enter the full Latin name of the family.  It should end '-ae'.
+    </p>
+    <div class="group">
+        <label>
+            Common Name
+            <input type="text" name="kb_family_cname" value="<%-kb_family_cname%>"></input>
+        </label>
+    </div>
+    <p class="advice">
+        Enter the name by which the family is commonly known (most often, this
+        is the singular version of the full Latin name).
+    </p>
+    <h2>Description</h2>
+    <div class="group">
+        <label>
+            Description
+            <input type="text" name="kb_family_desc" value="<%-kb_family_desc%>"></input>
+        </label>
+    </div>
+    <p class="advice">
+        Enter a useful description of the family, for instance, the common name
+        of a well known plant from the family.
+    </p>
+</div>
+</script>
+
+<script type="text/template" id="familypage-template">
+<h1>Varieties</h1>
+<div class="button-box">
+    <button type="button" name="new">
+        <span class="oi" data-glyph="plus" aria-hidden="true"> </span>
+        New Variety
+    </button>
+</div>
+<ul name="varieties" class="action-list"></ul>
+</script>
+
+<script type="text/template" id="varietyform-template">
+<h1>Variety</h1>
+<div class="aligned">
+    <h2>Name</h2>
+    <div class="group">
+        <label for="kb_variety_lname">Latin Name</label>
+        <input type="text" name="kb_variety_lname" value="<%-kb_variety_lname%>"></input>
+    </div>
+    <p class="advice">
+        Enter the latin name of the species.  There may be multiple varieties
+        (cultivars) with the same species.
+    </p>
+    <div class="group">
+        <label for="kb_variety_cname">Common Name</label>
+        <input type="text" name="kb_variety_cname" value="<%-kb_variety_cname%>"></input>
+    </div>
+    <p class="advice">
+        Enter the common name by which the species is usually known, or the
+        epithet if the species has more than one distinct cultivar.
+    </p>
+
+    <h2>Care Instructions</h2>
+    <div class="group">
+        <label for="aether_kb_variety_container">
+            Suitable for growing in containers
+        </label>
+        <input type="checkbox" name="aether_kb_variety_container"
+            <%if(aether_kb_variety_container) {%>checked<%}%>>
+        </input>
+    </div>
+    <div class="group">
+        <label for="aether_kb_variety_flower">
+            Edible part is produced from flowers
+        </label>
+        <input type="checkbox" name="aether_kb_variety_flower"
+            <%if(aether_kb_variety_flower) {%>checked<%}%>>
+        </input>
+    </div>
+    <div class="group">
+        <label for="aether_kb_variety_prefer_shade">
+            Prefers to grow in shade
+        </label>
+        <input type="checkbox" name="aether_kb_variety_prefer_shade"
+            <%if(aether_kb_variety_prefer_shade) {%>checked<%}%>>
+        </input>
+    </div>
+    <div class="group">
+        <label for="aether_kb_variety_prefer_sun">
+            Prefers to grow in sun
+        </label>
+        <input type="checkbox" name="aether_kb_variety_prefer_sun"
+            <%if(aether_kb_variety_prefer_sun) {%>checked<%}%>>
+        </input>
+    </div>
+
+    <h3>Sowing Indoors</h3>
+    <table class="activity-calendar activity-sow">
+    <tr>
+        <th>J</th><th>F</th><th>M</th><th>A</th><th>M</th><th>J</th>
+        <th>J</th><th>A</th><th>S</th><th>O</th><th>N</th><th>D</th>
+    </tr>
+    <tr>
+        <%_.each(_.range(1, 13), function(i) {%>
+        <td><input type="checkbox" id="sow_<%-i%>" <%if(_.contains(sow_mon, i)) {%>checked <%}%>></input><label for="sow_<%-i%>"></label></td>
+        <%});%>
+    </tr>
+    </table>
+
+    <h3>Sowing Outdoors/Planting Out</h3>
+    <table class="activity-calendar activity-plant">
+    <tr>
+        <th>J</th><th>F</th><th>M</th><th>A</th><th>M</th><th>J</th>
+        <th>J</th><th>A</th><th>S</th><th>O</th><th>N</th><th>D</th>
+    </tr>
+    <tr>
+        <%_.each(_.range(1, 13), function(i) {%>
+        <td><input type="checkbox" id="plant_<%-i%>" <%if(_.contains(plant_mon, i)) {%>checked <%}%>></input><label for="plant_<%-i%>"></label></td>
+        <%});%>
+    </tr>
+    </table>
+
+    <h3>Harvest</h3>
+    <table class="activity-calendar activity-harvest">
+    <tr>
+        <th>J</th><th>F</th><th>M</th><th>A</th><th>M</th><th>J</th>
+        <th>J</th><th>A</th><th>S</th><th>O</th><th>N</th><th>D</th>
+    </tr>
+    <tr>
+        <%_.each(_.range(1, 13), function(i) {%>
+        <td><input type="checkbox" id="harvest_<%-i%>" <%if(_.contains(harvest_mon, i)) {%>checked <%}%>></input><label for="harvest_<%-i%>"></label></td>
+        <%});%>
+    </tr>
+    </table>
+</div>
 </script>
 
 <script type="text/javascript" src="/atlas/underscore.js"></script>
@@ -58,10 +210,10 @@
 <script type="text/javascript" src="/atlas/jquery.js"></script>
 <script type="text/javascript" src="/atlas/stacked_application.js"></script>
 <script type="text/javascript" src="models.js"></script>
-<script type="text/javascript" src="index.js"></script>
+<script type="text/javascript" src="knowledgebase_editor.js"></script>
 <script type="text/javascript">
 Backbone.$ = $;
-var gApplication = new StackedApplication(HomePage);
+var gApplication = new StackedApplication(FamiliesPage);
 gApplication.goHome();
 </script>
 

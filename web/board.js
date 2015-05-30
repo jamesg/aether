@@ -261,7 +261,6 @@ NewBatchWizard.prototype = {
             'create',
             (function() {
                 m.finish();
-                // TODO save the batch
                 console.log('saving new batch', this.model);
                 this.model.save(
                     {},
@@ -298,7 +297,8 @@ var PhaseView = StaticView.extend(
                 el: this.$('ul[name=batches]'),
                 model: this._batches,
                 view: StaticView.extend({
-                    template: 'batch'
+                    className: 'batch',
+                    template: '<%-kb_family_lname%> <%-kb_variety_lname%> (<%-kb_variety_cname%>)'
                 })
             })).render();
         },

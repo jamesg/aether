@@ -1,13 +1,18 @@
 #include "aether/router.hpp"
 
+#include <boost/bind.hpp>
+
 #include "aether/db.hpp"
 #include "atlas/http/server/static_string.hpp"
 #include "hades/crud.ipp"
 #include "hades/join.hpp"
 
+#include "kb_router.hpp"
+
 #define AETHER_DECLARE_STATIC_STRING(NAME) ATLAS_DECLARE_STATIC_STRING(aether, NAME)
 #define AETHER_STATIC_STD_STRING(NAME) ATLAS_STATIC_STD_STRING(aether, NAME)
 
+AETHER_DECLARE_STATIC_STRING(aether_css)
 AETHER_DECLARE_STATIC_STRING(board_html)
 AETHER_DECLARE_STATIC_STRING(board_js)
 AETHER_DECLARE_STATIC_STRING(index_html)
@@ -26,6 +31,7 @@ aether::router::router(hades::connection& conn)
 {
     install_static_text("/", "html", AETHER_STATIC_STD_STRING(index_html));
 
+    install_static_text("/aether.css", AETHER_STATIC_STD_STRING(aether_css));
     install_static_text("/board.html", AETHER_STATIC_STD_STRING(board_html));
     install_static_text("/board.js", AETHER_STATIC_STD_STRING(board_js));
     install_static_text("/index.html", AETHER_STATIC_STD_STRING(index_html));
@@ -40,6 +46,12 @@ aether::router::router(hades::connection& conn)
     install_static_text("/settings.html", AETHER_STATIC_STD_STRING(settings_html));
     install_static_text("/settings.js", AETHER_STATIC_STD_STRING(settings_js));
 
+    boost::shared_ptr<atlas::http::router> kbr(new kb_router(conn));
+    install(
+        atlas::http::matcher("/api/kb(.*)", 1),
+        boost::bind(&atlas::http::router::serve, kbr, _1, _2, _3, _4)
+        );
+
     //
     // Batches.
     //
@@ -48,7 +60,16 @@ aether::router::router(hades::connection& conn)
         atlas::http::matcher("/api/batch", "GET"),
         [&conn]() {
             return atlas::http::json_response(
-                hades::equi_outer_join<batch, batch_phase>(conn)
+                hades::outer_join<
+                    batch,
+                    batch_phase,
+                    kb::family,
+                    kb::variety>(
+                        conn,
+                        "aether_batch.batch_id = aether_batch_phase.batch_id AND "
+                        "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
+                        "aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id "
+                        )
                 );
         }
         );
@@ -74,13 +95,20 @@ aether::router::router(hades::connection& conn)
         atlas::http::matcher("/api/phase/([0-9]+)/batch", "GET"),
         [&conn](const int phase_id) {
             return atlas::http::json_response(
-                hades::equi_outer_join<batch, batch_phase>(
-                    conn,
-                    hades::where(
-                        "aether_batch_phase.phase_id = ?",
-                        hades::row<int>(phase_id)
+                hades::outer_join<
+                    batch,
+                    batch_phase,
+                    kb::variety,
+                    kb::family>(
+                        conn,
+                        "aether_batch.batch_id = aether_batch_phase.batch_id AND "
+                        "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
+                        "aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id ",
+                        hades::where(
+                            "aether_batch_phase.phase_id = ? ",
+                            hades::row<int>(phase_id)
+                            )
                         )
-                    )
                 );
         }
         );
@@ -141,84 +169,6 @@ aether::router::router(hades::connection& conn)
         [&conn](phase p, const int phase_id) {
             p.update(conn);
             return atlas::http::json_response(p);
-        }
-        );
-
-    //
-    // Knowledge Base.
-    //
-
-    install<int>(
-        atlas::http::matcher("/api/kb/family/([0-9]+)", "DELETE"),
-        [&conn](const int family_id) {
-            kb::family f;
-            f.set_id(kb::family::id_type{family_id});
-            // TODO reassign varieties
-            return atlas::http::json_response(f.destroy(conn));
-        }
-        );
-    install<>(
-        atlas::http::matcher("/api/kb/family", "GET"),
-        [&conn]() {
-            return atlas::http::json_response(
-                hades::get_collection<kb::family>(conn)
-                );
-        }
-        );
-    install_json<kb::family>(
-        atlas::http::matcher("/api/kb/family", "POST"),
-        [&conn](kb::family f) {
-            f.insert(conn);
-            return atlas::http::json_response(f);
-        }
-        );
-    install<int>(
-        atlas::http::matcher("/api/kb/variety/([0-9]+)", "DELETE"),
-        [&conn](const int variety_id) {
-            kb::variety v;
-            v.set_id(kb::variety::id_type{variety_id});
-            // TODO reassign batches
-            return atlas::http::json_response(v.destroy(conn));
-        }
-        );
-    install<int>(
-        atlas::http::matcher("/api/kb/variety/([0-9]+)", "GET"),
-        [&conn](const int variety_id) {
-            return atlas::http::json_response(
-                hades::get_by_id<kb::variety>(
-                    conn,
-                    kb::variety::id_type{variety_id}
-                    )
-                );
-        }
-        );
-    install<>(
-        atlas::http::matcher("/api/kb/variety", "GET"),
-        [&conn]() {
-            return atlas::http::json_response(
-                hades::get_collection<kb::variety>(conn)
-                );
-        }
-        );
-    install_json<kb::variety>(
-        atlas::http::matcher("/api/kb/variety", "POST"),
-        [&conn](kb::variety v) {
-            v.insert(conn);
-            return atlas::http::json_response(v);
-        }
-        );
-    install<int>(
-        atlas::http::matcher("/api/kb/family/([0-9]+)/variety", "GET"),
-        [&conn](const int family_id) {
-            return atlas::http::json_response(
-                hades::get_collection<kb::variety>(
-                    conn,
-                    hades::where(
-                        "aether_kb_variety.kb_family_id = ?",
-                        hades::row<int>(family_id)
-                        )
-                    )
-                );
         }
         );
 
