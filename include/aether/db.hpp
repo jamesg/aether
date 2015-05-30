@@ -23,6 +23,8 @@ namespace aether
         extern const char kb_variety_weeks[];
         // kb_family_id
 
+        extern const char kb_variety_harvest_mon_month[];
+        extern const char kb_variety_plant_mon_month[];
         extern const char kb_variety_sow_mon_month[];
         // kb_variety_id
 
@@ -50,6 +52,8 @@ namespace aether
     {
         extern const char kb_family[];
         extern const char kb_variety[];
+        extern const char kb_variety_harvest_mon[];
+        extern const char kb_variety_plant_mon[];
         extern const char kb_variety_sow_mon[];
 
         extern const char batch[];
@@ -105,6 +109,7 @@ namespace aether
                 attr::kb_variety_id,
                 attr::kb_variety_cname,
                 attr::kb_variety_lname,
+                attr::kb_family_id,
                 attr::kb_variety_weeks>,
             public hades::has_candidate_key<attr::kb_variety_id>,
             public hades::has_flags<
@@ -124,14 +129,62 @@ namespace aether
             {
             }
         };
+        class variety_harvest_mon :
+            public hades::tuple<
+                attr::kb_variety_id,
+                attr::kb_variety_harvest_mon_month>,
+            public hades::has_candidate_key<
+                attr::kb_variety_id,
+                attr::kb_variety_harvest_mon_month>,
+            public hades::relation<relvar::kb_variety_harvest_mon>,
+            public hades::crud<variety_harvest_mon>
+        {
+        public:
+            variety_harvest_mon()
+            {
+            }
+            variety_harvest_mon(const styx::element& e) :
+                styx::object(e)
+            {
+            }
+        };
+        class variety_plant_mon :
+            public hades::tuple<
+                attr::kb_variety_id,
+                attr::kb_variety_plant_mon_month>,
+            public hades::has_candidate_key<
+                attr::kb_variety_id,
+                attr::kb_variety_plant_mon_month>,
+            public hades::relation<relvar::kb_variety_plant_mon>,
+            public hades::crud<variety_plant_mon>
+        {
+        public:
+            variety_plant_mon()
+            {
+            }
+            variety_plant_mon(const styx::element& e) :
+                styx::object(e)
+            {
+            }
+        };
         class variety_sow_mon :
             public hades::tuple<
                 attr::kb_variety_id,
                 attr::kb_variety_sow_mon_month>,
-            public hades::has_candidate_key<attr::kb_variety_id>,
+            public hades::has_candidate_key<
+                attr::kb_variety_id,
+                attr::kb_variety_sow_mon_month>,
             public hades::relation<relvar::kb_variety_sow_mon>,
             public hades::crud<variety_sow_mon>
         {
+        public:
+            variety_sow_mon()
+            {
+            }
+            variety_sow_mon(const styx::element& e) :
+                styx::object(e)
+            {
+            }
         };
     }
     class batch :
