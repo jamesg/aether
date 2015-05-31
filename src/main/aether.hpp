@@ -14,6 +14,8 @@ namespace hades
 }
 namespace aether
 {
+    class radio_server;
+
     class server
     {
     public:
@@ -33,6 +35,7 @@ namespace aether
         boost::shared_ptr<hades::connection> m_connection;
         boost::shared_ptr<atlas::http::router> m_router;
         boost::shared_ptr<atlas::http::server> m_http_server;
+        boost::shared_ptr<aether::radio_server> m_radio_server;
         atlas::http::mimetypes m_mime_information;
     };
 }
