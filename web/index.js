@@ -3,21 +3,22 @@ var HomePage = PageView.extend(
         pageTitle: 'Home',
         initialize: function() {
             PageView.prototype.initialize.apply(this, arguments);
-            this.render();
+            PageView.prototype.render.apply(this);
+            this._colourPicker = new ColourPicker({
+                model: new Backbone.Model,
+                attribute: 'colour',
+                el: this.$('#colourpicker')
+            });
+            this._colourPicker.render();
+        },
+        render: function() {
         },
         template: $('#homepage-template').html(),
         events: {
-            'click button[name=show-modal]': 'showModal'
+            'click button[name=pick-colour]': 'pickColour'
         },
-        showModal: function() {
-            var m = new Modal({
-                buttons: [
-                    ModalButton.cancel(),
-                    ModalButton.create(function() { console.log('create'); m.finish(); })
-                ],
-                view: StaticView.extend({ template: 'Modal' })
-            });
-            gApplication.modal(m);
+        pickColour: function() {
+            this._colourPicker.save();
         }
     }
     );

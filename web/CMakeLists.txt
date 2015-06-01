@@ -4,6 +4,7 @@ atlas_add_web_library(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/static.a
     SOURCES
         aether.css
+        application.js
         board.html
         board.js
         index.html
