@@ -157,7 +157,8 @@ var VarietyForm = StaticView.extend(
         template: $('#varietyform-template').html(),
         initialize: function() {
             StaticView.prototype.initialize.apply(this, arguments);
-            this.model.fetch();
+            if(!this.model.isNew())
+                this.model.fetch();
             this.on('create', this.save.bind(this));
             this.on('save', this.save.bind(this));
         },
@@ -172,24 +173,18 @@ var VarietyForm = StaticView.extend(
                 aether_kb_variety_prefer_shade:
                     this.$('input[name=aether_kb_variety_prefer_shade]').is(':checked'),
                 aether_kb_variety_prefer_sun:
-                    this.$('input[name=aether_kb_variety_prefer_sun]').is(':checked')
-            });
-            var sow_mon = [];
-            _.each(_.range(1, 13), function(i) {
-                if(this.$('input[name=' + i + ']').is(':checked')) sow_mon.push(i);
-            });
-            this.model.set({
-                'harvest_mon': _.filter(
+                    this.$('input[name=aether_kb_variety_prefer_sun]').is(':checked'),
+                harvest_mon: _.filter(
                     _.range(1, 13),
                     function(i) { return this.$('#harvest_' + i).is(':checked'); },
                     this
                     ),
-                'plant_mon': _.filter(
+                plant_mon: _.filter(
                     _.range(1, 13),
                     function(i) { return this.$('#plant_' + i).is(':checked'); },
                     this
                     ),
-                'sow_mon': _.filter(
+                sow_mon: _.filter(
                     _.range(1, 13),
                     function(i) { return this.$('#sow_' + i).is(':checked'); },
                     this
