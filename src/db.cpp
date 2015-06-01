@@ -11,6 +11,8 @@ const char aether::attr::kb_variety_id[] = "kb_variety_id";
 const char aether::attr::kb_variety_cname[] = "kb_variety_cname";
 const char aether::attr::kb_variety_lname[] = "kb_variety_lname";
 const char aether::attr::kb_variety_weeks[] = "kb_variety_weeks";
+const char aether::attr::kb_variety_harvest_mon_month[] = "kb_variety_harvest_mon_month";
+const char aether::attr::kb_variety_plant_mon_month[] = "kb_variety_plant_mon_month";
 const char aether::attr::kb_variety_sow_mon_month[] = "kb_variety_sow_mon_month";
 const char aether::attr::batch_id[] = "batch_id";
 const char aether::attr::phase_id[] = "phase_id";
@@ -22,6 +24,8 @@ const char aether::attr::sensor_id[] = "sensor_id";
 const char aether::attr::sensor_desc[] = "sensor_desc";
 const char aether::relvar::kb_family[] = "aether_kb_family";
 const char aether::relvar::kb_variety[] = "aether_kb_variety";
+const char aether::relvar::kb_variety_harvest_mon[] = "aether_kb_variety_harvest_mon";
+const char aether::relvar::kb_variety_plant_mon[] = "aether_kb_variety_plant_mon";
 const char aether::relvar::kb_variety_sow_mon[] = "aether_kb_variety_sow_mon";
 const char aether::relvar::batch[] = "aether_batch";
 const char aether::relvar::batch_phase[] = "aether_batch_phase";
@@ -67,10 +71,29 @@ void aether::db::create(hades::connection& conn)
         );
 
     hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_kb_variety_harvest_mon ( "
+        " kb_variety_id INTEGER, "
+        " kb_variety_harvest_mon_month INTEGER, "
+        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) ON DELETE CASCADE, "
+        " UNIQUE(kb_variety_id, kb_variety_harvest_mon_month) "
+        " ) ",
+        conn
+        );
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_kb_variety_plant_mon ( "
+        " kb_variety_id INTEGER, "
+        " kb_variety_plant_mon_month INTEGER, "
+        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) ON DELETE CASCADE, "
+        " UNIQUE(kb_variety_id, kb_variety_plant_mon_month) "
+        " ) ",
+        conn
+        );
+    hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_kb_variety_sow_mon ( "
-        " kb_variety_id INTEGER PRIMARY KEY, "
+        " kb_variety_id INTEGER, "
         " kb_variety_sow_mon_month INTEGER, "
-        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) "
+        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) ON DELETE CASCADE, "
+        " UNIQUE(kb_variety_id, kb_variety_sow_mon_month) "
         " ) ",
         conn
         );
@@ -82,28 +105,28 @@ void aether::db::create(hades::connection& conn)
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_kb_variety_container ( "
         " kb_variety_id INTEGER PRIMARY KEY, "
-        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) "
+        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) ON DELETE CASCADE "
         " ) ",
         conn
         );
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_kb_variety_flower ( "
         " kb_variety_id INTEGER PRIMARY KEY, "
-        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) "
+        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) ON DELETE CASCADE "
         " ) ",
         conn
         );
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_kb_variety_prefer_shade ( "
         " kb_variety_id INTEGER PRIMARY KEY, "
-        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) "
+        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) ON DELETE CASCADE "
         " ) ",
         conn
         );
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_kb_variety_prefer_sun ( "
         " kb_variety_id INTEGER PRIMARY KEY, "
-        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) "
+        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) ON DELETE CASCADE "
         " ) ",
         conn
         );
@@ -112,7 +135,7 @@ void aether::db::create(hades::connection& conn)
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_batch ( "
         " batch_id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        " kb_variety_id INTEGER REFERENCES kb_variety(kb_variety_id) "
+        " kb_variety_id INTEGER REFERENCES aether_kb_variety(kb_variety_id) "
         " ) ",
         conn
         );
@@ -131,8 +154,8 @@ void aether::db::create(hades::connection& conn)
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_phase_order ( "
         " phase_id INTEGER PRIMARY KEY, "
-        " FOREIGN KEY(phase_id) REFERENCES aether_phase(phase_id), "
-        " phase_order INTEGER "
+        " phase_order INTEGER, "
+        " FOREIGN KEY(phase_id) REFERENCES aether_phase(phase_id) ON DELETE CASCADE "
         " ) ",
         conn
         );
@@ -169,8 +192,8 @@ void aether::db::create(hades::connection& conn)
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_sensor_at_batch ( "
         " sensor_id INTEGER PRIMARY KEY, "
-        " FOREIGN KEY(sensor_id) REFERENCES aether_sensor(sensor_id), "
-        " batch_id INTEGER REFERENCES aether_batch(batch_id) "
+        " batch_id INTEGER REFERENCES aether_batch(batch_id), "
+        " FOREIGN KEY(sensor_id) REFERENCES aether_sensor(sensor_id) ON DELETE CASCADE "
         " ) ",
         conn
         );
@@ -205,14 +228,14 @@ void aether::db::create(hades::connection& conn)
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_moisture_sensor ( "
         " sensor_id INTEGER PRIMARY KEY, "
-        " FOREIGN KEY(sensor_id) REFERENCES aether_sensor(sensor_id) "
+        " FOREIGN KEY(sensor_id) REFERENCES aether_sensor(sensor_id) ON DELETE CASCADE "
         " ) ",
         conn
         );
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_temperature_sensor ( "
         " sensor_id INTEGER PRIMARY KEY, "
-        " FOREIGN KEY(sensor_id) REFERENCES aether_sensor(sensor_id) "
+        " FOREIGN KEY(sensor_id) REFERENCES aether_sensor(sensor_id) ON DELETE CASCADE "
         " ) ",
         conn
         );

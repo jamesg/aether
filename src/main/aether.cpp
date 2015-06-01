@@ -9,6 +9,8 @@
 #include "commandline/commandline.hpp"
 #include "hades/connection.hpp"
 
+#include "../radio_server.hpp"
+
 aether::server::server(
     const options& opts,
     boost::shared_ptr<boost::asio::io_service> io
@@ -39,11 +41,14 @@ aether::server::server(
         atlas::http::matcher("(.*)", 1),
         boost::bind(&atlas::http::router::serve, m_router, _1, _2, _3, _4)
         );
+
+    m_radio_server.reset(new radio_server(m_io, *m_connection));
 }
 
 void aether::server::start()
 {
     m_http_server->start();
+    m_radio_server->start();
 }
 
 void aether::server::stop()

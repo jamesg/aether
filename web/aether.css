@@ -1,0 +1,40 @@
+/*
+ * Styles specfic to a plant monitoring application.
+ */
+
+/*
+ * Calendar containing months in what various activities should be carried out.
+ * Each month may have a checkbox input.
+ */
+.activity-calendar {
+    table-layout: fixed;
+}
+/*
+ * Checkbox inputs can't be styled.  Style the label instead.
+ */
+.activity-calendar input[type=checkbox] {
+    display: none;
+}
+.activity-calendar tr {
+    /* Expand cells within the rows. */
+    height: 20px;
+}
+.activity-calendar td {
+    height: 100%;
+    width: 2em;
+}
+.activity-calendar label {
+    display: block;
+    min-height: 100%;
+    background-color: lavenderblush;
+}
+.activity-sow input[type=checkbox]:checked + label {
+    background-color: blue;
+}
+.activity-plant input[type=checkbox]:checked + label {
+    background-color: lawngreen;
+}
+.activity-harvest input[type=checkbox]:checked + label {
+    background-color: yellow;
+}
+

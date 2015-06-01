@@ -23,6 +23,8 @@ namespace aether
         extern const char kb_variety_weeks[];
         // kb_family_id
 
+        extern const char kb_variety_harvest_mon_month[];
+        extern const char kb_variety_plant_mon_month[];
         extern const char kb_variety_sow_mon_month[];
         // kb_variety_id
 
@@ -50,6 +52,8 @@ namespace aether
     {
         extern const char kb_family[];
         extern const char kb_variety[];
+        extern const char kb_variety_harvest_mon[];
+        extern const char kb_variety_plant_mon[];
         extern const char kb_variety_sow_mon[];
 
         extern const char batch[];
@@ -91,12 +95,21 @@ namespace aether
             public hades::relation<relvar::kb_family>,
             public hades::crud<family>
         {
+        public:
+            family()
+            {
+            }
+            family(const styx::element& e) :
+                styx::object(e)
+            {
+            }
         };
         class variety :
             public hades::tuple<
                 attr::kb_variety_id,
                 attr::kb_variety_cname,
                 attr::kb_variety_lname,
+                attr::kb_family_id,
                 attr::kb_variety_weeks>,
             public hades::has_candidate_key<attr::kb_variety_id>,
             public hades::has_flags<
@@ -107,81 +120,177 @@ namespace aether
             public hades::relation<relvar::kb_variety>,
             public hades::crud<variety>
         {
+        public:
+            variety()
+            {
+            }
+            variety(const styx::element& e) :
+                styx::object(e)
+            {
+            }
+        };
+        class variety_harvest_mon :
+            public hades::tuple<
+                attr::kb_variety_id,
+                attr::kb_variety_harvest_mon_month>,
+            public hades::has_candidate_key<
+                attr::kb_variety_id,
+                attr::kb_variety_harvest_mon_month>,
+            public hades::relation<relvar::kb_variety_harvest_mon>,
+            public hades::crud<variety_harvest_mon>
+        {
+        public:
+            variety_harvest_mon()
+            {
+            }
+            variety_harvest_mon(const styx::element& e) :
+                styx::object(e)
+            {
+            }
+        };
+        class variety_plant_mon :
+            public hades::tuple<
+                attr::kb_variety_id,
+                attr::kb_variety_plant_mon_month>,
+            public hades::has_candidate_key<
+                attr::kb_variety_id,
+                attr::kb_variety_plant_mon_month>,
+            public hades::relation<relvar::kb_variety_plant_mon>,
+            public hades::crud<variety_plant_mon>
+        {
+        public:
+            variety_plant_mon()
+            {
+            }
+            variety_plant_mon(const styx::element& e) :
+                styx::object(e)
+            {
+            }
         };
         class variety_sow_mon :
             public hades::tuple<
                 attr::kb_variety_id,
                 attr::kb_variety_sow_mon_month>,
-            public hades::has_candidate_key<attr::kb_variety_id>,
+            public hades::has_candidate_key<
+                attr::kb_variety_id,
+                attr::kb_variety_sow_mon_month>,
             public hades::relation<relvar::kb_variety_sow_mon>,
             public hades::crud<variety_sow_mon>
         {
-        };
-        class batch :
-            public hades::tuple<attr::batch_id, attr::kb_variety_id>,
-            public hades::has_candidate_key<attr::batch_id>,
-            public hades::relation<relvar::batch>,
-            public hades::crud<batch>
-        {
-        };
-        class phase :
-            public hades::tuple<attr::phase_id, attr::phase_desc>,
-            public hades::has_candidate_key<attr::phase_id>,
-            public hades::relation<relvar::phase>,
-            public hades::crud<phase>
-        {
-        };
-        class phase_order :
-            public hades::tuple<attr::phase_id, attr::phase_order>,
-            public hades::has_candidate_key<attr::phase_id>,
-            public hades::relation<relvar::phase_order>,
-            public hades::crud<phase_order>
-        {
-        };
-        class batch_phase :
-            public hades::tuple<attr::batch_id, attr::phase_id, attr::start>,
-            public hades::has_candidate_key<attr::batch_id, attr::phase_id>,
-            public hades::relation<relvar::batch_phase>,
-            public hades::crud<batch_phase>
-        {
-        };
-        class batch_phase_history :
-            public hades::tuple<
-                attr::batch_id,
-                attr::phase_id,
-                attr::start,
-                attr::finish>,
-            public hades::has_candidate_key<attr::batch_id, attr::phase_id>,
-            public hades::relation<relvar::batch_phase_history>,
-            public hades::crud<batch_phase_history>
-        {
-        };
-        class sensor :
-            public hades::tuple<attr::sensor_id, attr::sensor_desc>,
-            public hades::has_candidate_key<attr::sensor_id>,
-            public hades::has_flags<
-                flag::moisture_sensor,
-                flag::temperature_sensor>,
-            public hades::relation<relvar::sensor>,
-            public hades::crud<sensor>
-        {
-        };
-        class sensor_at_batch :
-            public hades::tuple<attr::sensor_id, attr::batch_id>,
-            public hades::has_candidate_key<attr::sensor_id>,
-            public hades::relation<relvar::sensor_at_batch>,
-            public hades::crud<sensor_at_batch>
-        {
-        };
-        class moisture_log :
-            public atlas::db::semi_temporal<sensor::id_type, relvar::moisture_log>
-        {
-        };
-        class temperature_log :
-            public atlas::db::semi_temporal<sensor::id_type, relvar::temperature_log>
-        {
+        public:
+            variety_sow_mon()
+            {
+            }
+            variety_sow_mon(const styx::element& e) :
+                styx::object(e)
+            {
+            }
         };
     }
+    class batch :
+        public hades::tuple<attr::batch_id, attr::kb_variety_id>,
+        public hades::has_candidate_key<attr::batch_id>,
+        public hades::relation<relvar::batch>,
+        public hades::crud<batch>
+    {
+    public:
+        batch()
+        {
+        }
+        batch(const styx::element& e) :
+            styx::object(e)
+        {
+        }
+    };
+    class phase :
+        public hades::tuple<attr::phase_id, attr::phase_desc>,
+        public hades::has_candidate_key<attr::phase_id>,
+        public hades::relation<relvar::phase>,
+        public hades::crud<phase>
+    {
+    public:
+        phase()
+        {
+        }
+        phase(const styx::element& e) :
+            styx::object(e)
+        {
+        }
+    };
+    class phase_order :
+        public hades::tuple<attr::phase_id, attr::phase_order>,
+        public hades::has_candidate_key<attr::phase_id>,
+        public hades::relation<relvar::phase_order>,
+        public hades::crud<phase_order>
+    {
+    public:
+        phase_order()
+        {
+        }
+        phase_order(const styx::element& e) :
+            styx::object(e)
+        {
+        }
+    };
+    class batch_phase :
+        public hades::tuple<attr::batch_id, attr::phase_id, attr::start>,
+        public hades::has_candidate_key<attr::batch_id>,
+        public hades::relation<relvar::batch_phase>,
+        public hades::crud<batch_phase>
+    {
+    public:
+        batch_phase()
+        {
+        }
+        batch_phase(const styx::element& e) :
+            styx::object(e)
+        {
+        }
+    };
+    class batch_phase_history :
+        public hades::tuple<
+            attr::batch_id,
+            attr::phase_id,
+            attr::start,
+            attr::finish>,
+        public hades::has_candidate_key<attr::batch_id, attr::phase_id>,
+        public hades::relation<relvar::batch_phase_history>,
+        public hades::crud<batch_phase_history>
+    {
+    };
+    class sensor :
+        public hades::tuple<attr::sensor_id, attr::sensor_desc>,
+        public hades::has_candidate_key<attr::sensor_id>,
+        public hades::has_flags<
+            flag::moisture_sensor,
+            flag::temperature_sensor>,
+        public hades::relation<relvar::sensor>,
+        public hades::crud<sensor>
+    {
+    public:
+        sensor()
+        {
+        }
+        sensor(const styx::element& e) :
+            styx::object(e)
+        {
+        }
+    };
+    class sensor_at_batch :
+        public hades::tuple<attr::sensor_id, attr::batch_id>,
+        public hades::has_candidate_key<attr::sensor_id>,
+        public hades::relation<relvar::sensor_at_batch>,
+        public hades::crud<sensor_at_batch>
+    {
+    };
+    class moisture_log :
+        public atlas::db::semi_temporal<sensor::id_type, relvar::moisture_log>
+    {
+    };
+    class temperature_log :
+        public atlas::db::semi_temporal<sensor::id_type, relvar::temperature_log>
+    {
+    };
 }
 
 #endif

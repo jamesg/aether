@@ -49,8 +49,60 @@
 <ul id="navigation" class="navigation"></ul>
 <div id="template-content" class="content"></div>
 
-<script type="text/template" id="homepage-template">
-<button name="show-modal">Show Modal</button>
+<script type="text/template" id="boardpage-template">
+<div class="button-box">
+    <button type="button" name="new-batch">New Batch</button>
+</div>
+<div name="phases"></div>
+</script>
+
+<script type="text/template" id="phaseform-template">
+<h2>Choose a Starting Phase</h2>
+<p>Select the phase where the batch will be placed first.</p>
+<div class="aligned">
+    <div class="group">
+        <label for="phase_id">Phase</label>
+        <select name="phase_id"></select>
+    </div>
+    <div class="group">
+    </div>
+</div>
+</script>
+
+<script type="text/template" id="varietyform-template">
+<h2>Choose a Variety</h2>
+<p>Select the family and the variety planted.</p>
+<div class="aligned">
+    <div class="group">
+        <label for="family">Family</label>
+        <select name="family"></select>
+    </div>
+    <div class="group">
+        <label for="variety">Variety</label>
+        <select name="variety"></select>
+    </div>
+</div>
+</script>
+
+<script type="text/template" id="sensorform-template">
+<h2>Assign a Sensor</h2>
+<p>If you are going to move a sensor to the batch as soon as it is planted,
+select the sensor here.</p>
+<div class="aligned">
+    <div class="group">
+        <label for="sensor">Sensor</label>
+        <select name="sensor"></select>
+    </div>
+</div>
+</script>
+
+<script type="text/template" id="confirmationform-template">
+<h2>Confirm</h2>
+<p>Check the details for the new batch.  If they are correct, click 'Create' to
+start monitoring the batch.</p>
+<div name="phase"></div>
+<div name="variety"></div>
+<div name="sensor"></div>
 </script>
 
 <script type="text/javascript" src="/atlas/underscore.js"></script>
@@ -58,10 +110,10 @@
 <script type="text/javascript" src="/atlas/jquery.js"></script>
 <script type="text/javascript" src="/atlas/stacked_application.js"></script>
 <script type="text/javascript" src="models.js"></script>
-<script type="text/javascript" src="index.js"></script>
+<script type="text/javascript" src="board.js"></script>
 <script type="text/javascript">
 Backbone.$ = $;
-var gApplication = new StackedApplication(HomePage);
+var gApplication = new StackedApplication(BoardPage);
 gApplication.goHome();
 </script>
 
