@@ -14,7 +14,7 @@ ifeq (${TARGET},UNO)
 		-DARDUINO_ARCH_AVR
 endif
 
-C_FLAGS=\
+C_FLAGS+=\
 		  -g -Os -w -ffunction-sections -fdata-sections \
 		  -MMD -mmcu=atmega328p \
 		  -DF_CPU=16000000L \
@@ -23,7 +23,7 @@ C_FLAGS=\
 		  -I${ARDUINO_AVR_DIR}/cores/arduino \
 		  -I${ARDUINO_AVR_DIR}/variants/standard
 
-CXX_FLAGS=\
+CXX_FLAGS+=\
 	      -fno-exceptions -fno-threadsafe-statics
 MKDIR_P=mkdir -p
 

@@ -5,11 +5,15 @@ ARDUINO_DIR=/home/james/programs/arduino-1.6.3
 ARDUINO_AVR_DIR=${ARDUINO_DIR}/hardware/arduino/avr
 
 # Set PROJECT_SRC to a list of C++ files to build as part of this project.
-PROJECT_SRC=sketch.cpp LiquidCrystal.cpp OneWire.cpp
+# ArduinoJson.cpp includes the library .cpp files from ArduinoJson/ .
+PROJECT_SRC=sketch.cpp ArduinoJson.cpp LiquidCrystal.cpp OneWire.cpp
 
 # Set DEVICE to the ttyUSB device representing the Arduino Uno board.
 DEVICE=/dev/ttyUSB0
 
 # Type of Arduino board: DUE for Arduino Duemilanove or UNO for Arduino Uno.
 TARGET=UNO
+
+C_FLAGS+=\
+	-Iinclude
 
