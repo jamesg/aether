@@ -44,6 +44,7 @@ var ColourPicker = StaticView.extend(
 
                 this._attribute = options['attribute'];
                 var palette = coalesce(options['palette'], PlantPalette);
+                var selected = this.model.get(this._attribute);
 
                 (new CollectionView({
                     el: this.$('div[name=colour]'),
@@ -53,11 +54,12 @@ var ColourPicker = StaticView.extend(
                         templateParams: function() {
                             return {
                                 code: this.model.get('code'),
-                                group: options['attribute']
+                                group: options['attribute'],
+                                selected: (selected == this.model.get('code'))
                             };
                         },
                         template: '\
-                            <input type="radio" id="<%-group%>-<%-code%>" name="<%-group%>" value="<%-code%>"></input>\
+                            <input type="radio" id="<%-group%>-<%-code%>" name="<%-group%>" value="<%-code%>" <%if(selected){%>checked<%}%>></input>\
                             <label for="<%-group%>-<%-code%>" style="background-color: <%-code%>;">\
                             </label>\
                         '
@@ -69,11 +71,11 @@ var ColourPicker = StaticView.extend(
             save: function() {
                 console.log(
                         'save colour value',
-                        this.$('input:radio[name=colourname]:checked').val()
+                        this.$('input:radio[name=' + this._attribute + ']:checked').val()
                         );
                 this.model.set(
                         this._attribute,
-                        this.$('input:radio[name=colourname]:checked').val()
+                        this.$('input:radio[name=' + this._attribute + ']:checked').val()
                         );
             },
             template: '\

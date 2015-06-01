@@ -8,6 +8,8 @@
  */
 .activity-calendar {
     table-layout: fixed;
+    border-spacing: 10px;
+    border-collapse: separate;
 }
 /*
  * Checkbox inputs can't be styled.  Style the label instead.
@@ -17,16 +19,17 @@
 }
 .activity-calendar tr {
     /* Expand cells within the rows. */
-    height: 20px;
+    height: 30px;
 }
 .activity-calendar td {
     height: 100%;
-    width: 2em;
+    min-width: 30px;
 }
 .activity-calendar label {
     display: block;
     min-height: 100%;
     background-color: lavenderblush;
+    border-radius: 0.5em;
 }
 .activity-sow input[type=checkbox]:checked + label {
     background-color: blue;
@@ -39,19 +42,41 @@
 }
 
 .colourpicker span {
-    padding: 5px;
 }
 .colourpicker input[type=radio] {
     display: none;
 }
 .colourpicker label {
+    cursor: pointer;
     display: inline-block;
     width: 30px;
     height: 30px;
-    margin: 0px;
+    margin: 5px;
     border-radius: 0.5em;
 }
 .colourpicker input[type=radio]:checked + label {
     border: 4px solid silver;
+}
+
+.batches {
+    padding-left: 0.5em;
+    list-style-type: none;
+    width: auto;
+}
+
+.batches li {
+    float: left;
+    width: 50%;
+    padding: 0.5em;
+}
+
+.batches .box {
+    border: 1px solid silver;
+    padding: 0;
+}
+
+.batch {
+    border-left: 5px solid;
+    padding: 0.5em;
 }
 

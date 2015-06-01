@@ -162,7 +162,18 @@ var VarietyForm = StaticView.extend(
             this.on('create', this.save.bind(this));
             this.on('save', this.save.bind(this));
         },
+        render: function() {
+            StaticView.prototype.render.apply(this, arguments);
+            this._colourPicker = new ColourPicker({
+                el: this.$('div[name=colourpicker]'),
+                attribute: 'kb_variety_colour',
+                model: this.model,
+                palette: PlantPalette
+            });
+            this._colourPicker.render();
+        },
         save: function() {
+            this._colourPicker.save();
             this.model.set({
                 kb_variety_cname: this.$('input[name=kb_variety_cname]').val(),
                 kb_variety_lname: this.$('input[name=kb_variety_lname]').val(),

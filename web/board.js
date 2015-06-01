@@ -297,12 +297,18 @@ var PhaseView = StaticView.extend(
                 el: this.$('ul[name=batches]'),
                 model: this._batches,
                 view: StaticView.extend({
-                    className: 'batch',
-                    template: '<%-kb_family_lname%> <%-kb_variety_lname%> (<%-kb_variety_cname%>)'
+                    tagName: 'li',
+                    template: '\
+                    <div class="box">\
+                    <div class="batch" style="border-color: <%-kb_variety_colour%>;">\
+                    <%-kb_family_lname%> <%-kb_variety_lname%> (<%-kb_variety_cname%>)\
+                    </div>\
+                    </div>\
+                    '
                 })
             })).render();
         },
-        template: '<h2><%-phase_desc%></h2><ul name="batches"></ul>',
+        template: '<h2><%-phase_desc%></h2><ul class="batches" name="batches"></ul>',
         reload: function() {
             this._batches.fetch();
         },

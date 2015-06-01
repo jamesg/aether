@@ -17,6 +17,7 @@
     type="text/css"
     media="all">
 </link>
+<link href="aether.css" rel="stylesheet" type="text/css" media="all"></link>
 
 </head>
 
@@ -24,29 +25,31 @@
 
 <div id="modal-container" class="modal-container"></div>
 
-<ul class="navigation">
-    <li>
-        <span class="oi" data-glyph="home" aria-hidden="true"> </span>
-        <a href="/">Home</a>
-    </li>
-    <li>
-        <span class="oi" data-glyph="bar-chart" aria-hidden="true"> </span>
-        <a href="/board.html">Progress Board</a>
-    </li>
-    <li>
-        <span class="oi" data-glyph="wrench" aria-hidden="true"> </span>
-        <a href="/settings.html">Settings</a>
-    </li>
-    <li>
-        <span class="oi" data-glyph="magnifying-glass" aria-hidden="true"> </span>
-        <a href="/knowledgebase.html">Knowledge Base</a>
-    </li>
-    <li>
-        <span class="oi" data-glyph="droplet" aria-hidden="true"> </span>
-        <a href="/sensors.html">Sensors</a>
-    </li>
-</ul>
-<ul id="navigation" class="navigation"></ul>
+<div class="header">
+    <ul class="navigation navigation-pages">
+        <li>
+            <span class="oi" data-glyph="home" aria-hidden="true"> </span>
+            <a href="/">Home</a>
+        </li>
+        <li>
+            <span class="oi" data-glyph="bar-chart" aria-hidden="true"> </span>
+            <a href="/board.html">Progress Board</a>
+        </li>
+        <li>
+            <span class="oi" data-glyph="wrench" aria-hidden="true"> </span>
+            <a href="/settings.html">Settings</a>
+        </li>
+        <li>
+            <span class="oi" data-glyph="magnifying-glass" aria-hidden="true"> </span>
+            <a href="/knowledgebase.html">Knowledge Base</a>
+        </li>
+        <li>
+            <span class="oi" data-glyph="droplet" aria-hidden="true"> </span>
+            <a href="/sensors.html">Sensors</a>
+        </li>
+    </ul>
+<ul id="navigation" class="navigation navigation-breadcrumbs"></ul>
+</div>
 <div id="template-content" class="content"></div>
 
 <script type="text/template" id="boardpage-template">

@@ -42,13 +42,23 @@ aether::server::server(
         boost::bind(&atlas::http::router::serve, m_router, _1, _2, _3, _4)
         );
 
-    m_radio_server.reset(new radio_server(m_io, *m_connection));
+    try
+    {
+        m_radio_server.reset(new radio_server(m_io, *m_connection));
+    }
+    catch(const std::exception& e)
+    {
+        atlas::log::warning("aether::server::server") <<
+            "starting radio server: " << e.what();
+    }
 }
 
 void aether::server::start()
 {
-    m_http_server->start();
-    m_radio_server->start();
+    if(m_http_server)
+        m_http_server->start();
+    if(m_radio_server)
+        m_radio_server->start();
 }
 
 void aether::server::stop()

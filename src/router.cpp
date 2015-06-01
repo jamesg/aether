@@ -103,10 +103,11 @@ aether::router::router(hades::connection& conn)
                     kb::variety,
                     kb::family>(
                         conn,
-                        "aether_batch.batch_id = aether_batch_phase.batch_id AND "
-                        "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
-                        "aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id ",
+                        "aether_batch.batch_id = aether_batch_phase.batch_id ",
                         hades::where(
+                            "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
+                            "aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id AND "
+                            "aether_batch.batch_id IS NOT NULL AND "
                             "aether_batch_phase.phase_id = ? ",
                             hades::row<int>(phase_id)
                             )

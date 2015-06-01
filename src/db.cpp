@@ -11,6 +11,7 @@ const char aether::attr::kb_variety_id[] = "kb_variety_id";
 const char aether::attr::kb_variety_cname[] = "kb_variety_cname";
 const char aether::attr::kb_variety_lname[] = "kb_variety_lname";
 const char aether::attr::kb_variety_weeks[] = "kb_variety_weeks";
+const char aether::attr::kb_variety_colour[] = "kb_variety_colour";
 const char aether::attr::kb_variety_harvest_mon_month[] = "kb_variety_harvest_mon_month";
 const char aether::attr::kb_variety_plant_mon_month[] = "kb_variety_plant_mon_month";
 const char aether::attr::kb_variety_sow_mon_month[] = "kb_variety_sow_mon_month";
@@ -65,6 +66,7 @@ void aether::db::create(hades::connection& conn)
         " kb_variety_cname VARCHAR, "
         " kb_variety_lname VARCHAR, "
         " kb_variety_weeks INTEGER, "
+        " kb_variety_colour VARCHAR, "
         " kb_family_id INTEGER REFERENCES aether_kb_family(kb_family_id) "
         " ) ",
         conn

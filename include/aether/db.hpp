@@ -21,6 +21,7 @@ namespace aether
         extern const char kb_variety_cname[];
         extern const char kb_variety_lname[];
         extern const char kb_variety_weeks[];
+        extern const char kb_variety_colour[];
         // kb_family_id
 
         extern const char kb_variety_harvest_mon_month[];
@@ -110,7 +111,8 @@ namespace aether
                 attr::kb_variety_cname,
                 attr::kb_variety_lname,
                 attr::kb_family_id,
-                attr::kb_variety_weeks>,
+                attr::kb_variety_weeks,
+                attr::kb_variety_colour>,
             public hades::has_candidate_key<attr::kb_variety_id>,
             public hades::has_flags<
                 flag::kb_variety_container,
