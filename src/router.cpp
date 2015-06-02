@@ -3,8 +3,10 @@
 #include <boost/bind.hpp>
 
 #include "aether/db.hpp"
+#include "atlas/db/date.hpp"
 #include "atlas/http/server/static_string.hpp"
 #include "hades/crud.ipp"
+#include "hades/custom_select.hpp"
 #include "hades/join.hpp"
 
 #include "kb_router.hpp"
@@ -65,13 +67,61 @@ aether::router::router(hades::connection& conn)
                 hades::outer_join<
                     batch,
                     batch_phase,
-                    kb::family,
-                    kb::variety>(
+                    kb::variety,
+                    kb::family>(
                         conn,
                         "aether_batch.batch_id = aether_batch_phase.batch_id AND "
                         "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
                         "aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id "
                         )
+                );
+        }
+        );
+    install<int>(
+        atlas::http::matcher("/api/batch/([0-9]+)", "GET"),
+        [&conn](const int batch_id) {
+            styx::list batches(
+                hades::outer_join<
+                        batch,
+                        batch_phase,
+                        kb::variety,
+                        kb::family>(
+                            conn,
+                            hades::where(
+                                "aether_batch.batch_id = ? ",
+                                hades::row<int>(batch_id)
+                                )
+                            )
+                );
+            if(batches.size() == 0)
+                return atlas::http::json_error_response("batch not found");
+            return atlas::http::json_response(batches.at(0));
+        }
+        );
+    install<int>(
+        atlas::http::matcher("/api/batch/([0-9]+)/history", "GET"),
+        [&conn](const int batch_id) {
+            return atlas::http::json_response(
+                hades::custom_select<
+                    batch,
+                    hades::row<int, int>,
+                    attr::batch_id, attr::start, attr::finish,
+                    attr::phase_id, attr::phase_desc
+                    >(
+                        conn,
+                        "SELECT batch_id, start, NULL AS finish, aether_phase.phase_id AS phase_id, phase_desc "
+                        " FROM aether_batch_phase "
+                        " JOIN aether_phase "
+                        "  ON aether_batch_phase.phase_id = aether_phase.phase_id "
+                        " WHERE batch_id = ? "
+                        "UNION "
+                        "SELECT batch_id, start, finish, aether_phase.phase_id AS phase_id, phase_desc "
+                        " FROM aether_batch_phase_history "
+                        " JOIN aether_phase "
+                        "  ON aether_batch_phase_history.phase_id = aether_phase.phase_id "
+                        " WHERE batch_id = ? ",
+                        hades::row<int, int>(batch_id, batch_id)
+                    )
                 );
         }
         );
@@ -88,7 +138,31 @@ aether::router::router(hades::connection& conn)
         );
     install_json<batch, int>(
         atlas::http::matcher("/api/batch/([0-9]+)", "PUT"),
-        [&conn](batch b, const int) {
+        [&conn](batch b, const int batch_id) {
+            try
+            {
+                batch_phase current_phase(
+                    hades::get_by_id<batch_phase>(conn, batch::id_type{batch_id})
+                    );
+                if(
+                    b.has_key(attr::phase_id) &&
+                    b.get_int(attr::phase_id) != current_phase.get_int<attr::phase_id>()
+                  )
+                {
+                    // Add the current phase to the history.
+                    // 'history' will be constructed with the current time.
+                    batch_phase_history history(current_phase);
+                    history.insert(conn);
+                    // Overwrite the current phase.
+                    current_phase.get_int<attr::phase_id>() = b.get_int(attr::phase_id);
+                    current_phase.update(conn);
+                }
+            }
+            catch(const std::exception& e)
+            {
+                atlas::log::warning("aether::router") << "update batch without phase_id";
+            }
+
             b.update(conn);
             return atlas::http::json_response(b);
             }

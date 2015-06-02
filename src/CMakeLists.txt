@@ -4,6 +4,7 @@ include_directories(./)
 target_link_libraries(
     aether-server-lib
     atlas-com-api
+    atlas-com-db
     atlas-com-http-server
     hades
     ${CMAKE_CURRENT_BINARY_DIR}/../web/static.a

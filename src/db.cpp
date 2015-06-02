@@ -1,5 +1,6 @@
 #include "aether/db.hpp"
 
+#include "atlas/db/date.hpp"
 #include "hades/crud.ipp"
 #include "hades/devoid.hpp"
 
@@ -44,6 +45,14 @@ const char aether::flag::kb_variety_prefer_sun[] = "aether_kb_variety_prefer_sun
 const char aether::flag::favourite_variety[] = "aether_favourite_variety";
 const char aether::flag::moisture_sensor[] = "aether_moisture_sensor";
 const char aether::flag::temperature_sensor[] = "aether_temperature_sensor";
+
+aether::batch_phase_history::batch_phase_history(const batch_phase& e) :
+    styx::object(e)
+{
+    get_string<attr::finish>() = atlas::db::date::to_string(
+            boost::posix_time::second_clock::universal_time()
+            );
+}
 
 void aether::db::create(hades::connection& conn)
 {

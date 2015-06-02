@@ -259,6 +259,18 @@ namespace aether
         public hades::relation<relvar::batch_phase_history>,
         public hades::crud<batch_phase_history>
     {
+    public:
+        batch_phase_history()
+        {
+        }
+        batch_phase_history(const styx::element& e) :
+            styx::object(e)
+        {
+        }
+        /*!
+         * \brief Add the finish date attribute using the current time.
+         */
+        batch_phase_history(const batch_phase&);
     };
     class sensor :
         public hades::tuple<attr::sensor_id, attr::sensor_desc>,

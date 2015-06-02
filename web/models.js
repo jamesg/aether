@@ -62,6 +62,7 @@ var Batch = RestModel.extend(
             kb_variety_cname: '',
             kb_variety_lname: ''
         },
+        idAttribute: 'batch_id',
         url: function() {
             return this.isNew() ?
                 restUri('batch') :
