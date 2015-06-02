@@ -10,6 +10,26 @@
 #include "hades/connection.hpp"
 
 #include "../radio_server.hpp"
+#include "../sensor_api.hpp"
+
+namespace
+{
+    class sensor_server :
+        public aether::radio_server,
+        public aether::sensor_api
+    {
+    public:
+        sensor_server(
+                boost::shared_ptr<boost::asio::io_service> io,
+                hades::connection& conn
+                ) :
+            atlas::api::server(io),
+            aether::radio_server(io),
+            aether::sensor_api(conn)
+        {
+        }
+    };
+}
 
 aether::server::server(
     const options& opts,
@@ -44,7 +64,7 @@ aether::server::server(
 
     try
     {
-        m_radio_server.reset(new radio_server(m_io, *m_connection));
+        m_radio_server.reset(new sensor_server(m_io, *m_connection));
     }
     catch(const std::exception& e)
     {

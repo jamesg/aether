@@ -10,31 +10,12 @@
 #include "styx/serialise_json.hpp"
 
 aether::radio_server::radio_server(
-        boost::shared_ptr<boost::asio::io_service> io,
-        hades::connection& conn
+        boost::shared_ptr<boost::asio::io_service> io
         ) :
     atlas::api::server(io),
     m_io(io),
     m_port(*io, "/dev/ttyAMA0")
 {
-    install<std::string>(
-            "status",
-            []() {
-                return "ok";
-            }
-            );
-    install<bool, int>(
-            "record_moisture",
-            [&conn](const int moisture) {
-                return true;
-            }
-            );
-    install<bool, double>(
-            "record_temperature",
-            [&conn](const double temperature) {
-                return true;
-            }
-            );
 }
 
 void aether::radio_server::start()

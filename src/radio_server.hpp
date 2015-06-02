@@ -15,13 +15,10 @@ namespace aether
 {
     class radio_server :
         public boost::enable_shared_from_this<radio_server>,
-        atlas::api::server
+        public virtual atlas::api::server
     {
     public:
-        radio_server(
-                boost::shared_ptr<boost::asio::io_service> io,
-                hades::connection& conn
-                );
+        radio_server(boost::shared_ptr<boost::asio::io_service>);
         void start();
     private:
         void async_read();
