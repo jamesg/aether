@@ -44,7 +44,7 @@ aether::server::server(
 
     m_connection.reset(new hades::connection(opts.db));
     db::create(*m_connection);
-    m_router.reset(new aether::router(*m_connection));
+    m_router.reset(new aether::router(io, *m_connection));
     m_http_server.reset(
         new atlas::http::server(m_io, opts.address.c_str(), opts.port.c_str())
         );

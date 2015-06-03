@@ -10,6 +10,7 @@
 #include "hades/join.hpp"
 
 #include "kb_router.hpp"
+#include "sensor_api.hpp"
 
 #define AETHER_DECLARE_STATIC_STRING(NAME) ATLAS_DECLARE_STATIC_STRING(aether, NAME)
 #define AETHER_STATIC_STD_STRING(NAME) ATLAS_STATIC_STD_STRING(aether, NAME)
@@ -30,7 +31,15 @@ AETHER_DECLARE_STATIC_STRING(sensors_js)
 AETHER_DECLARE_STATIC_STRING(settings_html)
 AETHER_DECLARE_STATIC_STRING(settings_js)
 
-aether::router::router(hades::connection& conn)
+namespace
+{
+    static constexpr char sowing[] = "sowing";
+}
+
+aether::router::router(
+        boost::shared_ptr<boost::asio::io_service> io,
+        hades::connection& conn
+        )
 {
     install_static_text("/", "html", AETHER_STATIC_STD_STRING(index_html));
 
@@ -54,6 +63,12 @@ aether::router::router(hades::connection& conn)
     install(
         atlas::http::matcher("/api/kb(.*)", 1),
         boost::bind(&atlas::http::router::serve, kbr, _1, _2, _3, _4)
+        );
+
+    boost::shared_ptr<sensor_api> sapi(new sensor_api(io, conn));
+    install(
+        atlas::http::matcher("/rpc/sensor"),
+        boost::bind(&atlas::api::server::serve, sapi, _1, _2, _3, _4)
         );
 
     //
@@ -132,6 +147,9 @@ aether::router::router(hades::connection& conn)
             batch_phase bp;
             bp.set_id(b.id());
             bp.get_int("phase_id") = b.get_int("phase_id");
+            bp.get_string<attr::start>() = atlas::db::date::to_string(
+                boost::posix_time::second_clock::universal_time()
+                );
             bp.insert(conn);
             return atlas::http::json_response(b);
         }
@@ -155,6 +173,9 @@ aether::router::router(hades::connection& conn)
                     history.insert(conn);
                     // Overwrite the current phase.
                     current_phase.get_int<attr::phase_id>() = b.get_int(attr::phase_id);
+                    current_phase.get_string<attr::start>() = atlas::db::date::to_string(
+                        boost::posix_time::second_clock::universal_time()
+                        );
                     current_phase.update(conn);
                 }
             }
@@ -171,22 +192,66 @@ aether::router::router(hades::connection& conn)
         atlas::http::matcher("/api/phase/([0-9]+)/batch", "GET"),
         [&conn](const int phase_id) {
             return atlas::http::json_response(
-                hades::outer_join<
+                hades::custom_select<
                     batch,
-                    batch_phase,
-                    kb::variety,
-                    kb::family>(
-                        conn,
-                        "aether_batch.batch_id = aether_batch_phase.batch_id ",
-                        hades::where(
-                            "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
-                            "aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id AND "
-                            "aether_batch.batch_id IS NOT NULL AND "
-                            "aether_batch_phase.phase_id = ? ",
-                            hades::row<int>(phase_id)
-                            )
-                        )
+                    hades::row<int, int>,
+                    attr::batch_id,
+                    attr::phase_id, attr::phase_desc,
+                    attr::kb_variety_id, attr::kb_variety_cname, attr::kb_variety_lname,
+                    attr::kb_variety_colour,
+                    attr::kb_family_id, attr::kb_family_cname, attr::kb_family_lname,
+                    attr::kb_family_desc,
+                    attr::start, sowing
+                    >(
+                    conn,
+                    "SELECT aether_batch.batch_id, "
+                    " aether_phase.phase_id, aether_phase.phase_desc, "
+                    " aether_kb_variety.kb_variety_id, aether_kb_variety.kb_variety_cname, "
+                    " aether_kb_variety.kb_variety_lname, aether_kb_variety.kb_variety_colour, "
+                    " aether_kb_family.kb_family_id, aether_kb_family.kb_family_cname, "
+                    " aether_kb_family.kb_family_lname, aether_kb_family.kb_family_desc, "
+                    " aether_batch_phase.start, MIN(batch_history.start) AS sowing "
+                    "FROM "
+                    " aether_batch "
+                    " JOIN aether_phase "
+                    " JOIN aether_batch_phase "
+                    " JOIN aether_kb_variety "
+                    " JOIN aether_kb_family "
+                    " JOIN ( "
+                    "  SELECT batch_id, start, NULL AS finish, phase_id FROM aether_batch_phase "
+                    "   WHERE aether_batch_phase.phase_id = ? "
+                    " UNION "
+                    "  SELECT batch_id, start, finish, phase_id FROM aether_batch_phase_history "
+                    " ) AS batch_history "
+                    " ON "
+                    "  aether_batch.batch_id = aether_batch_phase.batch_id AND "
+                    "  aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
+                    "  aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id AND "
+                    "  aether_batch_phase.phase_id = aether_phase.phase_id AND "
+                    "  aether_batch.batch_id = batch_history.batch_id "
+                    " WHERE "
+                    "  aether_batch.batch_id IS NOT NULL AND "
+                    "  aether_batch_phase.phase_id = ? "
+                    " GROUP BY aether_batch.batch_id ",
+                    hades::row<int, int>(phase_id, phase_id)
+                    )
                 );
+                //hades::outer_join<
+                    //batch,
+                    //batch_phase,
+                    //kb::variety,
+                    //kb::family>(
+                        //conn,
+                        //"aether_batch.batch_id = aether_batch_phase.batch_id ",
+                        //hades::where(
+                            //"aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
+                            //"aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id AND "
+                            //"aether_batch.batch_id IS NOT NULL AND "
+                            //"aether_batch_phase.phase_id = ? ",
+                            //hades::row<int>(phase_id)
+                            //)
+                        //)
+                //);
         }
         );
 

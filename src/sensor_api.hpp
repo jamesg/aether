@@ -15,6 +15,12 @@ namespace aether
     {
     public:
         sensor_api(hades::connection& conn);
+        sensor_api(
+                boost::shared_ptr<boost::asio::io_service>,
+                hades::connection& conn
+                );
+    private:
+        void install_sensor_api(hades::connection& conn);
     };
 }
 

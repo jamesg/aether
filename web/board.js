@@ -1,3 +1,7 @@
+var formatUtcDate = function(str) {
+    return moment.utc(str).local().format('dddd, Do MMMM YYYY h:mma');
+};
+
 var NewBatchWizard = function() {
     _.extend(this, Backbone.Events);
     this.model = new Batch;
@@ -11,11 +15,13 @@ NewBatchWizard.prototype = {
                 initialize: function() {
                     StaticView.prototype.initialize.apply(this, arguments);
                     StaticView.prototype.render.apply(this);
-
                     this._phases = new PhaseCollection;
                     this._phases.fetch({
                         success: (function() {
-                            this.$('select[name=phase_id]').val(this.model.get('phase_id'));
+                            if(this.model.has('phase_id'))
+                                this.$('select[name=phase_id]').val(this.model.get('phase_id'));
+                            else if(this._phases.length > 0)
+                                this.$('select[name=phase_id]').val(this._phases.at(0).get('phase_id'));
                         }).bind(this)
                     });
 
@@ -25,7 +31,9 @@ NewBatchWizard.prototype = {
                         view: StaticView.extend({
                             tagName: 'option',
                             attributes: function() {
-                                return { value: this.model.get('phase_id') };
+                                return {
+                                    value: this.model.get('phase_id')
+                                };
                             },
                             template: '<%-phase_desc%>'
                         })
@@ -35,7 +43,6 @@ NewBatchWizard.prototype = {
                 },
                 // Save form options to the model.
                 save: function() {
-                    console.log('set ', this.$('select[name=phase_id]').val());
                     this.model.set({
                         phase_id: this.$('select[name=phase_id]').val()
                     });
@@ -44,7 +51,7 @@ NewBatchWizard.prototype = {
                 render: function() {
                 }
             }),
-            buttons: [ StandardButton.next() ]
+            buttons: [ StandardButton.cancel(), StandardButton.next() ]
         });
         this.listenTo(
             m,
@@ -125,6 +132,7 @@ NewBatchWizard.prototype = {
                 }
             }),
             buttons: [
+                StandardButton.cancel(),
                 StandardButton.prev(),
                 StandardButton.next()
             ]
@@ -187,6 +195,7 @@ NewBatchWizard.prototype = {
                 }
             }),
             buttons: [
+                StandardButton.cancel(),
                 StandardButton.prev(),
                 StandardButton.next()
             ]
@@ -261,6 +270,7 @@ NewBatchWizard.prototype = {
                 }
             }),
             buttons: [
+                StandardButton.cancel(),
                 StandardButton.prev(),
                 StandardButton.create()
             ]
@@ -305,7 +315,7 @@ var BatchInfoView = StaticView.extend(
                     defaults: {
                         phase_desc: '',
                         start: '',
-                        finish: 'now'
+                        finish: ''
                     }
                 })),
                 url: '/api/batch/' + this.model.get('batch_id') + '/history',
@@ -319,7 +329,16 @@ var BatchInfoView = StaticView.extend(
                 el: this.$('ul[name=history]'),
                 view: StaticView.extend({
                     tagName: 'li',
-                    template: '<%-phase_desc%> (from <%-start%> to <%-finish%>)'
+                    template: '<%-phase_desc%> (from <%-start%> to <%-finish%>)',
+                    templateParams: function() {
+                        var params = _.clone(this.model.attributes);
+                        params.start = formatUtcDate(this.model.get('start'));
+                        if(this.model.get('finish') == '')
+                            params.finish = 'now';
+                        else
+                            params.finish = formatUtcDate(this.model.get('finish'));
+                        return params;
+                    }
                 }),
                 model: history
             })).render();
@@ -340,10 +359,26 @@ var ChangePhaseForm = StaticView.extend(
             StaticView.prototype.initialize.apply(this, arguments);
             StaticView.prototype.render.apply(this);
             var phases = new PhaseCollection;
-            phases.fetch();
+            phases.fetch({
+                    success: (function() {
+                        if(phases.length == 0) return;
+                        var currentPhaseIndex = phases.indexOf(
+                            phases.get(this.model.get('phase_id'))
+                            );
+                        this.$('select[name=phase]').val(
+                            phases.at(
+                                (phases.length > currentPhaseIndex) ?
+                                currentPhaseIndex + 1 : 0
+                                ).get('phase_id')
+                            );
+                    }).bind(this)
+                });
             (new CollectionView({
                 el: this.$('select[name=phase]'),
                 model: phases,
+                filter: (function(phase) {
+                    return (this.model.get('phase_id') != phase.get('phase_id'));
+                }).bind(this),
                 view: StaticView.extend({
                     tagName: 'option',
                     attributes: function() {
@@ -389,53 +424,79 @@ var PhaseView = StaticView.extend(
             (new CollectionView({
                 el: this.$('ul[name=batches]'),
                 model: this._batches,
+                emptyView: StaticView.extend({
+                    template: '\
+                    <div class="box">There are no batches in this phase.</div>\
+                    '
+                }),
                 view: StaticView.extend({
                     tagName: 'li',
                     template: '\
                     <div class="box">\
                     <div class="batch" style="border-color: <%-kb_variety_colour%>;">\
-                    <%-kb_family_cname%> <%-kb_variety_lname%> (<%-kb_variety_cname%>)\
+                    <table>\
+                    <tr>\
+                        <td>Name</td>\
+                        <td><%-kb_family_cname%> <%-kb_variety_lname%> (<%-kb_variety_cname%>)</td>\
+                    </tr>\
+                    <tr><td>Sown</td><td><%-sowing_s%></td></tr>\
+                    <tr><td>Planted</td><td><%-start_s%></td></tr>\
+                    </table>\
                     </div>\
                     </div>\
                     ',
-                events: {
-                    click: 'showBatchInfo'
-                },
-                showBatchInfo: function() {
-                    var m = new Modal({
-                        model: this.model,
-                        view: BatchInfoView,
-                        buttons: [
-                            new ModalButton({ name: 'move', label: 'Plant On' }),
-                            StandardButton.close()
-                        ]
-                    });
-                    this.listenTo(m, 'move', this.moveOn.bind(this));
-                    gApplication.modal(m);
-                },
-                moveOn: function() {
-                    var m = new Modal({
-                        model: this.model,
-                        view: ChangePhaseForm,
-                        buttons: [
-                            StandardButton.cancel(),
-                            StandardButton.ok()
-                        ]
-                    });
-                    this.listenTo(
+                    templateParams: function() {
+                        return _.extend(
+                            _.clone(this.model.attributes),
+                            {
+                                sowing_s: formatUtcDate(this.model.get('sowing')),
+                                start_s: formatUtcDate(this.model.get('start'))
+                            }
+                            );
+                    },
+                    events: {
+                        click: 'showBatchInfo'
+                    },
+                    showBatchInfo: function() {
+                        var m = new Modal({
+                            model: this.model,
+                            view: BatchInfoView,
+                            buttons: [
+                                new ModalButton({ name: 'move', label: 'Plant On' }),
+                                StandardButton.close()
+                            ]
+                        });
+                        this.listenTo(m, 'move', this.moveOn.bind(this));
+                        this.listenTo(m, 'close', m.finish.bind(m));
+                        gApplication.modal(m);
+                    },
+                    moveOn: function() {
+                        var m = new Modal({
+                            model: this.model,
+                            view: ChangePhaseForm,
+                            buttons: [
+                                StandardButton.cancel(),
+                                StandardButton.ok()
+                            ]
+                        });
+                        this.listenTo(
                             m,
                             'ok',
                             (function() {
-                                this.model.save({
-                                    success: function() {
-                                        gApplication.currentPage().reset()
+                                this.model.save(
+                                    {},
+                                    {
+                                        success: function() {
+                                            gApplication.currentPage().reset()
+                                            m.finish();
+                                        }
                                     }
-                                });
-                                console.log('moved on to', this.model.get('phase_id'));
+                                    );
                             }).bind(this)
                             );
-                    gApplication.modal(m);
-                }
+                        this.listenTo(m, 'cancel', m.finish.bind(m));
+                        gApplication.modal(m);
+                    }
                 })
             })).render();
         },
@@ -453,6 +514,10 @@ var BoardPage = PageView.extend(
         pageTitle: 'Progress Board',
         initialize: function() {
             PageView.prototype.initialize.apply(this, arguments);
+            this.reset();
+        },
+        reset: function() {
+            console.log('reset progress board');
             PageView.prototype.render.apply(this);
 
             this._phases = new PhaseCollection;
@@ -464,9 +529,6 @@ var BoardPage = PageView.extend(
                 view: PhaseView
             });
             this._phasesView.render();
-        },
-        reset: function() {
-            this._phases.fetch();
         },
         template: this.$('#boardpage-template').html(),
         render: function() {
