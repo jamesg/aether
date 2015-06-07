@@ -77,22 +77,6 @@ void setup()
     callback_timer.after(0, &send_status);
 }
 
-void jsonrpc_request(
-        JsonObject& request,
-        success_callback_type success,
-        error_callback_type error
-        )
-{
-    reset_callbacks();
-    last_request_id = request["id"];
-    success_callback = success;
-    error_callback = error;
-    request.printTo(Serial);
-    Serial.println();
-    // Allow five seconds for the server to reply.
-    callback_timer.after(5000, &handle_jsonrpc_error);
-}
-
 int decode_moisture()
 {
     int moisture_val = analogRead(0);
@@ -153,6 +137,24 @@ void send_status()
     jsonrpc_request(root, &send_status_received, &send_status_error);
 }
 
+void send_status_received(JsonObject& result)
+{
+    log_string("rec status");
+    const char *status = result["result"];
+    if(status)
+        log_string(status);
+    else
+        log_string("invalid status");
+    callback_timer.after(1000, &send_moisture);
+}
+
+void send_status_error(const char *error)
+{
+    log_string("send status err");
+
+    callback_timer.after(0, &send_status);
+}
+
 void send_moisture()
 {
     json_buffer_type json_buffer;
@@ -163,6 +165,24 @@ void send_moisture()
     params.add(moisture_val);
     root["id"] = last_request_id = 2;
     jsonrpc_request(root, &send_moisture_received, &send_moisture_error);
+}
+
+void send_moisture_received(JsonObject& result)
+{
+    log_string("rec moisture");
+    bool status = result["result"];
+    if(status)
+        log_string("moisture success");
+    else
+        log_string("moisture error");
+    callback_timer.after(1000, &send_temperature);
+}
+
+void send_moisture_error(const char *error)
+{
+    log_string("send moisture err");
+
+    callback_timer.after(0, &send_moisture);
 }
 
 void send_temperature()
@@ -182,6 +202,40 @@ void send_temperature()
     {
         callback_timer.after(0, &send_status);
     }
+}
+
+void send_temperature_received(JsonObject& result)
+{
+    log_string("rec temp");
+    bool status = result["result"];
+    if(status)
+        log_string("temp success");
+    else
+        log_string("temp error");
+    callback_timer.after(1000, &send_status);
+}
+
+void send_temperature_error(const char *error)
+{
+    log_string("send temp err");
+
+    callback_timer.after(0, &send_temperature);
+}
+
+void jsonrpc_request(
+        JsonObject& request,
+        success_callback_type success,
+        error_callback_type error
+        )
+{
+    reset_callbacks();
+    last_request_id = request["id"];
+    success_callback = success;
+    error_callback = error;
+    request.printTo(Serial);
+    Serial.println();
+    // Allow five seconds for the server to reply.
+    callback_timer.after(5000, &handle_jsonrpc_timeout);
 }
 
 void handle_jsonrpc_result(JsonObject& result)
@@ -211,7 +265,7 @@ void handle_jsonrpc_result(JsonObject& result)
     }
 }
 
-void handle_jsonrpc_error()
+void handle_jsonrpc_timeout()
 {
     error_callback_type cb = error_callback;
     reset_callbacks();
@@ -221,60 +275,6 @@ void handle_jsonrpc_error()
     char buf[16];
     snprintf(buf, sizeof(buf), "err %lu", millis());
     log_string(buf);
-}
-
-void send_status_received(JsonObject& result)
-{
-    log_string("rec status");
-    const char *status = result["result"];
-    if(status)
-        log_string(status);
-    else
-        log_string("invalid status");
-    callback_timer.after(1000, &send_moisture);
-}
-
-void send_status_error(const char *error)
-{
-    log_string("send status err");
-
-    callback_timer.after(0, &send_status);
-}
-
-void send_moisture_received(JsonObject& result)
-{
-    log_string("rec moisture");
-    bool status = result["result"];
-    if(status)
-        log_string("moisture success");
-    else
-        log_string("moisture error");
-    callback_timer.after(1000, &send_temperature);
-}
-
-void send_moisture_error(const char *error)
-{
-    log_string("send moisture err");
-
-    callback_timer.after(0, &send_moisture);
-}
-
-void send_temperature_received(JsonObject& result)
-{
-    log_string("rec temp");
-    bool status = result["result"];
-    if(status)
-        log_string("temp success");
-    else
-        log_string("temp error");
-    callback_timer.after(1000, &send_status);
-}
-
-void send_temperature_error(const char *error)
-{
-    log_string("send temp err");
-
-    callback_timer.after(0, &send_temperature);
 }
 
 void check_incoming_message()

@@ -19,15 +19,31 @@ public:
      */
     static const int INVALID_ID = -1;
 
-    timer();
-
+    /*!
+     * \brief Add a timer to fire once after 'millis' milliseconds.
+     *
+     * \param millis Number of milliseconds to wait (minimum) before the timer is fired.
+     * \param callback Nullary function to call.
+     *
+     * \return The unique (among current timers) id of the timer.
+     */
     id_type after(long millis, callback_type callback);
+
     /*!
      * \brief Stop all timers from firing.
      */
     void reset();
+
+    /*!
+     * \brief Stop a single timer.
+     *
+     * \param timer_id Id of the timer to stop.
+     */
     void stop(id_type timer_id);
 
+    /*!
+     * \brief Fire any timers that have expired since update() was last called.
+     */
     void update();
 
 private:

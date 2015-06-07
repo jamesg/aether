@@ -1,9 +1,5 @@
 #include "timer.hpp"
 
-timer::timer()
-{
-}
-
 timer::id_type timer::after(long millis_, callback_type callback)
 {
     int timer_id = next_timer();
