@@ -24,7 +24,6 @@ OneWire ds(10);
 
 // Timer to wait for a reply from the server.
 timer callback_timer;
-int callback_event_id;
 
 char incoming_buffer[INCOMING_SIZE];
 int incoming_index;
@@ -34,8 +33,7 @@ byte ds18b20_addr[8];
 
 void reset_callbacks()
 {
-    callback_timer.stop(callback_event_id);
-    callback_event_id = timer::INVALID_ID;
+    callback_timer.reset();
 
     last_request_id = INVALID_LAST_REQUEST_ID;
     success_callback = 0;
@@ -59,8 +57,6 @@ void set_ds18b20_mode()
 
 void setup()
 {
-    callback_event_id = timer::INVALID_ID;
-
     last_request_id = INVALID_LAST_REQUEST_ID;
     success_callback = 0;
     incoming_index = 0;
@@ -94,8 +90,7 @@ void jsonrpc_request(
     request.printTo(Serial);
     Serial.println();
     // Allow five seconds for the server to reply.
-    if(callback_event_id == timer::INVALID_ID)
-        callback_event_id = callback_timer.after(5000, &handle_jsonrpc_error);
+    callback_timer.after(5000, &handle_jsonrpc_error);
 }
 
 int decode_moisture()
@@ -195,25 +190,23 @@ void handle_jsonrpc_result(JsonObject& result)
     // Ignore responses that do not match the last request sent.
     if(jsonrpc_id == last_request_id)
     {
-        log_string("match");
-        last_request_id = INVALID_LAST_REQUEST_ID;
+        success_callback_type sc = success_callback;
+        error_callback_type ec = error_callback;
+        reset_callbacks();
         // Check for errors in the JSONRPC result.
         if((const char*)(result["error"]) == 0) {
             // Success.
-            success_callback_type cb = success_callback;
-            reset_callbacks();
-            if(cb)
-                cb(result);
+            if(sc)
+                sc(result);
         }
         else
         {
             log_string("no match");
             // Error.
-            error_callback_type cb = error_callback;
             reset_callbacks();
             const char *error_str = result["error"];
-            if(cb)
-                cb(error_str);
+            if(ec)
+                ec(error_str);
         }
     }
 }
@@ -245,7 +238,7 @@ void send_status_error(const char *error)
 {
     log_string("send status err");
 
-    callback_timer.after(1000, &send_status);
+    callback_timer.after(0, &send_status);
 }
 
 void send_moisture_received(JsonObject& result)
@@ -261,9 +254,9 @@ void send_moisture_received(JsonObject& result)
 
 void send_moisture_error(const char *error)
 {
-    //log_string("send moisture");
+    log_string("send moisture err");
 
-    callback_timer.after(1000, &send_moisture);
+    callback_timer.after(0, &send_moisture);
 }
 
 void send_temperature_received(JsonObject& result)
@@ -279,12 +272,9 @@ void send_temperature_received(JsonObject& result)
 
 void send_temperature_error(const char *error)
 {
-        log_string("send temp err");
-    if(error)
-    {
-    }
+    log_string("send temp err");
 
-    callback_timer.after(1000, &send_temperature);
+    callback_timer.after(0, &send_temperature);
 }
 
 void check_incoming_message()

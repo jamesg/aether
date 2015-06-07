@@ -14,14 +14,16 @@ timer::id_type timer::after(long millis_, callback_type callback)
     next->callback = callback;
 }
 
+void timer::reset()
+{
+    for(int i = 0; i < ENTRY_COUNT; ++i)
+        m_entries[i] = entry();
+}
+
 void timer::stop(int timer_id)
 {
     if(timer_id >= 0 && timer_id < ENTRY_COUNT)
-    {
         m_entries[timer_id] = entry();
-        m_entries[timer_id].callback = 0;
-        m_entries[timer_id].time = 0;
-    }
 }
 
 void timer::update()

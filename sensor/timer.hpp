@@ -22,6 +22,10 @@ public:
     timer();
 
     id_type after(long millis, callback_type callback);
+    /*!
+     * \brief Stop all timers from firing.
+     */
+    void reset();
     void stop(id_type timer_id);
 
     void update();
