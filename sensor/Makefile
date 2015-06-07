@@ -1,3 +1,42 @@
+#
+# Makefile for compiling and uploading Arduino sketches.
+#
+# You will need to have the gcc-avr and avrdude packages for your distribution
+# installed.  List the source files to be compiled for the Arduino (you should
+# define setup() and loop() as for any Arduino sketch).  Copy Arduino libraries
+# into the same directory as the source files and add their .cpp source files
+# to the list; this makefile doesn't find libraries from your Arduino
+# installation.
+#
+# Run 'make' to compile your sketch and the libraries.  If everything compiled,
+# run 'make upload' to copy the sketch to the microcontroller.
+#
+
+# Uncomment these variable lines or copy them into 'Makefile.config' and
+# uncomment the line 'include Makefile.config'.
+
+#
+## Set ARDUINO_DIR to the location of the Arduino IDE.
+#ARDUINO_DIR=/home/james/programs/arduino-1.6.3
+#
+## ARDUINO_AVR_DIR contains the Arduino C and C++ framework.
+#ARDUINO_AVR_DIR=${ARDUINO_DIR}/hardware/arduino/avr
+#
+## Set PROJECT_SRC to a list of C++ files to build as part of this project.
+## ArduinoJson.cpp includes the library .cpp files from ArduinoJson/ .
+#PROJECT_SRC=sketch.cpp ArduinoJson.cpp LiquidCrystal.cpp OneWire.cpp
+#
+## Set DEVICE to the ttyUSB device representing the Arduino Uno board.
+#DEVICE=/dev/ttyUSB0
+#
+## Type of Arduino board: DUE for Arduino Duemilanove or UNO for Arduino Uno.
+#TARGET=UNO
+#
+#C_FLAGS+=\
+#	-Iinclude
+#
+#
+
 include Makefile.config
 
 ifeq (${TARGET},DUE)
