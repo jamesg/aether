@@ -97,7 +97,7 @@ core.a:	${core_objects}
 	avr-ar -rc core.a ${core_objects}
 
 sketch.elf:	core.a ${project_objects}
-	avr-gcc -w -Os -Wl,--gc-sections -mmcu=atmega328p -o sketch.elf ${project_objects} core.a
+	avr-gcc -w -Os -Wl,--gc-sections -mmcu=atmega328p -o sketch.elf ${project_objects} core.a -lm
 
 sketch.eep:	sketch.elf
 	avr-objcopy -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 sketch.elf sketch.eep
