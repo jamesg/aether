@@ -26,8 +26,8 @@ void send_temperature_error(const char*);
  */
 void jsonrpc_request(
         JsonObject& request,
-        success_callback_type *success,
-        error_callback_type *error
+        success_callback_type success,
+        error_callback_type error
         );
 
 /*!

@@ -64,33 +64,34 @@ C_FLAGS+=\
 
 CXX_FLAGS+=\
 	      -fno-exceptions -fno-threadsafe-statics
-MKDIR_P=mkdir -p
 
-obj/%.o:	${ARDUINO_AVR_DIR}/cores/arduino/%.c
+%.o:	${ARDUINO_AVR_DIR}/cores/arduino/%.c
 	avr-gcc -c ${C_FLAGS} -o $@ $<
 
-obj/%.o:	${ARDUINO_AVR_DIR}/cores/arduino/%.cpp
+%.o:	%.c
+	avr-gcc -c ${C_FLAGS} -o $@ $<
+
+%.o:	${ARDUINO_AVR_DIR}/cores/arduino/%.cpp
 	avr-g++ -c ${C_FLAGS} ${CXX_FLAGS} -o $@ $<
 
-obj/%.o:	%.cpp
+%.o:	%.cpp
 	avr-g++ -c ${C_FLAGS} ${CXX_FLAGS} -o $@ $<
 
 ARDUINO_CORE_DIR=${ARDUINO_AVR_DIR}/cores/arduino
 
 core_objects := \
-	$(patsubst ${ARDUINO_CORE_DIR}/%.c,obj/%.o,$(wildcard ${ARDUINO_CORE_DIR}/*.c)) \
-	$(patsubst ${ARDUINO_CORE_DIR}/%.cpp,obj/%.o,$(wildcard ${ARDUINO_CORE_DIR}/*.cpp))
+	$(patsubst ${ARDUINO_CORE_DIR}/%.c,%.o,$(wildcard ${ARDUINO_CORE_DIR}/*.c)) \
+	$(patsubst ${ARDUINO_CORE_DIR}/%.cpp,%.o,$(wildcard ${ARDUINO_CORE_DIR}/*.cpp))
 
-project_objects := $(patsubst %.cpp,obj/%.o,${PROJECT_SRC})
+project_objects := $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,${PROJECT_SRC}))
 
 objects := \
 	${core_objects} \
 	${project_objects}
 
-all:	obj sketch.eep sketch.hex
+dependencies := $(patsubst %.o,%.d,${objects})
 
-obj:
-	${MKDIR_P} obj
+all:	sketch.eep sketch.hex
 
 core.a:	${core_objects}
 	avr-ar -rc core.a ${core_objects}
@@ -118,5 +119,5 @@ monitor:
 .PHONY:	clean
 
 clean:
-	rm -f core.a obj/*.o sketch.elf sketch.eep sketch.hex
+	rm -f core.a ${dependencies} ${objects} sketch.elf sketch.eep sketch.hex
 

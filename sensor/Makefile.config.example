@@ -6,7 +6,7 @@ ARDUINO_AVR_DIR=${ARDUINO_DIR}/hardware/arduino/avr
 
 # Set PROJECT_SRC to a list of C++ files to build as part of this project.
 # ArduinoJson.cpp includes the library .cpp files from ArduinoJson/ .
-PROJECT_SRC=sketch.cpp timer.cpp ArduinoJson.cpp LiquidCrystal.cpp OneWire.cpp
+PROJECT_SRC=sketch.cpp eeprom.cpp timer.cpp ArduinoJson.cpp LiquidCrystal.cpp OneWire.cpp Wire.cpp
 
 # Set DEVICE to the ttyUSB device representing the Arduino Uno board.
 DEVICE=/dev/ttyUSB0
