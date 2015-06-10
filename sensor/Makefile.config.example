@@ -23,6 +23,7 @@ TARGET=UNO
 
 C_FLAGS+=\
 	-I${ARDUINO_AVR_DIR}/cores/arduino\
+	-I${ARDUINO_AVR_DIR}/libraries/EEPROM\
 	-Ilibraries/ArduinoJson/include\
 	-Ilibraries/LiquidCrystal\
 	-Ilibraries/OneWire\
