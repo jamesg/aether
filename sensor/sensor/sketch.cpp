@@ -71,6 +71,7 @@ void setup()
     lcd.begin(16,2);
     lcd.print("Plant Monitor");
 
+    // Enable the radio module.
     pinMode(8, OUTPUT);
     digitalWrite(8, HIGH);
     Serial.begin(115200);
