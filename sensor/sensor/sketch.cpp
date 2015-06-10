@@ -1,10 +1,11 @@
 #include "sketch.hpp"
 
 #include "Arduino.h"
-
+#include "EEPROM.h"
 #include "ArduinoJson.h"
 #include "LiquidCrystal.h"
 #include "OneWire.h"
+
 #include "timer.hpp"
 
 #define INCOMING_SIZE 200
@@ -69,6 +70,7 @@ void setup()
 
     lcd.begin(16,2);
     lcd.print("Plant Monitor");
+
     pinMode(8, OUTPUT);
     digitalWrite(8, HIGH);
     Serial.begin(115200);
