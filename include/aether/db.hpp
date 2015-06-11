@@ -48,6 +48,10 @@ namespace aether
 
         extern const char sensor_id[];
         extern const char sensor_desc[];
+
+        extern const char location_city[];
+        extern const char location_lat[];
+        extern const char location_lon[];
     }
     namespace relvar
     {
@@ -67,6 +71,8 @@ namespace aether
         extern const char moisture_log[];
         extern const char sensor_at_batch[];
         extern const char sensor[];
+
+        extern const char location[];
     }
     namespace flag
     {
@@ -304,6 +310,21 @@ namespace aether
     class temperature_log :
         public atlas::db::semi_temporal<sensor::id_type, relvar::temperature_log>
     {
+    };
+    class location :
+        public hades::tuple<attr::location_city, attr::location_lat, attr::location_lon>,
+        public hades::has_candidate_key<>,
+        public hades::relation<relvar::location>,
+        public hades::crud<location>
+    {
+    public:
+        location()
+        {
+        }
+        location(const styx::element& e) :
+            styx::object(e)
+        {
+        }
     };
 }
 

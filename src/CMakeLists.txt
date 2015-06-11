@@ -1,6 +1,7 @@
 file(GLOB server_sources *.cpp)
 add_library(aether-server-lib ${server_sources})
 include_directories(./)
+add_subdirectory(openweathermap)
 target_link_libraries(
     aether-server-lib
     atlas-com-api
