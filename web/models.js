@@ -163,3 +163,18 @@ var SensorCollection = RestCollection.extend(
     }
     );
 
+//
+// Location singleton.
+//
+
+var Location = RestModel.extend(
+    {
+        defaults: {
+            location_city: '',
+            location_lat: '',
+            location_lon: ''
+        },
+        url: restUri('location')
+    }
+    );
+

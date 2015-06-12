@@ -15,15 +15,26 @@ var SettingsPage = PageView.extend(
                     template: '<%-phase_desc%>'
                 })
             })).render();
+            var location = new Location;
+            location.fetch();
+            (new StaticView({
+                el: this.$('p[name=current-location]'),
+                model: location,
+                template: '<%-location_city%> (<%-location_lat%>&deg; N, <%-location_lon%>&deg; E)'
+            })).render();
         },
         render: function() {
         },
         template: $('#settingspage-template').html(),
         events: {
-            'click button[name=phases]': 'showPhases'
+            'click button[name=phases]': 'showPhases',
+            'click button[name=location]': 'showLocation'
         },
         showPhases: function() {
             gApplication.pushPage(PhasesPage);
+        },
+        showLocation: function() {
+            gApplication.pushPage(new LocationPage({ model: new Location }));
         }
     }
     );
@@ -138,6 +149,69 @@ var PhasesPage = PageView.extend(
         },
         render: function() {},
         template: $('#phasespage-template').html(),
+    }
+    );
+
+var LocationPage = PageView.extend(
+    {
+        pageTitle: 'Location',
+        initialize: function() {
+            PageView.prototype.initialize.apply(this, arguments);
+            //this.model = new Location;
+            this.model.fetch();
+        },
+        events: {
+            'click button[name=update]': 'updateLocation'
+        },
+        updateLocation: function() {
+            var m = new Modal({
+                view: StaticView.extend({
+                    template: $('#locationform-template').html(),
+                    initialize: function() {
+                        StaticView.prototype.initialize.apply(this, arguments);
+                        this.on(
+                            'search',
+                            (function() {
+                                this.model.set(
+                                    'location_city',
+                                    this.$('input[name=location_city]').val()
+                                    );
+                                this.model.save(
+                                    {},
+                                    { url: restUri('location/search') }
+                                    );
+                            }).bind(this)
+                            );
+                        this.on(
+                            'save',
+                            (function() {
+                                this.model.set({
+                                    location_city: this.$('input[name=location_city]').val(),
+                                    location_lat: this.$('input[name=location_lat]').val(),
+                                    location_lon: this.$('input[name=location_lon]').val()
+                                });
+                                this.model.save(
+                                    {},
+                                    { success: this.trigger.bind(this, 'finished') }
+                                    );
+                            }).bind(this)
+                            );
+                    }
+                }),
+                model: this.model,
+                buttons: [
+                    StandardButton.cancel(),
+                    new ModalButton({
+                        label: 'Search',
+                        name: 'search',
+                        icon: 'magnifying-glass'
+                    }),
+                    StandardButton.save()
+                ]
+            });
+            gApplication.modal(m);
+        },
+        template: $('#locationpage-template').html()
     }
     );
 

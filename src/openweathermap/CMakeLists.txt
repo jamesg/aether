@@ -2,7 +2,7 @@ file(GLOB aether_openweathermap_sources *.cpp)
 add_library(aether-openweathermap ${aether_openweathermap_sources})
 target_link_libraries(
     aether-openweathermap
-    aether-server-lib
+    aether-db
     atlas-com-http
     ${CMAKE_THREAD_LIBS_INIT}
     ${Boost_LIBRARIES}

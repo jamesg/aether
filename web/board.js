@@ -39,7 +39,7 @@ NewBatchWizard.prototype = {
                         })
                     })).render();
 
-                    this.on('finished', this.save.bind(this));
+                    this.on('next', this.save.bind(this));
                 },
                 // Save form options to the model.
                 save: function() {
@@ -107,7 +107,8 @@ NewBatchWizard.prototype = {
                         })
                     })).render();
 
-                    this.on('finished', this.save.bind(this));
+                    this.on('prev', this.save.bind(this));
+                    this.on('next', this.save.bind(this));
                 },
                 events: {
                     'change select[name=family]': 'updateVarieties'
@@ -181,7 +182,8 @@ NewBatchWizard.prototype = {
                         })
                     })).render();
 
-                    this.on('finished', this.save.bind(this));
+                    this.on('prev', this.save.bind(this));
+                    this.on('next', this.save.bind(this));
                 },
                 save: function() {
                     var sensor = this._sensors.at(

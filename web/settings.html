@@ -55,6 +55,10 @@
 <h1>Phases <small>Manage sowing and planting positions</small></h1>
 <p name="current-phases"></p>
 <button type="button" name="phases">Manage Phases</button>
+
+<h1>Location <small>Set your location to get accurate weather forecasts</small></h1>
+<p name="current-location"></p>
+<button type="button" name="location">Set Location</button>
 </script>
 
 <script type="text/template" id="phasespage-template">
@@ -85,10 +89,48 @@ seeds indoors, 'outdoors' will be last if you plant older plants outdoors.
 <script type="text/template" id="phaseform-template">
 <div class="aligned">
     <div class="group">
-        <label for="phase_desc">Description</label>
-        <input type="text" name="phase_desc" value="<%-phase_desc%>"></input>
+        <label>
+            Description
+            <input type="text" name="phase_desc" value="<%-phase_desc%>"></input>
+        </label>
     </div>
 </div>
+</script>
+
+<script type="text/template" id="locationform-template">
+<div class="aligned">
+    <div class="group">
+        <label>
+            City
+            <input type="text" name="location_city" value="<%-location_city%>"></input>
+        </label>
+    </div>
+    <div class="group">
+        <label>
+            Latitude
+            <input type="text" name="location_lat" value="<%-location_lat%>"></input>
+        </label>
+    </div>
+    <div class="group">
+        <label>
+            Longitude
+            <input type="text" name="location_lon" value="<%-location_lon%>"></input>
+        </label>
+    </div>
+</div>
+</script>
+
+<script type="text/template" id="locationpage-template">
+<h1>Location <small>Set your location to get accurate weather forecasts</small></h1>
+<div class="button-box">
+    <button name="update">Change Location</button>
+</div>
+<h2>Current Location</h2>
+<table>
+<tr><td>City</td><td><%-location_city%></td></tr>
+<tr><td>Latitude</td><td><%-location_lat%>&deg; N</td></tr>
+<tr><td>Longitude</td><td><%-location_lon%>&deg; E</td></tr>
+</table>
 </script>
 
 <script type="text/javascript" src="/atlas/underscore.js"></script>

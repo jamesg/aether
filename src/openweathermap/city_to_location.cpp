@@ -49,6 +49,7 @@ void aether::openweathermap::city_to_location(
                         f.city().coord().lat() << " " << f.city().coord().lon();
 
                     location l;
+                    l.get_string<attr::location_city>() = f.city().name();
                     l.get_double<attr::location_lon>() = f.city().coord().lon();
                     l.get_double<attr::location_lat>() = f.city().coord().lat();
                     success(l);

@@ -4,12 +4,15 @@
 
 #include "aether/db.hpp"
 #include "atlas/db/date.hpp"
+#include "atlas/http/server/exception.hpp"
 #include "atlas/http/server/static_string.hpp"
 #include "hades/crud.ipp"
 #include "hades/custom_select.hpp"
+#include "hades/exists.hpp"
 #include "hades/join.hpp"
 
 #include "kb_router.hpp"
+#include "openweathermap/city_to_location.hpp"
 #include "sensor_api.hpp"
 
 #define AETHER_DECLARE_STATIC_STRING(NAME) ATLAS_DECLARE_STATIC_STRING(aether, NAME)
@@ -361,6 +364,59 @@ aether::router::router(
         [&conn](sensor s, const int sensor_id) {
             s.update(conn);
             return atlas::http::json_response(s);
+        }
+        );
+
+    //
+    // Location.
+    //
+
+    install_json_async<location>(
+        atlas::http::matcher("/api/location/search", "POST"),
+        [io](
+            location l,
+            atlas::http::uri_success_callback_type success,
+            atlas::http::uri_callback_type error
+            )
+        {
+            openweathermap::city_to_location(
+                io,
+                l.get_string<attr::location_city>(),
+                [success](location l) {
+                    success(atlas::http::json_response(l));
+                },
+                [error](std::string) {
+                    error();
+                }
+                );
+        }
+        );
+    install_json<location>(
+        atlas::http::matcher("/api/location", "DELETE"),
+        [&conn](location l) {
+            return atlas::http::json_response(l.destroy(conn));
+        }
+        );
+    install<>(
+        atlas::http::matcher("/api/location", "GET"),
+        [&conn]() {
+            if(!hades::exists<location>(conn))
+                throw atlas::http::exception("not found", 404);
+            return atlas::http::json_response(hades::get_one<location>(conn));
+        }
+        );
+    install_json<location>(
+        atlas::http::matcher("/api/location", "POST"),
+        [&conn](location l) {
+            l.save(conn);
+            return atlas::http::json_response(l);
+        }
+        );
+    install_json<location>(
+        atlas::http::matcher("/api/location", "PUT"),
+        [&conn](location l) {
+            l.save(conn);
+            return atlas::http::json_response(l);
         }
         );
 }

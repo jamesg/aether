@@ -74,7 +74,7 @@ var FamilyPage = PageView.extend(
 
             this._varieties = new (VarietyCollection.extend({
                 url: restUri(
-                     'kb/family/' + this.model.get('kb_family_id') + '/variety'
+                     'kb/family/' + this.model.id + '/variety'
                      )
             }));
             this._varieties.fetch();
@@ -110,7 +110,6 @@ var FamilyPage = PageView.extend(
         newVariety: function() {
             var v = new Variety;
             v.set('kb_family_id', this.model.get('kb_family_id'));
-            console.log('set id', this.model.get('kb_family_id'));
             var m = new Modal({
                 model: v,
                 view: VarietyForm,
@@ -205,12 +204,7 @@ var VarietyForm = StaticView.extend(
                 {},
                 { success: this.trigger.bind(this, 'finished') }
                 );
-        },
-        //templateParams: function() {
-            //return _.extend(
-                //_.clone(StaticView.prototype.templateParams.apply(this)),
-                //);
-        //}
+        }
     }
     );
 

@@ -254,5 +254,17 @@ void aether::db::create(hades::connection& conn)
         " ) ",
         conn
         );
+
+    //
+    // Location singleton.
+    //
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_location ( "
+        " location_city VARCHAR, "
+        " location_lat REAL, "
+        " location_lon REAL "
+        " ) ",
+        conn
+        );
 }
 
