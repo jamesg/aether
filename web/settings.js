@@ -4,10 +4,10 @@ var SettingsPage = PageView.extend(
         initialize: function() {
             PageView.prototype.initialize.apply(this, arguments);
             PageView.prototype.render.apply(this);
-            var phases = new PhaseCollection;
-            phases.fetch();
+            this._phases = new PhaseCollection;
+            this._phases.fetch();
             (new CollectionView({
-                model: phases,
+                model: this._phases,
                 el: this.$('p[name=current-phases]'),
                 view: StaticView.extend({
                     tagName: 'span',
@@ -15,15 +15,19 @@ var SettingsPage = PageView.extend(
                     template: '<%-phase_desc%>'
                 })
             })).render();
-            var location = new Location;
-            location.fetch();
+            this._location = new Location;
+            this._location.fetch();
             (new StaticView({
                 el: this.$('p[name=current-location]'),
-                model: location,
+                model: this._location,
                 template: '<%-location_city%> (<%-location_lat%>&deg; N, <%-location_lon%>&deg; E)'
             })).render();
         },
         render: function() {
+        },
+        reset: function() {
+            this._phases.fetch();
+            this._location.fetch();
         },
         template: $('#settingspage-template').html(),
         events: {
@@ -169,6 +173,7 @@ var LocationPage = PageView.extend(
                     template: $('#locationform-template').html(),
                     initialize: function() {
                         StaticView.prototype.initialize.apply(this, arguments);
+                        this.model.fetch();
                         this.on(
                             'search',
                             (function() {
@@ -198,7 +203,7 @@ var LocationPage = PageView.extend(
                             );
                     }
                 }),
-                model: this.model,
+                model: new Location,
                 buttons: [
                     StandardButton.cancel(),
                     new ModalButton({
@@ -209,6 +214,11 @@ var LocationPage = PageView.extend(
                     StandardButton.save()
                 ]
             });
+            this.listenTo(
+                    m,
+                    'finished',
+                    this.model.fetch.bind(this.model)
+                    );
             gApplication.modal(m);
         },
         template: $('#locationpage-template').html()
