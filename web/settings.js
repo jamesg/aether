@@ -253,7 +253,8 @@ var PermissionsPage = PageView.extend(
         },
         render: function() {},
         events: {
-            'submit form[name=permissions]': 'save'
+            'submit form[name=permissions]': 'save',
+            'click button[name=cancel]': 'cancel'
         },
         save: function() {
             this.model.set({
@@ -272,6 +273,9 @@ var PermissionsPage = PageView.extend(
                 }
                 );
             return false;
+        },
+        cancel: function() {
+            gApplication.popPage();
         }
     }
     );

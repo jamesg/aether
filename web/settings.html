@@ -161,9 +161,16 @@ seeds indoors, 'outdoors' will be last if you plant older plants outdoors.
             <input type="checkbox" name="permission_move_batch" <%if(permission_move_batch == 1){%>checked<%}%>></input>
         </label>
     </div>
-    <div class="group">
-        <label><button type="submit">Save</button></label>
-    </div>
+</div>
+<div class="button-box">
+    <button name="cancel">
+        <span class="oi" data-glyph="x" aria-hidden="true"> </span>
+        Cancel
+    </button>
+    <button type="submit">
+        <span class="oi" data-glyph="data-transfer-download" aria-hidden="true"> </span>
+        Save
+    </button>
 </div>
 </script>
 
