@@ -1,0 +1,130 @@
+/*@font-face {*/
+    /*font-family: 'ShareTechMono';*/
+    /*src: url('/atlas/ShareTechMono-Regular.ttf');*/
+/*}*/
+
+/*@font-face {*/
+    /*font-family: 'ShareTech';*/
+    /*src: url('/atlas/ShareTech-Regular.ttf');*/
+/*}*/
+
+body {
+    /*background-color: #95dca2;*/
+    font-family: 'Sans';
+    margin: 0;
+    padding: 0;
+}
+
+/*
+ * Modal dialogs hide all content on the screen.
+ */
+
+/*
+ * Use a repeating pattern to create a 'false translucency'.  This works well
+ * when multiple dialogs are stacked.
+ */
+.modal {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.modal-dialog {
+    background-color: #fff;
+    border: 1px solid black;
+    border-bottom: none;
+    padding: 1em;
+
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    outline: none;
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+}
+
+.modal-button-box {
+    background-color: #eee;
+    border: 1px solid black;
+    border-top: none;
+    padding: 1em;
+
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    outline: none;
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+}
+
+/*
+ * Form styles.
+ */
+
+div.aligned div.group {
+}
+
+div.aligned div.group label {
+}
+
+div.aligned div.group input, div.aligned div.group textarea {
+}
+
+button, input, select, textarea {
+    background-color: white;
+    border: 1px solid black;
+}
+
+button {
+    border-radius: 5px;
+}
+
+.button-box {
+}
+
+span.disabled {
+    color: lightgrey;
+}
+
+.tag {
+    margin-right: 0.5em;
+    padding: 2px;
+    border: 1px solid black;
+    border-radius: 3px;
+}
+
+.advice {
+    padding: 2px;
+    background-color: #c1e8c9;
+    border-radius: 8px;
+}
+
+.header {
+    margin: 0;
+}
+
+.navigation {
+    margin: 0;
+    padding: 0.5em;
+}
+
+.navigation-pages {
+    color: white;
+    background-color: #1abc9c;
+}
+
+.navigation-pages a {
+    color: white;
+}
+
+.navigation-breadcrumbs {
+    background-color: #e0e0e0;
+    color: darkgrey;
+}
+
+.navigation-breadcrumbs a {
+    color: darkgrey;
+}
+
+.navigation-breadcrumbs > :last-child {
+    color: black;
+}
+
+.navigation-breadcrumbs > :last-child a {
+    color: black;
+}
+

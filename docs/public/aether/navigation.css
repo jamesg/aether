@@ -1,0 +1,11 @@
+.navigation {
+    padding-left: 0.5em;
+    list-style-type: none;
+    font-size: large;
+}
+
+.navigation li {
+    display: inline-block;
+    padding-right: 1em;
+}
+
