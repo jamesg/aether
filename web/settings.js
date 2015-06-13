@@ -32,13 +32,21 @@ var SettingsPage = PageView.extend(
         template: $('#settingspage-template').html(),
         events: {
             'click button[name=phases]': 'showPhases',
-            'click button[name=location]': 'showLocation'
+            'click button[name=location]': 'showLocation',
+            'click button[name=permissions]': 'showPermissions',
+            'click button[name=accounts]': 'showAccounts'
         },
         showPhases: function() {
             gApplication.pushPage(PhasesPage);
         },
         showLocation: function() {
             gApplication.pushPage(new LocationPage({ model: new Location }));
+        },
+        showPermissions: function() {
+            gApplication.pushPage(PermissionsPage);
+        },
+        showAccounts: function() {
+            gApplication.pushPage(AccountsPage);
         }
     }
     );
@@ -222,6 +230,50 @@ var LocationPage = PageView.extend(
             gApplication.modal(m);
         },
         template: $('#locationpage-template').html()
+    }
+    );
+
+var PermissionsPage = PageView.extend(
+    {
+        pageTitle: 'Permissions',
+        template: $('#permissionspage-template').html(),
+        initialize: function() {
+            PageView.prototype.initialize.apply(this, arguments);
+            PageView.prototype.render.apply(this);
+            this._messageBox = new MessageBox({
+                el: this.$('div[name=messagebox]')
+            });
+            this._messageBox.render();
+            (new StaticView({
+                el: this.$('form'),
+                model: this.model
+            })).render();
+        },
+        render: function() {},
+        events: {
+            'form submit': 'save'
+        },
+        save: function() {
+            this.model.set({
+            });
+            this.model.save(
+                {},
+                {
+                    success: (function() {
+                    }).bind(this),
+                    error: (function() {
+                    }).bind(this)
+                }
+                );
+            return false;
+        }
+    }
+    );
+
+var AccountsPage = PageView.extend(
+    {
+        pageTitle: 'Accounts',
+        template: $('#accountspage-template').html()
     }
     );
 

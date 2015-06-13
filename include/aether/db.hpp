@@ -7,6 +7,7 @@
 #include "hades/has_flags.hpp"
 #include "hades/relation.hpp"
 #include "hades/tuple.hpp"
+#include "styx/atom.hpp"
 
 namespace aether
 {
@@ -52,6 +53,9 @@ namespace aether
         extern const char location_city[];
         extern const char location_lat[];
         extern const char location_lon[];
+
+        extern const char setting_name[];
+        extern const char setting_value[];
     }
     namespace relvar
     {
@@ -73,6 +77,8 @@ namespace aether
         extern const char sensor[];
 
         extern const char location[];
+
+        extern const char setting[];
     }
     namespace flag
     {
@@ -326,6 +332,45 @@ namespace aether
         {
         }
     };
+    class setting :
+        public hades::tuple<attr::setting_name, attr::setting_value>,
+        public hades::has_candidate_key<attr::setting_name>,
+        public hades::relation<relvar::setting>,
+        public hades::crud<setting>
+    {
+    public:
+        setting()
+        {
+        }
+        setting(const styx::element& e) :
+            styx::object(e)
+        {
+        }
+    };
+
+    namespace db
+    {
+        /*!
+         * \brief Get all settings as key -> atom pairs.
+         */
+        styx::object settings(hades::connection&);
+        /*!
+         * \brief Save an object of key -> atom pairs as settings.
+         */
+        void save_settings(styx::object settings, hades::connection&);
+        /*!
+         * \brief Get the value of an individual setting.
+         */
+        styx::atom setting_value(hades::connection&, const std::string& key);
+        /*!
+         * \brief Get the value of an individual setting.
+         */
+        styx::atom setting_value(
+                hades::connection&,
+                const std::string& key,
+                const styx::atom& default_value
+                );
+    }
 }
 
 #endif

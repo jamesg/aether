@@ -2,6 +2,7 @@
 
 #include "atlas/db/date.hpp"
 #include "hades/crud.ipp"
+#include "hades/custom_select_one.hpp"
 #include "hades/devoid.hpp"
 
 const char aether::attr::kb_family_id[] = "kb_family_id";
@@ -27,6 +28,8 @@ const char aether::attr::sensor_desc[] = "sensor_desc";
 const char aether::attr::location_city[] = "location_city";
 const char aether::attr::location_lat[] = "location_lat";
 const char aether::attr::location_lon[] = "location_lon";
+const char aether::attr::setting_name[] = "setting_name";
+const char aether::attr::setting_value[] = "setting_value";
 const char aether::relvar::kb_family[] = "aether_kb_family";
 const char aether::relvar::kb_variety[] = "aether_kb_variety";
 const char aether::relvar::kb_variety_harvest_mon[] = "aether_kb_variety_harvest_mon";
@@ -42,6 +45,7 @@ const char aether::relvar::moisture_log[] = "aether_moisture_log";
 const char aether::relvar::sensor_at_batch[] = "aether_sensor_at_batch";
 const char aether::relvar::sensor[] = "aether_sensor";
 const char aether::relvar::location[] = "aether_location";
+const char aether::relvar::setting[] = "aether_setting";
 const char aether::flag::kb_variety_container[] = "aether_kb_variety_container";
 const char aether::flag::kb_variety_flower[] = "aether_kb_variety_flower";
 const char aether::flag::kb_variety_prefer_shade[] = "aether_kb_variety_prefer_shade";
@@ -266,5 +270,58 @@ void aether::db::create(hades::connection& conn)
         " ) ",
         conn
         );
+
+    //
+    // Settings
+    //
+
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_setting ( "
+        " setting_name VARCHAR, "
+        " setting_value VARCHAR, "
+        " UNIQUE(setting_name) "
+        " ) ",
+        conn
+        );
+}
+
+styx::object aether::db::settings(hades::connection& conn)
+{
+    styx::object out;
+    styx::list db_settings(setting::get_collection(conn));
+    for(const styx::element& e : db_settings)
+    {
+        setting s(e);
+        out[s.get_string<attr::setting_name>()] = s[attr::setting_value];
+    }
+    return out;
+}
+
+void aether::db::save_settings(styx::object settings, hades::connection& conn)
+{
+    styx::list l;
+    for(std::pair<std::string, styx::element> p : settings)
+    {
+        setting s;
+        s.get_string<aether::attr::setting_name>() = p.first;
+        s.get_element(aether::attr::setting_value) = p.second;
+        l.append(s);
+    }
+    setting::save_collection(l, conn);
+}
+
+styx::atom aether::db::setting_value(
+        hades::connection& conn,
+        const std::string& setting_name
+        )
+{
+    return (
+        hades::custom_select_one<setting, hades::row<std::string>, aether::attr::setting_value>(
+                conn,
+                "SELECT setting_value FROM aether_setting "
+                "WHERE setting_name = ? ",
+                hades::row<std::string>(setting_name)
+                )
+        ).get_string<aether::attr::setting_value>();
 }
 

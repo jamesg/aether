@@ -59,6 +59,10 @@
 <h1>Location <small>Set your location to get accurate weather forecasts</small></h1>
 <p name="current-location"></p>
 <button type="button" name="location">Set Location</button>
+
+<h1>System <small>Change system settings</small></h1>
+<button type="button" name="accounts">Accounts</button>
+<button type="button" name="permissions">Permissions</button>
 </script>
 
 <script type="text/template" id="phasespage-template">
@@ -131,6 +135,30 @@ seeds indoors, 'outdoors' will be last if you plant older plants outdoors.
 <tr><td>Latitude</td><td><%-location_lat%>&deg; N</td></tr>
 <tr><td>Longitude</td><td><%-location_lon%>&deg; E</td></tr>
 </table>
+</script>
+
+<script type="text/template" id="accountspage-template">
+<h1>Accounts <small>Create and modify user accounts</small></h1>
+</script>
+
+<script type="text/template" id="permissionspage-template">
+<h1>Permissions <small>Choose actions that require administrative login</small></h1>
+<div class="messagebox" name="messagebox"></div>
+<form name="permissions">
+    <div class="aligned">
+        <div class="group">
+            <label>
+                Create batch
+                <input type="checkbox" name="permission_create_batch" <%if(permission_create_batch){%>checked<%}%>></input>
+            </label>
+        </div>
+        <div class="group">
+            <label>
+                Move batch
+                <input type="checkbox" name="permission_move_batch" <%if(permission_move_batch){%>checked<%}%>></input>
+            </label>
+        </div>
+    </div>
 </script>
 
 <script type="text/javascript" src="/atlas/underscore.js"></script>

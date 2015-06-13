@@ -419,5 +419,30 @@ aether::router::router(
             return atlas::http::json_response(l);
         }
         );
+
+    //
+    // Settings
+    //
+
+    install<>(
+        atlas::http::matcher("/api/settings", "GET"),
+        [&conn]() {
+            return atlas::http::json_response(db::settings(conn));
+        }
+        );
+    install_json<styx::object>(
+        atlas::http::matcher("/api/settings", "POST"),
+        [&conn](styx::object new_settings) {
+            db::save_settings(new_settings, conn);
+            return atlas::http::json_response(db::settings(conn));
+        }
+        );
+    install_json<styx::object>(
+        atlas::http::matcher("/api/settings", "PUT"),
+        [&conn](styx::object new_settings) {
+            db::save_settings(new_settings, conn);
+            return atlas::http::json_response(db::settings(conn));
+        }
+        );
 }
 
