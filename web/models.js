@@ -187,7 +187,8 @@ var Settings = RestModel.extend(
         defaults: {
             permission_create_batch: false,
             permission_move_batch: false
-        }
+        },
+        url: restUri('settings')
     }
     );
 

@@ -43,7 +43,7 @@ var SettingsPage = PageView.extend(
             gApplication.pushPage(new LocationPage({ model: new Location }));
         },
         showPermissions: function() {
-            gApplication.pushPage(PermissionsPage);
+            gApplication.pushPage(new PermissionsPage({ model: new Settings }));
         },
         showAccounts: function() {
             gApplication.pushPage(AccountsPage);
@@ -240,28 +240,34 @@ var PermissionsPage = PageView.extend(
         initialize: function() {
             PageView.prototype.initialize.apply(this, arguments);
             PageView.prototype.render.apply(this);
+            this.model.fetch();
             this._messageBox = new MessageBox({
                 el: this.$('div[name=messagebox]')
             });
             this._messageBox.render();
             (new StaticView({
                 el: this.$('form'),
+                template: $('#permissionsform-template').html(),
                 model: this.model
             })).render();
         },
         render: function() {},
         events: {
-            'form submit': 'save'
+            'submit form[name=permissions]': 'save'
         },
         save: function() {
             this.model.set({
+                permission_create_batch: this.$('input[name=permission_create_batch]').is(':checked'),
+                permission_move_batch: this.$('input[name=permission_move_batch]').is(':checked')
             });
             this.model.save(
                 {},
                 {
                     success: (function() {
+                        gApplication.popPage();
                     }).bind(this),
                     error: (function() {
+                        this._messageBox.displayError('Saving permissions');
                     }).bind(this)
                 }
                 );
