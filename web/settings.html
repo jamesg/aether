@@ -152,13 +152,13 @@ seeds indoors, 'outdoors' will be last if you plant older plants outdoors.
     <div class="group">
         <label>
             Create batch
-            <input type="checkbox" name="permission_create_batch" <%if(permission_create_batch){%>checked<%}%>></input>
+            <input type="checkbox" name="permission_create_batch" <%if(permission_create_batch == 1){%>checked<%}%>></input>
         </label>
     </div>
     <div class="group">
         <label>
             Move batch
-            <input type="checkbox" name="permission_move_batch" <%if(permission_move_batch){%>checked<%}%>></input>
+            <input type="checkbox" name="permission_move_batch" <%if(permission_move_batch == 1){%>checked<%}%>></input>
         </label>
     </div>
     <div class="group">
