@@ -22,6 +22,27 @@ namespace aether
             {
                 return get_int("dt");
             }
+
+            styx::object clouds()
+            {
+                return copy_object("clouds");
+            }
+
+            styx::object main()
+            {
+                return copy_object("main");
+            }
+
+            styx::object weather()
+            {
+                return copy_object("weather");
+            }
+
+            styx::object wind()
+            {
+                return copy_object("wind");
+            }
+
             double& temp()
             {
                 return styx::object(get_element("main"))
@@ -56,11 +77,6 @@ namespace aether
             {
                 return styx::object(get_element("weather"))
                     .get_string("description");
-            }
-            int& clouds()
-            {
-                return styx::object(get_element("clouds"))
-                    .get_int("all");
             }
             double& wind_speed()
             {
