@@ -145,6 +145,7 @@ var Sensor = RestModel.extend(
         idAttribute: 'sensor_id',
         defaults: {
             sensor_desc: '',
+            phase_desc: '',
             aether_temperature_sensor: false,
             aether_moisture_sensor: false
         },

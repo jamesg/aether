@@ -15,10 +15,12 @@ add_library(
     )
 include_directories(./)
 add_subdirectory(openweathermap)
+add_subdirectory(task)
 target_link_libraries(
     aether-server-lib
     aether-db
     aether-openweathermap
+    aether-task
     atlas-com-api
     atlas-com-db
     atlas-com-http-server

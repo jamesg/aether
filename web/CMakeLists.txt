@@ -14,6 +14,8 @@ atlas_add_web_library(
         knowledgebase_editor.html
         knowledgebase_editor.js
         models.js
+        palette.html
+        palette.js
         sensors.html
         sensors.js
         settings.html
