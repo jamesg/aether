@@ -29,6 +29,8 @@ AETHER_DECLARE_STATIC_STRING(knowledgebase_editor_js)
 AETHER_DECLARE_STATIC_STRING(knowledgebase_html)
 AETHER_DECLARE_STATIC_STRING(knowledgebase_js)
 AETHER_DECLARE_STATIC_STRING(models_js)
+AETHER_DECLARE_STATIC_STRING(palette_html)
+AETHER_DECLARE_STATIC_STRING(palette_js)
 AETHER_DECLARE_STATIC_STRING(sensors_html)
 AETHER_DECLARE_STATIC_STRING(sensors_js)
 AETHER_DECLARE_STATIC_STRING(settings_html)
@@ -57,6 +59,8 @@ aether::router::router(
     install_static_text("/knowledgebase_editor.html", AETHER_STATIC_STD_STRING(knowledgebase_editor_html));
     install_static_text("/knowledgebase_editor.js", AETHER_STATIC_STD_STRING(knowledgebase_editor_js));
     install_static_text("/models.js", AETHER_STATIC_STD_STRING(models_js));
+    install_static_text("/palette.html", AETHER_STATIC_STD_STRING(palette_html));
+    install_static_text("/palette.js", AETHER_STATIC_STD_STRING(palette_js));
     install_static_text("/sensors.html", AETHER_STATIC_STD_STRING(sensors_html));
     install_static_text("/sensors.js", AETHER_STATIC_STD_STRING(sensors_js));
     install_static_text("/settings.html", AETHER_STATIC_STD_STRING(settings_html));
