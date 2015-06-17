@@ -6,11 +6,13 @@
 #include "aether/db.hpp"
 #include "atlas/http/server/static_files.hpp"
 #include "atlas/log/log.hpp"
+#include "atlas/task/poll.hpp"
 #include "commandline/commandline.hpp"
 #include "hades/connection.hpp"
 
 #include "../radio_server.hpp"
 #include "../sensor_api.hpp"
+#include "../task/retrieve_forecast.hpp"
 
 namespace
 {
@@ -71,6 +73,22 @@ aether::server::server(
         atlas::log::warning("aether::server::server") <<
             "starting radio server: " << e.what();
     }
+
+    // Retrieve a new weather forecast every hour.
+    m_retrieve_forecast_task = atlas::task::poll::create(
+            boost::bind(
+                &task::retrieve_forecast::create,
+                _1,
+                _2,
+                boost::ref(*m_connection)
+                ),
+            3600000,
+            m_io
+            );
+    m_retrieve_forecast_task->run();
+
+    // Retrieve a forecast now.
+    (task::retrieve_forecast::create(m_io, [](){}, *m_connection))->run();
 }
 
 void aether::server::start()

@@ -12,6 +12,7 @@ add_library(
     radio_server.cpp
     router.cpp
     sensor_api.cpp
+    weather_router.cpp
     )
 include_directories(./)
 add_subdirectory(openweathermap)
