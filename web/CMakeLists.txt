@@ -20,5 +20,7 @@ atlas_add_web_library(
         sensors.js
         settings.html
         settings.js
+        weather.html
+        weather.js
         )
 
