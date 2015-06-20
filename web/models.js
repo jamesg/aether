@@ -193,3 +193,26 @@ var Settings = RestModel.extend(
     }
     );
 
+//
+// Weather Forecast.
+//
+
+var Forecast = RestModel.extend(
+        {
+            idAttribute: 'forecast_dt',
+            defaults: {
+                forecast_main_temp: 0.0,
+                forecast_rain: 0
+            },
+            url: function() {
+                restUri('weather/' + this.id);
+            }
+        }
+        );
+
+var ForecastCollection = RestCollection.extend(
+        {
+            model: Forecast
+        }
+        );
+

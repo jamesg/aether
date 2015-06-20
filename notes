@@ -1,0 +1,12 @@
+select * from aether_forecast 
+ left outer join aether_forecast_main 
+  on aether_forecast.forecast_dt = aether_forecast_main.forecast_dt
+ left outer join aether_forecast_clouds 
+  on aether_forecast.forecast_dt = aether_forecast_clouds.forecast_dt
+ left outer join aether_forecast_rain 
+  on aether_forecast.forecast_dt = aether_forecast_rain.forecast_dt
+ left outer join aether_forecast_weather 
+  on aether_forecast.forecast_dt = aether_forecast_weather.forecast_dt
+ left outer join aether_forecast_wind 
+  on aether_forecast.forecast_dt = aether_forecast_wind.forecast_dt;
+

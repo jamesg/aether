@@ -1,5 +1,8 @@
 #include "weather_router.hpp"
 
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 #include "aether/db.hpp"
 #include "hades/custom_select_one.hpp"
 #include "hades/join.hpp"
@@ -21,7 +24,7 @@ aether::weather_router::weather_router(hades::connection& conn) {
                             "aether_forecast.forecast_dt = ?",
                             hades::row<int>(dt)
                             ),
-                        hades::order_by("aether_forecast.forecast_dt", 1)
+                        hades::order_by("aether_forecast.forecast_dt ASC", 1)
                         )
                     );
             return atlas::http::json_response(points.at(0));
@@ -54,10 +57,48 @@ aether::weather_router::weather_router(hades::connection& conn) {
                         "aether_forecast.forecast_dt = ?",
                         hades::row<int>(nearest.get_int<attr::forecast_dt>())
                         ),
-                    hades::order_by("aether_forecast.forecast_dt", 1)
+                    hades::order_by("aether_forecast.forecast_dt ASC", 1)
                     )
                 );
             return atlas::http::json_response(points.at(0));
+        }
+        );
+    install_get<>(
+        atlas::http::matcher("/today", "GET"),
+        [&conn](std::map<std::string, std::string> params) {
+            if(params.find("timezone") == params.end())
+                atlas::log::test("aether::weather_router") << "no timezone";
+            else
+                atlas::log::test("aether::weather_router") << "timezone: " << params["timezone"];
+            return atlas::http::json_response(
+                hades::equi_outer_join<
+                    forecast,
+                    forecast_main,
+                    forecast_clouds,
+                    forecast_rain,
+                    forecast_weather,
+                    forecast_wind>(
+                        conn,
+                        hades::filter(
+                            hades::where(
+                                "aether_forecast.forecast_dt >= ? AND "
+                                "aether_forecast.forecast_dt < ? ",
+                                hades::row<int, int>(
+                                (
+                                    boost::posix_time::ptime(boost::gregorian::day_clock::universal_day()) -
+                                    boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1))
+                                    ).total_seconds(),
+                                (
+                                    boost::posix_time::ptime(boost::gregorian::day_clock::universal_day()) +
+                                    boost::gregorian::days(1) -
+                                    boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1))
+                                    ).total_seconds()
+                                    )
+                            ),
+                            hades::order_by("aether_forecast.forecast_dt ASC")
+                            )
+                        )
+                );
         }
         );
 }
