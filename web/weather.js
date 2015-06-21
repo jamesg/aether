@@ -5,12 +5,15 @@ var WeatherPage = PageView.extend(
             initialize: function() {
                 PageView.prototype.initialize.apply(this, arguments);
                 PageView.prototype.render.apply(this);
-                this.initializeChart();
+                this.initializeCharts();
             },
-            initializeChart: function() {
+            initializeCharts: function() {
                 var points = new ForecastCollection;
                 points.fetch({
-                    url: restUri('weather/today'),
+                    url: restUri(
+                             'weather/today?timezone=' +
+                             (new Date).getTimezoneOffset()
+                             ),
                     success: (function() {
                         var temperatureSeries = points.map(
                             function(point) {
@@ -28,37 +31,40 @@ var WeatherPage = PageView.extend(
                                 };
                             }
                             );
-                        console.log('temperature', JSON.stringify(temperatureSeries));
-                        console.log('rain', JSON.stringify(rainSeries));
-                        var chartData = {
+                        var temperatureChartData = {
+                            xScale: 'ordinal',
+                            yScale: 'linear',
+                            type: 'line',
+                            main: [
+                                {
+                                    className: '.temperaturechartdata',
+                                    interpolation: 'linear',
+                                    data: temperatureSeries
+                                }
+                            ]
+                        };
+                        var rainChartData = {
                             xScale: 'ordinal',
                             yScale: 'linear',
                             type: 'bar',
                             main: [
                                 {
-                                    className: '.rainchartdata',
-                                    type: 'bar',
-                                    data: rainSeries
-                                }
-                            ],
-                            comp: [
-                                {
                                     className: '.temperaturechartdata',
                                     interpolation: 'linear',
-                                    type: 'line',
-                                    data: temperatureSeries
+                                    data: rainSeries
                                 }
                             ]
                         };
-                        try {
-                            if(_.has(this, '_chart'))
-                                this._chart.setData(chartData);
-                            else
-                                this._chart =
-                                    new xChart('bar', chartData, '#weatherchart');
-                        } catch(err) {
-                            console.log('caught', err);
-                        }
+                        if(_.has(this, '_temperatureChart'))
+                            this._temperatureChart.setData(temperatureChartData);
+                        else
+                            this._temperatureChart =
+                                new xChart('bar', temperatureChartData, '#temperaturechart');
+                        if(_.has(this, '_rainChart'))
+                            this._rainChart.setData(rainChartData);
+                        else
+                            this._rainChart =
+                                new xChart('bar', rainChartData, '#rainchart');
                     }).bind(this)
                 });
             },

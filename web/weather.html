@@ -22,16 +22,16 @@
 
 <style type="text/css" media="all">
 /* Temperature curve. */
-#weatherchart .color0 .line {
+#temperaturechart .color0 .line {
     stroke: rgb(248, 168, 27);
 }
-#weatherchart .color0 .fill {
+#temperaturechart .color0 .fill {
   fill: rgba(248, 168, 27, 0.1);
 }
 /* Rainfall. */
-#weatherchart .color1 rect,
-#weatherchart .color1 circle,
-#weatherchart .color1 .fill{
+#rainchart .color0 rect,
+#rainchart .color0 circle,
+#rainchart .color0 .fill{
   fill: rgb(0, 153, 255);
 }
 </style>
@@ -74,7 +74,11 @@
 
     <div name="location"></div>
     <figure
-        id="weatherchart"
+        id="temperaturechart"
+        style="width: auto; margin-left: 0px; margin-right: 0px; height: 400px;">
+    </figure>
+    <figure
+        id="rainchart"
         style="width: auto; margin-left: 0px; margin-right: 0px; height: 400px;">
     </figure>
 </script>
