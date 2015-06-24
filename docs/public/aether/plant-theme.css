@@ -104,7 +104,7 @@ span.disabled {
 
 .navigation-pages {
     color: white;
-    background-color: #1abc9c;
+    background: linear-gradient(#1abc9c, #15997f);
 }
 
 .navigation-pages a {
