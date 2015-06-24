@@ -73,14 +73,23 @@
     <h1>Weather</h1>
 
     <div name="location"></div>
-    <figure
-        id="temperaturechart"
-        style="width: auto; margin-left: 0px; margin-right: 0px; height: 400px;">
-    </figure>
-    <figure
-        id="rainchart"
-        style="width: auto; margin-left: 0px; margin-right: 0px; height: 400px;">
-    </figure>
+    <div class="grid">
+        <div class="col-2-5">
+            <div name="summary"></div>
+            <h2>Rainfall (mm/3h)</h2>
+            <figure
+                id="rainchart"
+                style="width: auto; margin-left: 0px; margin-right: 0px; height: 300px;">
+            </figure>
+        </div>
+        <div class="col-3-5">
+            <h2>Temperature (&deg;C)</h2>
+            <figure
+                id="temperaturechart"
+                style="width: auto; margin-left: 0px; margin-right: 0px; height: 400px;">
+            </figure>
+        </div>
+    </div>
 </script>
 
 <script type="text/javascript" src="/atlas/underscore.js"></script>
