@@ -1,4 +1,4 @@
-#include "request_forecast.hpp"
+#include "retrieve_forecast.hpp"
 
 #include "atlas/http/client.hpp"
 #include "atlas/log/log.hpp"
@@ -7,7 +7,7 @@
 
 #include "forecast.hpp"
 
-void aether::openweathermap::request_forecast(
+void aether::openweathermap::retrieve_forecast(
         boost::shared_ptr<boost::asio::io_service> io,
         float lat,
         float lon,

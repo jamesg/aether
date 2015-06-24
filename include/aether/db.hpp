@@ -56,6 +56,29 @@ namespace aether
 
         extern const char setting_name[];
         extern const char setting_value[];
+
+        // Forecast points are keyed by the data receiving time (dt).  This is
+        // a Unix time.
+        extern const char forecast_dt[];
+
+        extern const char forecast_clouds_all[];
+
+        extern const char forecast_main_temp[];
+        extern const char forecast_main_temp_min[];
+        extern const char forecast_main_temp_max[];
+        extern const char forecast_main_humidity[];
+        extern const char forecast_main_pressure[];
+        extern const char forecast_main_sea_level[];
+        extern const char forecast_main_grnd_level[];
+
+        extern const char forecast_rain[];
+
+        extern const char forecast_weather_main[];
+        extern const char forecast_weather_description[];
+
+        extern const char forecast_wind_speed[];
+        extern const char forecast_wind_deg[];
+        extern const char forecast_wind_gust[];
     }
     namespace relvar
     {
@@ -79,6 +102,13 @@ namespace aether
         extern const char location[];
 
         extern const char setting[];
+
+        extern const char forecast[];
+        extern const char forecast_clouds[];
+        extern const char forecast_main[];
+        extern const char forecast_rain[];
+        extern const char forecast_weather[];
+        extern const char forecast_wind[];
     }
     namespace flag
     {
@@ -346,6 +376,79 @@ namespace aether
             styx::object(e)
         {
         }
+    };
+
+    //
+    // Weather Forecast.
+    //
+
+    /*!
+     * \brief Basic forecast; other forecast tables reference this table.
+     */
+    class forecast :
+        public hades::tuple<attr::forecast_dt>,
+        public hades::has_candidate_key<attr::forecast_dt>,
+        public hades::relation<relvar::forecast>,
+        public hades::crud<forecast>
+    {
+    };
+
+    class forecast_clouds :
+        public hades::tuple<attr::forecast_dt, attr::forecast_clouds_all>,
+        public hades::has_candidate_key<attr::forecast_dt>,
+        public hades::relation<relvar::forecast_clouds>,
+        public hades::crud<forecast_clouds>
+    {
+    };
+
+    class forecast_main :
+        public hades::tuple<
+            attr::forecast_dt,
+            attr::forecast_main_temp,
+            attr::forecast_main_temp_min,
+            attr::forecast_main_temp_max,
+            attr::forecast_main_humidity,
+            attr::forecast_main_pressure,
+            attr::forecast_main_sea_level,
+            attr::forecast_main_grnd_level
+            >,
+        public hades::has_candidate_key<attr::forecast_dt>,
+        public hades::relation<relvar::forecast_main>,
+        public hades::crud<forecast_main>
+    {
+    };
+
+    class forecast_rain :
+        public hades::tuple<attr::forecast_dt, attr::forecast_rain>,
+        public hades::has_candidate_key<attr::forecast_dt>,
+        public hades::relation<relvar::forecast_rain>,
+        public hades::crud<forecast_rain>
+    {
+    };
+
+    class forecast_weather :
+        public hades::tuple<
+            attr::forecast_dt,
+            attr::forecast_weather_main,
+            attr::forecast_weather_description
+            >,
+        public hades::has_candidate_key<attr::forecast_dt>,
+        public hades::relation<relvar::forecast_weather>,
+        public hades::crud<forecast_weather>
+    {
+    };
+
+    class forecast_wind :
+        public hades::tuple<
+            attr::forecast_dt,
+            attr::forecast_wind_speed,
+            attr::forecast_wind_deg,
+            attr::forecast_wind_gust
+            >,
+        public hades::has_candidate_key<attr::forecast_dt>,
+        public hades::relation<relvar::forecast_wind>,
+        public hades::crud<forecast_wind>
+    {
     };
 
     namespace db

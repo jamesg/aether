@@ -12,13 +12,16 @@ add_library(
     radio_server.cpp
     router.cpp
     sensor_api.cpp
+    weather_router.cpp
     )
 include_directories(./)
 add_subdirectory(openweathermap)
+add_subdirectory(task)
 target_link_libraries(
     aether-server-lib
     aether-db
     aether-openweathermap
+    aether-task
     atlas-com-api
     atlas-com-db
     atlas-com-http-server

@@ -14,6 +14,7 @@
 #include "kb_router.hpp"
 #include "openweathermap/city_to_location.hpp"
 #include "sensor_api.hpp"
+#include "weather_router.hpp"
 
 #define AETHER_DECLARE_STATIC_STRING(NAME) ATLAS_DECLARE_STATIC_STRING(aether, NAME)
 #define AETHER_STATIC_STD_STRING(NAME) ATLAS_STATIC_STD_STRING(aether, NAME)
@@ -29,10 +30,14 @@ AETHER_DECLARE_STATIC_STRING(knowledgebase_editor_js)
 AETHER_DECLARE_STATIC_STRING(knowledgebase_html)
 AETHER_DECLARE_STATIC_STRING(knowledgebase_js)
 AETHER_DECLARE_STATIC_STRING(models_js)
+AETHER_DECLARE_STATIC_STRING(palette_html)
+AETHER_DECLARE_STATIC_STRING(palette_js)
 AETHER_DECLARE_STATIC_STRING(sensors_html)
 AETHER_DECLARE_STATIC_STRING(sensors_js)
 AETHER_DECLARE_STATIC_STRING(settings_html)
 AETHER_DECLARE_STATIC_STRING(settings_js)
+AETHER_DECLARE_STATIC_STRING(weather_html)
+AETHER_DECLARE_STATIC_STRING(weather_js)
 
 namespace
 {
@@ -57,10 +62,14 @@ aether::router::router(
     install_static_text("/knowledgebase_editor.html", AETHER_STATIC_STD_STRING(knowledgebase_editor_html));
     install_static_text("/knowledgebase_editor.js", AETHER_STATIC_STD_STRING(knowledgebase_editor_js));
     install_static_text("/models.js", AETHER_STATIC_STD_STRING(models_js));
+    install_static_text("/palette.html", AETHER_STATIC_STD_STRING(palette_html));
+    install_static_text("/palette.js", AETHER_STATIC_STD_STRING(palette_js));
     install_static_text("/sensors.html", AETHER_STATIC_STD_STRING(sensors_html));
     install_static_text("/sensors.js", AETHER_STATIC_STD_STRING(sensors_js));
     install_static_text("/settings.html", AETHER_STATIC_STD_STRING(settings_html));
     install_static_text("/settings.js", AETHER_STATIC_STD_STRING(settings_js));
+    install_static_text("/weather.html", AETHER_STATIC_STD_STRING(weather_html));
+    install_static_text("/weather.js", AETHER_STATIC_STD_STRING(weather_js));
 
     boost::shared_ptr<atlas::http::router> kbr(new kb_router(conn));
     install(
@@ -72,6 +81,12 @@ aether::router::router(
     install(
         atlas::http::matcher("/rpc/sensor"),
         boost::bind(&atlas::api::server::serve, sapi, _1, _2, _3, _4)
+        );
+
+    boost::shared_ptr<atlas::http::router> weather_r(new weather_router(conn));
+    install(
+        atlas::http::matcher("/api/weather(.*)", 1),
+        boost::bind(&atlas::http::router::serve, weather_r, _1, _2, _3, _4)
         );
 
     //

@@ -4,6 +4,7 @@
 #include "hades/crud.ipp"
 #include "hades/custom_select_one.hpp"
 #include "hades/devoid.hpp"
+#include "hades/exists.hpp"
 
 const char aether::attr::kb_family_id[] = "kb_family_id";
 const char aether::attr::kb_family_cname[] = "kb_family_cname";
@@ -30,6 +31,21 @@ const char aether::attr::location_lat[] = "location_lat";
 const char aether::attr::location_lon[] = "location_lon";
 const char aether::attr::setting_name[] = "setting_name";
 const char aether::attr::setting_value[] = "setting_value";
+const char aether::attr::forecast_dt[] = "forecast_dt";
+const char aether::attr::forecast_clouds_all[] = "forecast_clouds_all";
+const char aether::attr::forecast_main_temp[] = "forecast_main_temp";
+const char aether::attr::forecast_main_temp_min[] = "forecast_main_temp_min";
+const char aether::attr::forecast_main_temp_max[] = "forecast_main_temp_max";
+const char aether::attr::forecast_main_humidity[] = "forecast_main_humidity";
+const char aether::attr::forecast_main_pressure[] = "forecast_main_pressure";
+const char aether::attr::forecast_main_sea_level[] = "forecast_main_sea_level";
+const char aether::attr::forecast_main_grnd_level[] = "forecast_main_grnd_level";
+const char aether::attr::forecast_rain[] = "forecast_rain";
+const char aether::attr::forecast_weather_main[] = "forecast_weather_main";
+const char aether::attr::forecast_weather_description[] = "forecast_weather_description";
+const char aether::attr::forecast_wind_speed[] = "forecast_wind_speed";
+const char aether::attr::forecast_wind_deg[] = "forecast_wind_deg";
+const char aether::attr::forecast_wind_gust[] = "forecast_wind_gust";
 const char aether::relvar::kb_family[] = "aether_kb_family";
 const char aether::relvar::kb_variety[] = "aether_kb_variety";
 const char aether::relvar::kb_variety_harvest_mon[] = "aether_kb_variety_harvest_mon";
@@ -46,6 +62,12 @@ const char aether::relvar::sensor_at_batch[] = "aether_sensor_at_batch";
 const char aether::relvar::sensor[] = "aether_sensor";
 const char aether::relvar::location[] = "aether_location";
 const char aether::relvar::setting[] = "aether_setting";
+const char aether::relvar::forecast[] = "aether_forecast";
+const char aether::relvar::forecast_clouds[] = "aether_forecast_clouds";
+const char aether::relvar::forecast_rain[] = "aether_forecast_rain";
+const char aether::relvar::forecast_main[] = "aether_forecast_main";
+const char aether::relvar::forecast_weather[] = "aether_forecast_weather";
+const char aether::relvar::forecast_wind[] = "aether_forecast_wind";
 const char aether::flag::kb_variety_container[] = "aether_kb_variety_container";
 const char aether::flag::kb_variety_flower[] = "aether_kb_variety_flower";
 const char aether::flag::kb_variety_prefer_shade[] = "aether_kb_variety_prefer_shade";
@@ -283,6 +305,75 @@ void aether::db::create(hades::connection& conn)
         " ) ",
         conn
         );
+
+    //
+    // Weather Forecast.
+    //
+
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_forecast ( "
+        " forecast_dt INTEGER PRIMARY KEY "
+        " ) ",
+        conn
+        );
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_forecast_clouds ( "
+        " forecast_dt INTEGER PRIMARY KEY, "
+        " forecast_clouds_all INTEGER "
+        " ) ",
+        conn
+        );
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_forecast_main ( "
+        " forecast_dt INTEGER PRIMARY KEY, "
+        " forecast_main_temp REAL, "
+        " forecast_main_temp_min REAL, "
+        " forecast_main_temp_max REAL, "
+        " forecast_main_humidity INTEGER, "
+        " forecast_main_pressure REAL, "
+        " forecast_main_sea_level REAL, "
+        " forecast_main_grnd_level REAL "
+        " ) ",
+        conn
+        );
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_forecast_rain ( "
+        " forecast_dt INTEGER PRIMARY KEY, "
+        " forecast_rain REAL "
+        " ) ",
+        conn
+        );
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_forecast_weather ( "
+        " forecast_dt INTEGER PRIMARY KEY, "
+        " forecast_weather_main TEXT, "
+        " forecast_weather_description TEXT "
+        " ) ",
+        conn
+        );
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_forecast_wind ( "
+        " forecast_dt INTEGER PRIMARY KEY, "
+        " forecast_wind_speed REAL, "
+        " forecast_wind_deg REAL, "
+        " forecast_wind_gust REAL "
+        " ) ",
+        conn
+        );
+
+    //
+    // Initial data.
+    //
+
+    // Insert a default sensor.
+    // TODO allow for more than one sensor.
+    if(!hades::exists<sensor>(conn, hades::where("sensor_id = 0")))
+    {
+        sensor default_sensor;
+        default_sensor.get_int<attr::sensor_id>() = 0;
+        default_sensor.get_string<attr::sensor_desc>() = "Default Sensor";
+        default_sensor.insert(conn);
+    }
 }
 
 styx::object aether::db::settings(hades::connection& conn)

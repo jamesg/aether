@@ -23,7 +23,7 @@ namespace aether
          * \param failure Function to call, with an error message as a
          * parameter, when an error is encountered.
          */
-        void request_forecast(
+        void retrieve_forecast(
                 boost::shared_ptr<boost::asio::io_service> io,
                 float lat,
                 float lon,

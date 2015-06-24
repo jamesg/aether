@@ -11,6 +11,10 @@ aether::kb_router::kb_router(hades::connection& conn)
     // Knowledge Base.
     //
 
+    //
+    // Families.
+    //
+
     install<int>(
         atlas::http::matcher("/family/([0-9]+)", "DELETE"),
         [&conn](const int family_id) {
@@ -42,6 +46,11 @@ aether::kb_router::kb_router(hades::connection& conn)
             return atlas::http::json_response(f);
         }
         );
+
+    //
+    // Varieties.
+    //
+
     install<int>(
         atlas::http::matcher("/variety/([0-9]+)", "DELETE"),
         [&conn](const int variety_id) {
@@ -193,6 +202,37 @@ aether::kb_router::kb_router(hades::connection& conn)
                 );
         }
         );
-
+    install<int>(
+            atlas::http::matcher("/month/([0-9]+)/sow/variety", "GET"),
+            [&conn](const int month) {
+                return atlas::http::json_response(
+                    hades::join<kb::variety, kb::variety_sow_mon>(
+                        conn,
+                        hades::where(
+                            "aether_kb_variety.kb_variety_id = "
+                            " aether_kb_variety_sow_mon.kb_variety_id AND "
+                            "kb_variety_sow_mon_month = ?",
+                            hades::row<int>(month)
+                            )
+                        )
+                    );
+            }
+            );
+    install<int>(
+            atlas::http::matcher("/month/([0-9]+)/plant/variety", "GET"),
+            [&conn](const int month) {
+                return atlas::http::json_response(
+                    hades::join<kb::variety, kb::variety_plant_mon>(
+                        conn,
+                        hades::where(
+                            "aether_kb_variety.kb_variety_id = "
+                            " aether_kb_variety_plant_mon.kb_variety_id AND "
+                            "kb_variety_plant_mon_month = ?",
+                            hades::row<int>(month)
+                            )
+                        )
+                    );
+            }
+            );
 }
 

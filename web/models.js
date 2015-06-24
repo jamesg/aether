@@ -145,6 +145,7 @@ var Sensor = RestModel.extend(
         idAttribute: 'sensor_id',
         defaults: {
             sensor_desc: '',
+            phase_desc: '',
             aether_temperature_sensor: false,
             aether_moisture_sensor: false
         },
@@ -187,7 +188,31 @@ var Settings = RestModel.extend(
         defaults: {
             permission_create_batch: false,
             permission_move_batch: false
-        }
+        },
+        url: restUri('settings')
     }
     );
+
+//
+// Weather Forecast.
+//
+
+var Forecast = RestModel.extend(
+        {
+            idAttribute: 'forecast_dt',
+            defaults: {
+                forecast_main_temp: 0.0,
+                forecast_rain: 0
+            },
+            url: function() {
+                restUri('weather/' + this.id);
+            }
+        }
+        );
+
+var ForecastCollection = RestCollection.extend(
+        {
+            model: Forecast
+        }
+        );
 

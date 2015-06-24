@@ -12,6 +12,13 @@ namespace hades
 {
     class connection;
 }
+namespace atlas
+{
+    namespace task
+    {
+        class base;
+    }
+}
 namespace aether
 {
     class radio_server;
@@ -36,6 +43,7 @@ namespace aether
         boost::shared_ptr<atlas::http::router> m_router;
         boost::shared_ptr<atlas::http::server> m_http_server;
         boost::shared_ptr<aether::radio_server> m_radio_server;
+        boost::shared_ptr<atlas::task::base> m_retrieve_forecast_task;
         atlas::http::mimetypes m_mime_information;
     };
 }
