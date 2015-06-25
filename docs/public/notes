@@ -1,0 +1,78 @@
+Aether
+======
+
+A Plant Environment Monitoring System
+-------------------------------------
+
+[Lettuce]
+
+Aether is a wireless sensor network that monitors your plant's growing
+environment for soil moisture, light and temperature.  It uses a built in
+knowledge base to help you tailor care to your plant's requirements.
+
+### Components (What?)
+
+[Block diagram]
+
+Aether consists of two physical components: the base station, which you plug
+into your home router, and a wireless, solar-powered sensor which you connect
+to your plants.  The base station collects data from your plants and shows you
+the data via a web interface.
+
+### Benefits (Why?)
+
+[Plant lifecycle]
+
+Plants can be tricky to look after.  Different varieties have different
+requirements for light, water and heat.  Aether knows the optimal conditions
+for growing over 2 individual varieties of plant, so can give you tailored
+advice on how to get the best from your garden.
+
+### Installation (How?)
+
+[Sensor]
+
+To get started, plug the base station into your home network and place the
+sensor next to your plants.  Use the web interface to create a new 'batch';
+this is the unit of plants monitored by the sensor.  Tell Aether where the
+plants are so that it understands their exposure to the weather.  Aether can
+then give adivce on when to water your plants.
+
+### Wireless Capabilities (Where?)
+
+The wireless sensor has a range of about 100 metres and is designed to be
+placed outdoors.  You can access the web interface from your home on any
+desktop, tablet or mobile phone with a web browser.
+
+### Plant Lifecycle (When)?
+
+[Calendar]
+
+Aether's 'plant lifecycle' feature can monitor several environments at once.
+For instance, you might start off seedlings on a windowsill, move them on to a
+greenhouse and then plant them out in the garden.  Aether monitors the
+conditions at each location to understand how they relate to the weather
+forecast; for instance, it will learn that your greenhouse is hotter than the
+weather forecast predicts, while a cold frame may be cooler.
+
+Aether is aware of the seasons, and can suggest which new varieties you should
+sow at any time of year.  With a comprehensive knowledge base, there's always a
+new variety waiting for you to try!
+
+### Summary
+
+Features:
+
+* Install on your home network - no reliance on an external service.
+* Weather warnings powered by Internet weather forecast data.
+* Knowledge base with data on over 2 varieties of plant.
+* Robust, wireless, solar-powered sensor.
+* Variety information is displayed on each sensor.
+
+[Tomato]
+
+### Technical Information
+
+Aether is open source, so you can adapt the code to suit your own needs or use
+the code to assemble your own system from scratch.
+
