@@ -66,10 +66,13 @@ aether::weather_router::weather_router(hades::connection& conn) {
     install_get<>(
         atlas::http::matcher("/today", "GET"),
         [&conn](std::map<std::string, std::string> params) {
+            int timezone_offset_s = 0;
             if(params.find("timezone") == params.end())
-                atlas::log::test("aether::weather_router") << "no timezone";
+                atlas::log::warning("aether::weather_router") <<
+                    "no timezone specified; using 0 (UTC)";
             else
-                atlas::log::test("aether::weather_router") << "timezone: " << params["timezone"];
+                timezone_offset_s =
+                    boost::lexical_cast<int>(params.find("timezone")->second) * 60;
             return atlas::http::json_response(
                 hades::equi_outer_join<
                     forecast,
@@ -87,12 +90,12 @@ aether::weather_router::weather_router(hades::connection& conn) {
                                 (
                                     boost::posix_time::ptime(boost::gregorian::day_clock::universal_day()) -
                                     boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1))
-                                    ).total_seconds(),
+                                    ).total_seconds() + timezone_offset_s,
                                 (
                                     boost::posix_time::ptime(boost::gregorian::day_clock::universal_day()) +
                                     boost::gregorian::days(1) -
                                     boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1))
-                                    ).total_seconds()
+                                    ).total_seconds() + timezone_offset_s
                                     )
                             ),
                             hades::order_by("aether_forecast.forecast_dt ASC")
