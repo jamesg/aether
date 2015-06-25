@@ -22,6 +22,7 @@ target_link_libraries(
     aether-db
     aether-openweathermap
     aether-task
+    atlas-auth
     atlas-com-api
     atlas-com-db
     atlas-com-http-server

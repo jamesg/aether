@@ -3,6 +3,7 @@
 #include <boost/bind.hpp>
 
 #include "aether/db.hpp"
+#include "atlas/auth/router.hpp"
 #include "atlas/db/date.hpp"
 #include "atlas/http/server/exception.hpp"
 #include "atlas/http/server/static_string.hpp"
@@ -75,6 +76,12 @@ aether::router::router(
     install(
         atlas::http::matcher("/api/kb(.*)", 1),
         boost::bind(&atlas::http::router::serve, kbr, _1, _2, _3, _4)
+        );
+
+    boost::shared_ptr<atlas::http::router> auth(new atlas::auth::router(conn));
+    install(
+        atlas::http::matcher("/auth(.*)", 1),
+        boost::bind(&atlas::http::router::serve, auth, _1, _2, _3, _4)
         );
 
     boost::shared_ptr<sensor_api> sapi(new sensor_api(io, conn));

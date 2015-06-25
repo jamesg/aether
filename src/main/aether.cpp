@@ -4,6 +4,7 @@
 #include <boost/make_shared.hpp>
 
 #include "aether/db.hpp"
+#include "atlas/db/auth.hpp"
 #include "atlas/http/server/static_files.hpp"
 #include "atlas/log/log.hpp"
 #include "atlas/task/poll.hpp"
@@ -45,6 +46,7 @@ aether::server::server(
         throw std::runtime_error("port number is required");
 
     m_connection.reset(new hades::connection(opts.db));
+    atlas::db::auth::create(*m_connection);
     db::create(*m_connection);
     m_router.reset(new aether::router(io, *m_connection));
     m_http_server.reset(
@@ -140,4 +142,3 @@ int main(const int argc, const char *argv[])
         return 1;
     }
 }
-
