@@ -34,7 +34,7 @@ var SettingsPage = PageView.extend(
             'click button[name=phases]': 'showPhases',
             'click button[name=location]': 'showLocation',
             'click button[name=permissions]': 'showPermissions',
-            'click button[name=accounts]': 'showAccounts'
+            'click button[name=users]': 'showUsers'
         },
         showPhases: function() {
             gApplication.pushPage(PhasesPage);
@@ -45,8 +45,8 @@ var SettingsPage = PageView.extend(
         showPermissions: function() {
             gApplication.pushPage(new PermissionsPage({ model: new Settings }));
         },
-        showAccounts: function() {
-            gApplication.pushPage(AccountsPage);
+        showUsers: function() {
+            gApplication.pushPage(UsersPage);
         }
     }
     );
@@ -280,10 +280,98 @@ var PermissionsPage = PageView.extend(
     }
     );
 
-var AccountsPage = PageView.extend(
+var UserForm = StaticView.extend(
     {
-        pageTitle: 'Accounts',
-        template: $('#accountspage-template').html()
+        template: $('#userform-template').html(),
+        initialize: function() {
+            StaticView.prototype.initialize.apply(this, arguments);
+            this.on('save', this.save.bind(this));
+            this.on('create', this.save.bind(this));
+        },
+        save: function() {
+            this.model.set({
+                username: this.$('input[name=username]').val(),
+                atlas_user_enabled: this.$('input[name=enabled]').is(':checked'),
+                atlas_user_super: this.$('input[name=super]').is(':checked'),
+            });
+            this.model.save(
+                {},
+                {
+                    success: this.trigger.bind(this, 'finished')
+                }
+                );
+        }
+    }
+    );
+
+var UsersPage = PageView.extend(
+    {
+        pageTitle: 'Users',
+        template: $('#userspage-template').html(),
+        initialize: function() {
+            PageView.prototype.initialize.apply(this, arguments);
+            PageView.prototype.render.apply(this);
+            var users = new UserCollection;
+            this._users = users;
+            this._users.fetch();
+            (new TableView({
+                el: this.$('table[name=users]'),
+                theadView: StaticView.extend({
+                    tagName: 'thead',
+                    template: '<tr><th>Name</th><th>Account enabled</th><th>Administrator</th></tr>'
+                }),
+                trView: StaticView.extend({
+                    tagName: 'tr',
+                    template: '\
+                        <td><%-username%></td>\
+                        <td><%if(atlas_user_enabled){%>\
+                            <span class="oi" data-glyph="check" aria-hidden="true"> </span>\
+                        <%}else{%>\
+                            <span class="oi" data-glyph="x" aria-hidden="true"> </span>\
+                        <%}%></td>\
+                        <td><%if(atlas_user_super){%>\
+                            <span class="oi" data-glyph="check" aria-hidden="true"> </span>\
+                        <%}else{%>\
+                            <span class="oi" data-glyph="x" aria-hidden="true"> </span>\
+                        <%}%></td>\
+                        ',
+                    events: {
+                        click: 'edit'
+                    },
+                    edit: function() {
+                        var m = new Modal({
+                            view: UserForm,
+                            model: this.model,
+                            buttons: [
+                                StandardButton.save(),
+                                StandardButton.destroy(),
+                                StandardButton.cancel()
+                            ]
+                        });
+                        this.listenTo(m, 'finished', users.fetch.bind(users));
+                        gApplication.modal(m);
+                    }
+                }),
+                model: this._users
+            })).render();
+        },
+        events: {
+            'click button[name=create]': 'create'
+        },
+        create: function() {
+            var m = new Modal({
+                view: UserForm,
+                model: this.model,
+                buttons: [
+                    StandardButton.create(),
+                    StandardButton.cancel()
+                ]
+            });
+            this.listenTo(m, 'finished', this._users.fetch.bind(this._users));
+            gApplication.modal(m);
+        },
+        render: function() {
+        }
     }
     );
 

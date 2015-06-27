@@ -216,3 +216,36 @@ var ForecastCollection = RestCollection.extend(
         }
         );
 
+//
+// Authentication.
+//
+
+var Session = RestModel.extend(
+        {
+            idAttribute: 'token',
+            url: restUri('auth/token')
+        }
+        );
+
+var User = RestModel.extend(
+        {
+            idAttribute: 'user_id',
+            defaults: {
+                username: '',
+                password: '',
+                atlas_user_enabled: false,
+                atlas_user_super: false
+            },
+            url: function() {
+                return restUri(this.isNew() ? 'auth/user' : 'auth/user/' + this.id);
+            }
+        }
+        );
+
+var UserCollection = RestCollection.extend(
+        {
+            model: User,
+            url: restUri('auth/user')
+        }
+        );
+

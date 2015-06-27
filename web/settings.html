@@ -11,6 +11,7 @@
 <link href="/atlas/css/modal.css" rel="stylesheet" type="text/css" media="all"></link>
 <link href="/atlas/css/navigation.css" rel="stylesheet" type="text/css" media="all"></link>
 <link href="/atlas/css/plant-theme.css" rel="stylesheet" type="text/css" media="all"></link>
+<link href="/atlas/css/table.css" rel="stylesheet" type="text/css" media="all"></link>
 <link
     href="/atlas/open-iconic/font/css/open-iconic.css"
     rel="stylesheet"
@@ -61,7 +62,7 @@
 <button type="button" name="location">Set Location</button>
 
 <h1>System <small>Change system settings</small></h1>
-<button type="button" name="accounts">Accounts</button>
+<button type="button" name="users">Accounts</button>
 <button type="button" name="permissions">Permissions</button>
 </script>
 
@@ -137,8 +138,33 @@ seeds indoors, 'outdoors' will be last if you plant older plants outdoors.
 </table>
 </script>
 
-<script type="text/template" id="accountspage-template">
+<script type="text/template" id="userspage-template">
 <h1>Accounts <small>Create and modify user accounts</small></h1>
+<div class="button-box">
+    <button name="create">
+        <span class="oi" data-glyph="plus" aria-hidden="true"> </span>
+        New User
+    </button>
+</div>
+<table name="users" class="action-table"></table>
+</script>
+
+<script type="text/template" id="userform-template">
+<h1>Edit User</h1>
+<div class="aligned">
+    <div class="group">
+        <label>Username<input name="username" type="text" value="<%-username%>"></input></label>
+    </div>
+    <div class="group">
+        <label>Account enabled<input name="enabled" type="checkbox"
+            <%if(atlas_user_enabled) {%>checked<%}%>>
+            </input></label>
+    </div>
+    <div class="group">
+        <label>Administrator<input name="super" type="checkbox"
+            <%if(atlas_user_super) {%>checked<%}%>>
+            </input></label>
+    </div>
 </script>
 
 <script type="text/template" id="permissionspage-template">
