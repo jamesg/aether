@@ -80,7 +80,7 @@ aether::router::router(
 
     boost::shared_ptr<atlas::http::router> auth(new atlas::auth::router(conn));
     install(
-        atlas::http::matcher("/auth(.*)", 1),
+        atlas::http::matcher("/api/auth(.*)", 1),
         boost::bind(&atlas::http::router::serve, auth, _1, _2, _3, _4)
         );
 
