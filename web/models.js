@@ -223,7 +223,7 @@ var ForecastCollection = RestCollection.extend(
 var Session = RestModel.extend(
         {
             idAttribute: 'token',
-            url: restUri('auth/token')
+            url: restUri('auth/session')
         }
         );
 
