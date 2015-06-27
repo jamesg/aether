@@ -88,3 +88,58 @@ var ColourPicker = StaticView.extend(
         }
         );
 
+var SignInPage = PageView.extend(
+        {
+            pageTitle: 'Sign In',
+            template: '\
+                <form>\
+                <div class="aligned">\
+                    <div class="group">\
+                        <label>Username<input name="username" type="text"></input></label>\
+                    </div>\
+                    <div class="group">\
+                        <label>Password<input name="password" type="password"></input></label>\
+                    </div>\
+                </div>\
+                <div class="button-box">\
+                    <button type="submit">Sign in</button>\
+                </div>\
+                </form>\
+                ',
+            initialize: function() {
+                PageView.prototype.initialize.apply(this, arguments);
+                PageView.prototype.render.apply(this);
+                this.$('form').submit(this.signIn.bind(this));
+            },
+            signIn: function() {
+                var session = new Session;
+                session.fetch({
+                    url: restUri(
+                         'auth/session?username=' + this.$('input[name=username]').val() +
+                         '&password=' + this.$('input[name=password]').val()
+                         ),
+                    success: function() {
+                        console.log('signed in', session.get('token'));
+                        // Store the session token.
+                        storage.set('token', session.get('token'));
+                        gApplication.popPage();
+                    }
+                });
+                return false;
+            },
+            render: function() {
+            }
+        }
+        );
+
+/*
+ * Push a sign in page to the application whenever a jQuery request receives a
+ * 403 error.
+ */
+$(document).ajaxError(
+    function (e, xhr, options) {
+        if(xhr.status == 403 && !(gApplication.currentPage() instanceof SignInPage))
+            gApplication.pushPage(SignInPage);
+    }
+    );
+
