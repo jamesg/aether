@@ -30,6 +30,7 @@ var FamiliesPage = PageView.extend(
                             view: FamilyForm,
                             buttons: [
                                 StandardButton.cancel(),
+                                StandardButton.destroy(),
                                 StandardButton.save()
                             ]
                         });
@@ -96,6 +97,7 @@ var FamilyPage = PageView.extend(
                             view: VarietyForm,
                             buttons: [
                                 StandardButton.cancel(),
+                                StandardButton.destroy(),
                                 StandardButton.save()
                             ]
                         });
@@ -133,6 +135,7 @@ var FamilyForm = StaticView.extend(
             StaticView.prototype.initialize.apply(this, arguments);
             StaticView.prototype.render.apply(this);
             this.on('create', this.save.bind(this));
+            this.on('destroy', this.destroy.bind(this));
             this.on('save', this.save.bind(this));
         },
         save: function() {
@@ -144,6 +147,18 @@ var FamilyForm = StaticView.extend(
             this.model.save(
                 {},
                 { success: this.trigger.bind(this, 'finished') }
+                );
+        },
+        destroy: function() {
+            gApplication.modal(
+                new ConfirmModal({
+                    message: 'Delete this family (including all varieties)?',
+                    callback: (function() {
+                        this.model.destroy({
+                            success: this.trigger.bind(this, 'finished')
+                        });
+                    }).bind(this)
+                })
                 );
         },
         render: function() {
@@ -159,6 +174,7 @@ var VarietyForm = StaticView.extend(
             if(!this.model.isNew())
                 this.model.fetch();
             this.on('create', this.save.bind(this));
+            this.on('destroy', this.destroy.bind(this));
             this.on('save', this.save.bind(this));
         },
         render: function() {
@@ -172,7 +188,9 @@ var VarietyForm = StaticView.extend(
             this._colourPicker.render();
         },
         save: function() {
-            this._colourPicker.save();
+            //this._colourPicker.save();
+            console.log('lname', this.$('input[name=kb_variety_lname]').val());
+            console.log('container', this.$('input[name=aether_kb_variety_container]').is(':checked'));
             this.model.set({
                 kb_variety_cname: this.$('input[name=kb_variety_cname]').val(),
                 kb_variety_lname: this.$('input[name=kb_variety_lname]').val(),
@@ -184,6 +202,7 @@ var VarietyForm = StaticView.extend(
                     this.$('input[name=aether_kb_variety_prefer_shade]').is(':checked'),
                 aether_kb_variety_prefer_sun:
                     this.$('input[name=aether_kb_variety_prefer_sun]').is(':checked'),
+                kb_variety_colour: this._colourPicker.colour(),
                 harvest_mon: _.filter(
                     _.range(1, 13),
                     function(i) { return this.$('#harvest_' + i).is(':checked'); },
@@ -200,9 +219,22 @@ var VarietyForm = StaticView.extend(
                     this
                     )
             });
+            console.log('attributes', this.model.attributes);
             this.model.save(
                 {},
                 { success: this.trigger.bind(this, 'finished') }
+                );
+        },
+        destroy: function() {
+            gApplication.modal(
+                new ConfirmModal({
+                    message: 'Delete this variety?',
+                    callback: (function() {
+                        this.model.destroy({
+                            success: this.trigger.bind(this, 'finished')
+                        });
+                    }).bind(this)
+                })
                 );
         }
     }

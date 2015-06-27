@@ -68,6 +68,10 @@ var ColourPicker = StaticView.extend(
             },
             render: function() {
             },
+            // Get the currently selected colour value, or 'undefined' if no colour is selected.
+            colour: function() {
+                return this.$('input:radio[name=' + this._attribute + ']:checked').val();
+            },
             save: function() {
                 console.log(
                         'save colour value',
