@@ -355,6 +355,9 @@ var UsersPage = PageView.extend(
                 model: this._users
             })).render();
         },
+        reset: function() {
+            this._users.fetch();
+        },
         events: {
             'click button[name=create]': 'create'
         },
