@@ -1,5 +1,7 @@
 #include "kb_router.hpp"
 
+#include <boost/bind.hpp>
+
 #include "aether/db.hpp"
 #include "hades/crud.ipp"
 #include "hades/join.hpp"
@@ -22,14 +24,16 @@ aether::kb_router::kb_router(hades::connection& conn)
             f.set_id(kb::family::id_type{family_id});
             // TODO reassign varieties
             return atlas::http::json_response(f.destroy(conn));
-        }
+        },
+        boost::bind(&atlas::auth::is_superuser, boost::ref(conn), _1)
         );
     install_json<kb::family, int>(
         atlas::http::matcher("/family/([0-9]+)", "PUT"),
         [&conn](kb::family f, const int family_id) {
             f.update(conn);
             return atlas::http::json_response(f);
-        }
+        },
+        boost::bind(&atlas::auth::is_superuser, boost::ref(conn), _1)
         );
     install<>(
         atlas::http::matcher("/family", "GET"),
@@ -44,7 +48,8 @@ aether::kb_router::kb_router(hades::connection& conn)
         [&conn](kb::family f) {
             f.insert(conn);
             return atlas::http::json_response(f);
-        }
+        },
+        boost::bind(&atlas::auth::is_superuser, boost::ref(conn), _1)
         );
 
     //
@@ -58,7 +63,8 @@ aether::kb_router::kb_router(hades::connection& conn)
             v.set_id(kb::variety::id_type{variety_id});
             // TODO reassign batches
             return atlas::http::json_response(v.destroy(conn));
-        }
+        },
+        boost::bind(&atlas::auth::is_superuser, boost::ref(conn), _1)
         );
     install<int>(
         atlas::http::matcher("/variety/([0-9]+)", "GET"),
@@ -170,7 +176,8 @@ aether::kb_router::kb_router(hades::connection& conn)
             v.update(conn);
             save_months(v);
             return atlas::http::json_response(v);
-        }
+        },
+        boost::bind(&atlas::auth::is_superuser, boost::ref(conn), _1)
         );
     install<>(
         atlas::http::matcher("/variety", "GET"),
@@ -186,7 +193,8 @@ aether::kb_router::kb_router(hades::connection& conn)
             v.insert(conn);
             save_months(v);
             return atlas::http::json_response(v);
-        }
+        },
+        boost::bind(&atlas::auth::is_superuser, boost::ref(conn), _1)
         );
     install<int>(
         atlas::http::matcher("/family/([0-9]+)/variety", "GET"),
@@ -235,4 +243,3 @@ aether::kb_router::kb_router(hades::connection& conn)
             }
             );
 }
-
