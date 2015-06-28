@@ -73,16 +73,10 @@ aether::router::router(
     install_static_text("/weather.js", AETHER_STATIC_STD_STRING(weather_js));
 
     boost::shared_ptr<atlas::http::router> kbr(new kb_router(conn));
-    install(
-        atlas::http::matcher("/api/kb(.*)", 1),
-        boost::bind(&atlas::http::router::serve, kbr, _1, _2, _3, _4)
-        );
+    install(atlas::http::matcher("/api/kb(.*)", 1), kbr);
 
     boost::shared_ptr<atlas::http::router> auth(new atlas::auth::router(conn));
-    install(
-        atlas::http::matcher("/api/auth(.*)", 1),
-        boost::bind(&atlas::http::router::serve, auth, _1, _2, _3, _4)
-        );
+    install(atlas::http::matcher("/api/auth(.*)", 1), auth);
 
     boost::shared_ptr<sensor_api> sapi(new sensor_api(io, conn));
     install(
@@ -91,10 +85,7 @@ aether::router::router(
         );
 
     boost::shared_ptr<atlas::http::router> weather_r(new weather_router(conn));
-    install(
-        atlas::http::matcher("/api/weather(.*)", 1),
-        boost::bind(&atlas::http::router::serve, weather_r, _1, _2, _3, _4)
-        );
+    install(atlas::http::matcher("/api/weather(.*)", 1), weather_r);
 
     //
     // Batches.
@@ -177,6 +168,11 @@ aether::router::router(
                 );
             bp.insert(conn);
             return atlas::http::json_response(b);
+        },
+        [&conn](const atlas::auth::token_type& token) {
+            // implies
+            return !(styx::cast<bool>(db::setting_value(conn, "permission_create_batch"))) ||
+                atlas::auth::is_superuser(conn, token);
         }
         );
     install_json<batch, int>(
@@ -211,7 +207,12 @@ aether::router::router(
 
             b.update(conn);
             return atlas::http::json_response(b);
-            }
+        },
+        [&conn](const atlas::auth::token_type& token, int) {
+            // implies
+            return !(styx::cast<bool>(db::setting_value(conn, "permission_move_batch"))) ||
+                atlas::auth::is_superuser(conn, token);
+        }
         );
     install<int>(
         atlas::http::matcher("/api/phase/([0-9]+)/batch", "GET"),
