@@ -143,3 +143,23 @@ $(document).ajaxError(
     }
     );
 
+var CurrentUserView = StaticView.extend(
+        {
+            template: '<%-username%>'
+        }
+        );
+
+/*
+ * Display the currently signed in user.
+ */
+$(window).load(
+    function() {
+        var currentUser = new CurrentUser;
+        currentUser.fetch();
+        (new CurrentUserView({
+            el: $('#current-user'),
+            model: currentUser
+        })).render();
+    }
+    );
+

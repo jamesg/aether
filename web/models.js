@@ -249,3 +249,11 @@ var UserCollection = RestCollection.extend(
         }
         );
 
+var CurrentUser = User.extend(
+        {
+            url: function() {
+                return restUri('auth/session/' + storage.get('token') + '/user');
+            }
+        }
+        );
+

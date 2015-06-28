@@ -26,29 +26,32 @@
 <div id="modal-container" class="modal-container"></div>
 
 <div class="header">
-    <ul class="navigation navigation-pages">
-        <li>
-            <span class="oi" data-glyph="home" aria-hidden="true"> </span>
-            <a href="/">Home</a>
-        </li>
-        <li>
-            <span class="oi" data-glyph="bar-chart" aria-hidden="true"> </span>
-            <a href="/board.html">Progress Board</a>
-        </li>
-        <li>
-            <span class="oi" data-glyph="wrench" aria-hidden="true"> </span>
-            <a href="/settings.html">Settings</a>
-        </li>
-        <li>
-            <span class="oi" data-glyph="magnifying-glass" aria-hidden="true"> </span>
-            <a href="/knowledgebase.html">Knowledge Base</a>
-        </li>
-        <li>
-            <span class="oi" data-glyph="droplet" aria-hidden="true"> </span>
-            <a href="/sensors.html">Sensors</a>
-        </li>
-    </ul>
-<ul id="navigation" class="navigation navigation-breadcrumbs"></ul>
+    <div class="navigation navigation-pages">
+        <ul>
+            <li>
+                <span class="oi" data-glyph="home" aria-hidden="true"> </span>
+                <a href="/">Home</a>
+            </li>
+            <li>
+                <span class="oi" data-glyph="bar-chart" aria-hidden="true"> </span>
+                <a href="/board.html">Progress Board</a>
+            </li>
+            <li>
+                <span class="oi" data-glyph="wrench" aria-hidden="true"> </span>
+                <a href="/settings.html">Settings</a>
+            </li>
+            <li>
+                <span class="oi" data-glyph="magnifying-glass" aria-hidden="true"> </span>
+                <a href="/knowledgebase.html">Knowledge Base</a>
+            </li>
+            <li>
+                <span class="oi" data-glyph="droplet" aria-hidden="true"> </span>
+                <a href="/sensors.html">Sensors</a>
+            </li>
+        </ul>
+        <span id="current-user" class="current-user"></span>
+    </div>
+    <ul id="navigation" class="navigation navigation-breadcrumbs"></ul>
 </div>
 <div id="template-content" class="content"></div>
 
@@ -93,6 +96,7 @@ start monitoring the batch.</p>
 <script type="text/javascript" src="/atlas/jquery.min.js"></script>
 <script type="text/javascript" src="/atlas/moment.min.js"></script>
 <script type="text/javascript" src="/atlas/stacked_application.js"></script>
+<script type="text/javascript" src="application.js"></script>
 <script type="text/javascript" src="models.js"></script>
 <script type="text/javascript" src="board.js"></script>
 <script type="text/javascript">

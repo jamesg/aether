@@ -188,7 +188,6 @@ var VarietyForm = StaticView.extend(
             this._colourPicker.render();
         },
         save: function() {
-            //this._colourPicker.save();
             console.log('lname', this.$('input[name=kb_variety_lname]').val());
             console.log('container', this.$('input[name=aether_kb_variety_container]').is(':checked'));
             this.model.set({
@@ -219,6 +218,7 @@ var VarietyForm = StaticView.extend(
                     this
                     )
             });
+            //this._colourPicker.save();
             console.log('attributes', this.model.attributes);
             this.model.save(
                 {},
