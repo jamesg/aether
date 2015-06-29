@@ -16,15 +16,15 @@ SCENARIO("openweathermap::city_to_location") {
         aether::openweathermap::city_to_location(
                 io,
                 "London, UK",
-                [&l](aether::location& l_)
+                [&l](aether::location e)
                 {
-                    l = l_;
-                    atlas::log::information("aether::openweathermap::city_to_location test") <<
+                    l = e;
+                    atlas::log::test("aether::openweathermap::city_to_location test") <<
                         "retrieved location: " <<
-                        styx::serialise_json(l);
+                        styx::serialise_json(e);
                 },
                 [](const std::string& error) {
-                    atlas::log::information("aether::openweathermap::city_to_location test") <<
+                    atlas::log::test("aether::openweathermap::city_to_location test") <<
                         "error " << error;
                 }
                 );
@@ -60,4 +60,3 @@ SCENARIO("openweathermap::city_to_location") {
         }
     }
 }
-

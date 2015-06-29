@@ -4,13 +4,10 @@
 #include <boost/enable_shared_from_this.hpp>
 
 #include "atlas/task/base.hpp"
+#include "styx/element.hpp"
 
 namespace aether
 {
-    namespace openweathermap
-    {
-        class forecast;
-    }
     namespace task
     {
         /*!
@@ -39,11 +36,10 @@ namespace aether
                 atlas::task::callback_function_type callback,
                 hades::connection& conn
                 );
-            void forecast_received(openweathermap::forecast&);
+            void forecast_received(styx::element);
             void forecast_error(const std::string&);
         };
     }
 }
 
 #endif
-

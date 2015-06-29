@@ -5,8 +5,6 @@
 #include "hades/mkstr.hpp"
 #include "styx/serialise_json.hpp"
 
-#include "forecast.hpp"
-
 void aether::openweathermap::city_to_location(
         boost::shared_ptr<boost::asio::io_service> io,
         const std::string& city_name,
@@ -17,55 +15,48 @@ void aether::openweathermap::city_to_location(
     atlas::log::information("aether::openweathermap::city_to_location") << "requesting " <<
         city_name;
 
-    atlas::http::get(
+    atlas::http::get_json(
         io,
         hades::mkstr() <<
             "http://api.openweathermap.org/data/2.5/forecast?q=" <<
             city_name,
-        [success, failure](const std::string& str) {
+        [success, failure, city_name](styx::element e) {
             try
             {
+                styx::object f(e);
 
-                std::string::size_type open_brace = str.find('{');
-                if(open_brace == std::string::npos)
-                    throw std::runtime_error("opening brace not found");
-                styx::element forecast_e = styx::parse_json(
-                    std::string(str, open_brace, std::string::npos)
-                    );
-
-                atlas::log::information("openweathermap::city_to_location") <<
-                    "forecast " << styx::serialise_json(forecast_e);
-                forecast f(forecast_e);
-
-                if(f.cod() < 200 || f.cod() > 299)
+                const int cod = f.copy_int("cod");
+                if(cod < 200 || cod > 299)
                 {
-                    atlas::log::information("openweathermap::city_to_location") << "code " <<
-                        f.cod();
-                    failure(hades::mkstr() << "error code " << f.cod());
+                    atlas::log::information("aether::openweathermap::city_to_location") << "code " <<
+                        cod;
+                    failure(hades::mkstr() << "error code " << cod);
                 }
                 else
                 {
-                    atlas::log::information("openweathermap::city_to_location") << "found " <<
-                        f.city().coord().lat() << " " << f.city().coord().lon();
+                    const double lat = f.get_object("city").get_object("coord").get_double("lat");
+                    const double lon = f.get_object("city").get_object("coord").get_double("lon");
+                    atlas::log::information("aether::openweathermap::city_to_location") <<
+                        "found " << city_name << " at " << lon << " N " <<
+                        lat << " E";
 
                     location l;
-                    l.get_string<attr::location_city>() = f.city().name();
-                    l.get_double<attr::location_lon>() = f.city().coord().lon();
-                    l.get_double<attr::location_lat>() = f.city().coord().lat();
+                    l.get_string<attr::location_city>() = f.get_object("city").get_string("name");
+                    l.get_double<attr::location_lon>() = lon;
+                    l.get_double<attr::location_lat>() = lat;
                     success(l);
                 }
             }
             catch(const std::exception& e)
             {
-                atlas::log::warning("openweathermap::city_to_location") << "parsing forecast: " << e.what();
+                atlas::log::warning("aether::openweathermap::city_to_location") << "parsing forecast: " << e.what();
                 failure(hades::mkstr() << "exception " << e.what());
             }
         },
         [failure](const std::string& str) {
-            atlas::log::warning("openweathermap::city_to_location") <<
-                "openweathermap api request failed";
-            failure("Error contacting external server.");
+            atlas::log::warning("aether::openweathermap::city_to_location") <<
+                "openweathermap api request failed: " << str;
+            failure(str);
         }
         );
 }
-

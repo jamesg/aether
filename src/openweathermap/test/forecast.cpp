@@ -1,13 +1,11 @@
+#include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "catch.hpp"
 
+#include "atlas/http/client.hpp"
 #include "atlas/log/log.hpp"
 #include "styx/element.hpp"
 #include "styx/styx.hpp"
-
-#include "openweathermap/forecast.hpp"
-#include "openweathermap/point.hpp"
-#include "openweathermap/retrieve_forecast.hpp"
 
 /*
  * Test the retrieval of weather forecast data from the Open Weather Map
@@ -17,68 +15,61 @@
  */
 SCENARIO("openweathermap::forecast") {
     WHEN("a forecast request is made") {
-        aether::openweathermap::forecast forecast;
+        styx::object forecast;
 
         boost::shared_ptr<boost::asio::io_service> io(
                 new boost::asio::io_service
                 );
-        aether::openweathermap::retrieve_forecast(
+        atlas::http::get_json(
                 io,
-                51,
-                0,
-                [&forecast](aether::openweathermap::forecast& forecast_)
+                "http://api.openweathermap.org/data/2.5/forecast?lon=51&lat=0",
+                [&forecast](styx::element forecast_)
                 {
-                    forecast = forecast_;
-                    atlas::log::information("aether::openweathermap::forecast test") <<
+                    forecast = styx::object(forecast_);
+                    atlas::log::test("aether::openweathermap::forecast test") <<
                         "retrieved forecast";
                 },
                 [](const std::string& error) {
-                    atlas::log::information("aether::openweathermap::forecast test") <<
+                    atlas::log::test("aether::openweathermap::forecast test") <<
                         "error " << error;
                 }
                 );
         io->run();
 
         THEN("the result contains sensible data") {
-            REQUIRE(forecast.cnt() > 0);
-            REQUIRE(forecast.cnt() < 50);
+            REQUIRE(forecast.get_int("cnt") > 0);
+            REQUIRE(forecast.get_int("cnt") < 50);
 
-            REQUIRE(forecast.list().size() == forecast.cnt());
-            REQUIRE(forecast.list().size() >= 1);
+            REQUIRE(forecast.get_list("list").size() == forecast.copy_int("cnt"));
+            REQUIRE(forecast.get_list("list").size() >= 1);
 
-            for(int i = 0; i < forecast.list().size(); ++i)
+            for(styx::element point_e : forecast.get_list("list"))
             {
+                styx::object point(point_e);
                 // Take a point in the forecast.  This test is based on live
                 // weather data, so data cannot be predicted fully.
-                aether::openweathermap::point point(forecast.list()[i]);
 
                 // Temperatures are in degrees Kelvin (273 Kelvin == 0 Celsius).
-                REQUIRE(point.temp() > 253);
-                REQUIRE(point.temp() < 313);
-                REQUIRE(point.temp_min() > 253);
-                REQUIRE(point.temp_min() < 313);
-                REQUIRE(point.temp_max() > 253);
-                REQUIRE(point.temp_max() < 313);
-
-                // TODO: figure out what these values mean.
-                //REQUIRE(point.temp_min() <= point.temp());
-                //REQUIRE(point.temp() <= point.temp_max());
+                REQUIRE(point.get_object("main").copy_int("temp") > 253);
+                REQUIRE(point.get_object("main").copy_int("temp") < 313);
+                REQUIRE(point.get_object("main").copy_int("temp_min") > 253);
+                REQUIRE(point.get_object("main").copy_int("temp_min") < 313);
+                REQUIRE(point.get_object("main").copy_int("temp_max") > 253);
+                REQUIRE(point.get_object("main").copy_int("temp_max") < 313);
 
                 // Percentage scales.
-                REQUIRE(point.humidity() >= 0);
-                REQUIRE(point.humidity() <= 100);
-                //REQUIRE(point.clouds() >= 0);
-                //REQUIRE(point.clouds() <= 100);
+                REQUIRE(point.get_object("main").copy_int("humidity") >= 0);
+                REQUIRE(point.get_object("main").copy_int("humidity") <= 100);
 
                 // Wind speed shouldn't be greater than 100 knots.
-                REQUIRE(point.wind_speed() >= 0);
-                REQUIRE(point.wind_speed() <= 100);
-                REQUIRE(point.wind_deg() >= 0);
-                REQUIRE(point.wind_deg() < 360);
+                REQUIRE(point.get_object("wind").copy_int("speed") >= 0);
+                REQUIRE(point.get_object("wind").copy_int("speed") <= 100);
+                REQUIRE(point.get_object("wind").copy_int("deg") >= 0);
+                REQUIRE(point.get_object("wind").copy_int("deg") < 360);
 
                 // Time should be within five days of the present time.
                 boost::posix_time::ptime point_time =
-                    boost::posix_time::from_time_t(point.dt());
+                    boost::posix_time::from_time_t(point.copy_int("dt"));
 
                 boost::posix_time::ptime now =
                     boost::posix_time::second_clock::universal_time();
@@ -93,4 +84,3 @@ SCENARIO("openweathermap::forecast") {
         }
     }
 }
-

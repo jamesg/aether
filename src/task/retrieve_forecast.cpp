@@ -3,13 +3,11 @@
 #include <boost/bind.hpp>
 
 #include "aether/db.hpp"
+#include "atlas/http/client.hpp"
 #include "atlas/log/log.hpp"
 #include "hades/crud.ipp"
 #include "hades/get_one.hpp"
 #include "styx/cast.hpp"
-
-#include "openweathermap/forecast.hpp"
-#include "openweathermap/retrieve_forecast.hpp"
 
 boost::shared_ptr<aether::task::retrieve_forecast>
 aether::task::retrieve_forecast::create(
@@ -40,21 +38,23 @@ void aether::task::retrieve_forecast::run()
     try
     {
         location l(hades::get_one<location>(connection()));
-        openweathermap::retrieve_forecast(
-                io_ptr(),
-                l.get_double<attr::location_lat>(),
+        atlas::http::get_json(
+            io_ptr(),
+            hades::mkstr() <<
+                "http://api.openweathermap.org/data/2.5/forecast?lat=" <<
+                l.get_double<attr::location_lat>() << "&lon=" <<
                 l.get_double<attr::location_lon>(),
-                boost::bind(
-                    &retrieve_forecast::forecast_received,
-                    shared_from_this(),
-                    _1
-                    ),
-                boost::bind(
-                    &retrieve_forecast::forecast_error,
-                    shared_from_this(),
-                    _1
-                    )
-                );
+            boost::bind(
+                &retrieve_forecast::forecast_received,
+                shared_from_this(),
+                _1
+            ),
+            boost::bind(
+                &retrieve_forecast::forecast_error,
+                shared_from_this(),
+                _1
+            )
+        );
     }
     catch(const hades::exception&)
     {
@@ -71,10 +71,11 @@ void aether::task::retrieve_forecast::run()
 }
 
 void aether::task::retrieve_forecast::forecast_received(
-        openweathermap::forecast& f
+        styx::element e
         )
 {
-    for(styx::object point : f.list())
+    styx::object f(e);
+    for(styx::object point : f.get_list("list"))
     {
         forecast f_db;
         f_db.get_int<attr::forecast_dt>() = point.copy_int("dt");
@@ -141,4 +142,3 @@ void aether::task::retrieve_forecast::forecast_error(const std::string& message)
         "could not retrieve forecast (communication error): " << message;
     mark_finished();
 }
-
