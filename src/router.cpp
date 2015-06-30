@@ -171,7 +171,7 @@ aether::router::router(
         },
         [&conn](const atlas::auth::token_type& token) {
             // implies
-            return !(styx::cast<bool>(db::setting_value(conn, "permission_create_batch"))) ||
+            return !(styx::cast<int>(db::setting_value(conn, "permission_create_batch")) == 1) ||
                 atlas::auth::is_superuser(conn, token);
         }
         );
@@ -210,7 +210,7 @@ aether::router::router(
         },
         [&conn](const atlas::auth::token_type& token, int) {
             // implies
-            return !(styx::cast<bool>(db::setting_value(conn, "permission_move_batch"))) ||
+            return !(styx::cast<int>(db::setting_value(conn, "permission_move_batch")) == 1) ||
                 atlas::auth::is_superuser(conn, token);
         }
         );
@@ -468,4 +468,3 @@ aether::router::router(
         }
         );
 }
-

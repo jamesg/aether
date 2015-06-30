@@ -26,6 +26,9 @@ const char aether::attr::finish[] = "finish";
 const char aether::attr::phase_order[] = "phase_order";
 const char aether::attr::sensor_id[] = "sensor_id";
 const char aether::attr::sensor_desc[] = "sensor_desc";
+const char aether::attr::log_time[] = "log_time";
+const char aether::attr::moisture[] = "moisture";
+const char aether::attr::temperature[] = "temperature";
 const char aether::attr::location_city[] = "location_city";
 const char aether::attr::location_lat[] = "location_lat";
 const char aether::attr::location_lon[] = "location_lon";
@@ -247,20 +250,20 @@ void aether::db::create(hades::connection& conn)
     //
 
     hades::devoid(
-        "CREATE TABLE IF NOT EXISTS moisture_log ( "
+        "CREATE TABLE IF NOT EXISTS aether_moisture_log ( "
         " batch_id INTEGER REFERENCES aether_batch(batch_id), "
-        " date VARCHAR, "
+        " log_time INTEGER, "
         " moisture INTEGER, "
-        " PRIMARY KEY(batch_id, date) "
+        " PRIMARY KEY(batch_id, log_time) "
         " ) ",
         conn
         );
     hades::devoid(
-        "CREATE TABLE IF NOT EXISTS temperature_log ( "
+        "CREATE TABLE IF NOT EXISTS aether_temperature_log ( "
         " batch_id INTEGER REFERENCES aether_batch(batch_id), "
-        " date VARCHAR, "
+        " log_time INTEGER, "
         " temperature REAL, "
-        " PRIMARY KEY(batch_id, date) "
+        " PRIMARY KEY(batch_id, log_time) "
         " ) ",
         conn
         );

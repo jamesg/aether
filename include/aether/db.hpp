@@ -1,6 +1,7 @@
 #ifndef AETHER_DB_HPP
 #define AETHER_DB_HPP
 
+#include "atlas/db/date_series.hpp"
 #include "atlas/db/temporal.hpp"
 #include "hades/crud.hpp"
 #include "hades/has_candidate_key.hpp"
@@ -49,6 +50,10 @@ namespace aether
 
         extern const char sensor_id[];
         extern const char sensor_desc[];
+
+        extern const char log_time[];
+        extern const char moisture[];
+        extern const char temperature[];
 
         extern const char location_city[];
         extern const char location_lat[];
@@ -344,16 +349,28 @@ namespace aether
         public hades::crud<sensor_at_batch>
     {
     };
-    class moisture_log :
-        public atlas::db::semi_temporal<sensor::id_type, relvar::moisture_log>
-    {
-    };
-    class temperature_log :
-        public atlas::db::semi_temporal<sensor::id_type, relvar::temperature_log>
-    {
-    };
+
+    //
+    // Sensor logs.
+    //
+
+    typedef atlas::db::date_series<
+        batch::id_type,
+        relvar::moisture_log,
+        attr::moisture,
+        attr::log_time>
+        moisture_log;
+    typedef atlas::db::date_series<
+        batch::id_type,
+        relvar::temperature_log,
+        attr::temperature,
+        attr::log_time>
+        temperature_log;
     class location :
-        public hades::tuple<attr::location_city, attr::location_lat, attr::location_lon>,
+        public hades::tuple<
+            attr::location_city,
+            attr::location_lat,
+            attr::location_lon>,
         public hades::has_candidate_key<>,
         public hades::relation<relvar::location>,
         public hades::crud<location>

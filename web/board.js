@@ -176,7 +176,7 @@ NewBatchWizard.prototype = {
                         view: StaticView.extend({
                             tagName: 'option',
                             attributes: function() {
-                                return { value: this.model.get('sensor_id') };
+                                return { value: this.model.id };
                             },
                             template: '<%-sensor_desc%>'
                         })
@@ -189,8 +189,10 @@ NewBatchWizard.prototype = {
                     var sensor = this._sensors.at(
                         this.$('select[name=sensor]')[0].selectedIndex
                         );
-                    if(sensor)
-                        this.model.set({ sensor_id: sensor.get('sensor_id') });
+                    if(sensor) {
+                        this.model.set({ sensor_id: sensor.id });
+                        console.log('set sensor', sensor, sensor.id)
+                    }
                 },
                 template: $('#sensorform-template').html(),
                 render: function() {
@@ -249,7 +251,7 @@ NewBatchWizard.prototype = {
                         template: 'variety: <%-kb_variety_cname%>'
                     })).render();
 
-                    if(this.model.get('sensor_id') > 0) {
+                    if(this.model.has('sensor_id')) {
                         var sensor = new Sensor;
                         sensor.set({
                             sensor_id: this.model.get('sensor_id')
@@ -555,4 +557,3 @@ var BoardPage = PageView.extend(
         }
     }
     );
-

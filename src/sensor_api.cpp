@@ -29,12 +29,28 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
     install<bool, int>(
             "record_moisture",
             [&conn](const int moisture) {
+                sensor default_sensor(hades::get_one<sensor>(conn));
+                sensor_at_batch sab(
+                    hades::get_by_id<sensor_at_batch>(conn, default_sensor.id())
+                );
+                moisture_log log(
+                    batch::id_type{sab.copy_int<attr::batch_id>()}
+                );
+                log.record(moisture, conn);
                 return true;
             }
             );
     install<bool, double>(
             "record_temperature",
             [&conn](const double temperature) {
+                sensor default_sensor(hades::get_one<sensor>(conn));
+                sensor_at_batch sab(
+                    hades::get_by_id<sensor_at_batch>(conn, default_sensor.id())
+                );
+                temperature_log log(
+                    batch::id_type{sab.copy_int<attr::batch_id>()}
+                );
+                log.record(temperature, conn);
                 return true;
             }
             );
@@ -51,4 +67,3 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
             }
             );
 }
-
