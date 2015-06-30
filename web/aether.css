@@ -108,3 +108,45 @@
     background-color: lightgray;
 }
 
+/*
+ * Weather.
+ */
+
+.weather-list {
+    width: auto;
+}
+
+.weather-list div:last-of-type {
+    /*padding-right: 0;*/
+}
+
+.weather-list div {
+    float: left;
+    width: 20%;
+    cursor: pointer;
+    text-align: center;
+}
+
+.weather-list div .weather-container {
+    margin: 0.6em;
+    padding: 0.6em;
+}
+
+.weather-list div br {
+    display: block;
+    margin-top: 1em;
+}
+
+.weather-list div:hover {
+    background-color: lightgrey;
+}
+
+.weather-list:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.weather-icon {
+    font-size: 5em;
+}

@@ -36,8 +36,14 @@ namespace aether
                 atlas::task::callback_function_type callback,
                 hades::connection& conn
                 );
+
+            void request_forecast();
             void forecast_received(styx::element);
             void forecast_error(const std::string&);
+            
+            void request_daily_forecast();
+            void daily_forecast_received(styx::element);
+            void daily_forecast_error(const std::string&);
         };
     }
 }

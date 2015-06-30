@@ -79,6 +79,9 @@ namespace aether
         extern const char forecast_wind_speed[];
         extern const char forecast_wind_deg[];
         extern const char forecast_wind_gust[];
+
+        extern const char forecast_temp_day[];
+        extern const char forecast_temp_night[];
     }
     namespace relvar
     {
@@ -109,6 +112,8 @@ namespace aether
         extern const char forecast_rain[];
         extern const char forecast_weather[];
         extern const char forecast_wind[];
+
+        extern const char daily_forecast[];
     }
     namespace flag
     {
@@ -451,6 +456,24 @@ namespace aether
     {
     };
 
+    class daily_forecast :
+        public hades::tuple<
+            attr::forecast_dt,
+            attr::forecast_weather_main,
+            attr::forecast_weather_description,
+            attr::forecast_temp_day,
+            attr::forecast_temp_night,
+            attr::forecast_wind_speed,
+            attr::forecast_wind_deg,
+            attr::forecast_clouds_all,
+            attr::forecast_rain
+            >,
+        public hades::has_candidate_key<attr::forecast_dt>,
+        public hades::relation<relvar::daily_forecast>,
+        public hades::crud<daily_forecast>
+    {
+    };
+
     namespace db
     {
         /*!
@@ -477,4 +500,3 @@ namespace aether
 }
 
 #endif
-

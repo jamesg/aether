@@ -4,7 +4,9 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "aether/db.hpp"
+#include "hades/crud.ipp"
 #include "hades/custom_select_one.hpp"
+#include "hades/exists.hpp"
 #include "hades/join.hpp"
 
 namespace
@@ -42,6 +44,75 @@ namespace
                 hades::order_by("aether_forecast.forecast_dt ASC")
                 )
         );
+    }
+
+    styx::list detailed_forecast(
+        hades::connection& conn,
+        const boost::gregorian::date date,
+        const int timezone_offset_s
+    )
+    {
+        return forecast_range(
+            conn,
+            boost::posix_time::ptime(date) +
+                boost::posix_time::seconds(timezone_offset_s),
+            boost::posix_time::ptime(date) +
+                boost::gregorian::days(1) +
+                boost::posix_time::seconds(timezone_offset_s)
+        );
+    }
+
+    styx::list daily_forecast_range(
+        hades::connection& conn,
+        const boost::gregorian::date from,
+        const int timezone_offset_s
+    )
+    {
+        styx::list f = aether::daily_forecast::get_collection(
+            conn,
+            hades::filter(
+                hades::where(
+                    "aether_daily_forecast.forecast_dt >= ? ",
+                    hades::row<int>(
+                        to_unix_time(
+                            boost::posix_time::ptime(from) +
+                            boost::posix_time::seconds(timezone_offset_s)
+                        )
+                    )
+                ),
+                hades::order_by("aether_daily_forecast.forecast_dt")
+            )
+        );
+        for(int i = 0; i < f.size(); ++i)
+        {
+            styx::object& point = f.get<styx::object>(i);
+            // Make life a lot easier on the client side by adding the forecast
+            // date as an ISO formatted string.
+            point.get_string("date") = boost::gregorian::to_iso_extended_string(
+                (boost::posix_time::from_time_t(point.copy_int("forecast_dt")) +
+                    boost::posix_time::seconds(timezone_offset_s)).date()
+            );
+            // Tell the client if there is a detailed forecast available for
+            // this day.
+            point.get_bool("detailed_available") = hades::exists<aether::forecast>(
+                conn,
+                hades::where(
+                    "forecast_dt >= ? AND forecast_dt < ?",
+                    hades::row<int, int>(
+                        to_unix_time(
+                            boost::posix_time::from_time_t(point.copy_int("forecast_dt")) +
+                            boost::posix_time::seconds(timezone_offset_s)
+                        ),
+                        to_unix_time(
+                            boost::posix_time::from_time_t(point.copy_int("forecast_dt")) +
+                            boost::gregorian::days(1) +
+                            boost::posix_time::seconds(timezone_offset_s)
+                        )
+                    )
+                )
+            );
+        }
+        return f;
     }
 }
 
@@ -123,9 +194,10 @@ aether::weather_router::weather_router(hades::connection& conn) {
             );
         }
         );
-    install_get<int>(
-        atlas::http::matcher("/day/([0-9]+)", "GET"),
-        [&conn](std::map<std::string, std::string> params, int day) {
+    // Get a summary weather forecast for all available days.
+    install_get<>(
+        atlas::http::matcher("/day", "GET"),
+        [&conn](std::map<std::string, std::string> params) {
             int timezone_offset_s = 0;
             if(params.find("timezone") == params.end())
                 atlas::log::warning("aether::weather_router") <<
@@ -134,14 +206,30 @@ aether::weather_router::weather_router(hades::connection& conn) {
                 timezone_offset_s =
                     boost::lexical_cast<int>(params.find("timezone")->second) * 60;
             return atlas::http::json_response(
-                forecast_range(
+                daily_forecast_range(
                     conn,
-                    boost::posix_time::ptime(boost::gregorian::day_clock::universal_day()) +
-                        boost::gregorian::days(day) +
-                        boost::posix_time::seconds(timezone_offset_s),
-                    boost::posix_time::ptime(boost::gregorian::day_clock::universal_day()) +
-                        boost::gregorian::days(day + 1) +
-                        boost::posix_time::seconds(timezone_offset_s)
+                    boost::gregorian::day_clock::universal_day(),
+                    timezone_offset_s
+                )
+            );
+        }
+    );
+    // Get a detailed weather forecast for a single day.
+    install_get<std::string>(
+        atlas::http::matcher("/day/([^/]+)", "GET"),
+        [&conn](std::map<std::string, std::string> params, std::string date) {
+            int timezone_offset_s = 0;
+            if(params.find("timezone") == params.end())
+                atlas::log::warning("aether::weather_router") <<
+                    "no timezone specified; using 0 (UTC)";
+            else
+                timezone_offset_s =
+                    boost::lexical_cast<int>(params.find("timezone")->second) * 60;
+            return atlas::http::json_response(
+                detailed_forecast(
+                    conn,
+                    boost::gregorian::from_string(date),
+                    timezone_offset_s
                 )
             );
         }

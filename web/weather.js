@@ -2,21 +2,45 @@ var kelvinToCelsius = function(degK) {
     return degK - 273.15;
 };
 
+var DailyForecast = RestModel.extend(
+    {
+        idAttribute: 'forecast_dt',
+        defaults: {
+            date: '',
+            detailed_available: false,
+            forecast_weather_main: '',
+            forecast_weather_description: '',
+            forecast_temp_day: 0,
+            forecast_temp_night: 0,
+            forecast_wind_speed: 0,
+            forecast_wind_deg: 0,
+            forecast_clouds: 0
+        }
+    }
+);
+
+var DailyForecastCollection = RestCollection.extend(
+    {
+        model: DailyForecast,
+        url: restUri('weather/day')
+    }
+);
+
 var WeatherPage = PageView.extend(
     {
         pageTitle: 'Weather',
         template: $('#weatherpage-template').html(),
-        gotoDay: function(day) {
+        gotoDay: function(date) {
             this.$('h1[name=weather-title]').html(
                 'Weather for ' +
-                moment().add(day, 'days').format('dddd Do MMMM YYYY')
+                moment(date).format('dddd Do MMMM YYYY')
                 );
             this._forecast.fetch({
                 // Provide the timezone offset in minutes so that the
                 // server will only provide weather for one day at the
                 // local timezone.
                 url: restUri(
-                    'weather/day/' + day + '?timezone=' +
+                    'weather/day/' + date + '?timezone=' +
                     (new Date).getTimezoneOffset()
                     ),
                 success: this._initializeCharts.bind(this)
@@ -35,40 +59,55 @@ var WeatherPage = PageView.extend(
             })).render();
 
             this._forecast = new ForecastCollection;
-            this.gotoDay(0);
+            // Assuming there is a detailed forecast for the current day.
+            this.gotoDay(moment().format('YYYY-MM-DD'));
 
             var page = this;
+
+            var dailyForecast = new DailyForecastCollection;
+            dailyForecast.fetch();
             (new CollectionView({
-                el: this.$('ul[name=days]'),
+                el: this.$('div[name=days]'),
                 view: StaticView.extend({
-                    tagName: 'li',
-                    template: '<%-date%>',
+                    tagName: 'div',
+                    template: '\
+                    <div class="weather-container">\
+                    <%-str%><br>\
+                    <span class="oi weather-icon" data-glyph="<%-icon%>" aria-hidden="true"> </span>\
+                    <%if(detailed_available){%>\
+                        <br>\
+                        <span class="oi" data-glyph="chevron-right" aria-hidden="true"> </span>\
+                    <%}else{%>&nbsp;<%}%>\
+                    </div>\
+                    ',
+                    templateParams: function() {
+                        var params = _.clone(this.model.attributes);
+                        _.extend(
+                            params,
+                            {
+                                str: moment(params['date']).format('dddd Do MMMM'),
+                                icon: coalesce(
+                                    {
+                                        Clear: 'sun',
+                                        Rain: 'rain'
+                                    }[params['forecast_weather_main']],
+                                    'question-mark'
+                                )
+                            }
+                        );
+                        return params;
+                    },
                     events: {
                         click: 'selectDay'
                     },
                     selectDay: function() {
-                        console.log('select day', this.model.get('day'));
-                        page.gotoDay(this.model.get('day'));
+                        // Detailed data may not be available for dates some
+                        // time in the future.
+                        if(this.model.get('detailed_available'))
+                            page.gotoDay(this.model.get('date'));
                     }
                 }),
-                model: new (Backbone.Collection.extend({
-                    model: Backbone.Model.extend({
-                        defaults: {
-                            day: 0,
-                            date: 'invalid'
-                        }
-                    })
-                }))(
-                    _.map(
-                        _.range(0, 3),
-                        function(day) {
-                            return {
-                                day: day,
-                                date: moment().add(day, 'days').format('dddd Do')
-                            };
-                        }
-                    )
-                )
+                model: dailyForecast
             }));
         },
         _initializeCharts: function() {

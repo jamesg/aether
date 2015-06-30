@@ -46,6 +46,8 @@ const char aether::attr::forecast_weather_description[] = "forecast_weather_desc
 const char aether::attr::forecast_wind_speed[] = "forecast_wind_speed";
 const char aether::attr::forecast_wind_deg[] = "forecast_wind_deg";
 const char aether::attr::forecast_wind_gust[] = "forecast_wind_gust";
+const char aether::attr::forecast_temp_day[] = "forecast_temp_day";
+const char aether::attr::forecast_temp_night[] = "forecast_temp_night";
 const char aether::relvar::kb_family[] = "aether_kb_family";
 const char aether::relvar::kb_variety[] = "aether_kb_variety";
 const char aether::relvar::kb_variety_harvest_mon[] = "aether_kb_variety_harvest_mon";
@@ -68,6 +70,7 @@ const char aether::relvar::forecast_rain[] = "aether_forecast_rain";
 const char aether::relvar::forecast_main[] = "aether_forecast_main";
 const char aether::relvar::forecast_weather[] = "aether_forecast_weather";
 const char aether::relvar::forecast_wind[] = "aether_forecast_wind";
+const char aether::relvar::daily_forecast[] = "aether_daily_forecast";
 const char aether::flag::kb_variety_container[] = "aether_kb_variety_container";
 const char aether::flag::kb_variety_flower[] = "aether_kb_variety_flower";
 const char aether::flag::kb_variety_prefer_shade[] = "aether_kb_variety_prefer_shade";
@@ -360,6 +363,20 @@ void aether::db::create(hades::connection& conn)
         " ) ",
         conn
         );
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_daily_forecast ( "
+        " forecast_dt INTEGER PRIMARY KEY, "
+        " forecast_temp_day REAL, "
+        " forecast_temp_night REAL, "
+        " forecast_weather_main TEXT, "
+        " forecast_weather_description TEXT, "
+        " forecast_wind_speed REAL, "
+        " forecast_wind_deg REAL, "
+        " forecast_clouds_all INTEGER, "
+        " forecast_rain REAL "
+        " ) ",
+        conn
+        );
 
     //
     // Initial data.
@@ -415,4 +432,3 @@ styx::atom aether::db::setting_value(
                 )
         ).get_string<aether::attr::setting_value>();
 }
-

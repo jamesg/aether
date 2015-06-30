@@ -33,8 +33,113 @@ aether::task::retrieve_forecast::retrieve_forecast(
 
 void aether::task::retrieve_forecast::run()
 {
-    atlas::log::information("aether::task::retrieve_forecast") <<
-        "retrieving forecast";
+    request_daily_forecast();
+}
+
+void aether::task::retrieve_forecast::request_daily_forecast()
+{
+    atlas::log::information("aether::task::retrieve_forecast::request_daily_forecast") <<
+        "request";
+    try
+    {
+        location l(hades::get_one<location>(connection()));
+
+        atlas::http::get_json(
+            io_ptr(),
+            hades::mkstr() <<
+                "http://api.openweathermap.org/data/2.5/forecast/daily?lat=" <<
+                l.get_double<attr::location_lat>() << "&lon=" <<
+                l.get_double<attr::location_lon>(),
+            boost::bind(
+                &retrieve_forecast::daily_forecast_received,
+                shared_from_this(),
+                _1
+            ),
+            boost::bind(
+                &retrieve_forecast::daily_forecast_error,
+                shared_from_this(),
+                _1
+            )
+        );
+    }
+    catch(const hades::exception&)
+    {
+        atlas::log::warning("aether::task::retrieve_forecast::request_daily_forecast") <<
+            "could not retrieve forecast (location not set)";
+        mark_finished();
+    }
+    catch(const std::exception&)
+    {
+        atlas::log::warning("aether::task::retrieve_forecast::request_daily_forecast") <<
+            "could not retrieve forecast (unknown error)";
+        mark_finished();
+    }
+}
+
+void aether::task::retrieve_forecast::daily_forecast_received(
+        styx::element e
+        )
+{
+    try
+    {
+        styx::object f(e);
+        for(styx::object point : f.get_list("list"))
+        {
+            daily_forecast f_db;
+            f_db.get_int<attr::forecast_dt>() = point.copy_int("dt");
+
+            {
+                styx::list weather(point.get_list("weather"));
+                if(weather.size() > 0)
+                {
+                    styx::object first = weather.at(0);
+                    f_db.get_string<attr::forecast_weather_main>() =
+                        first.get_string("main");
+                    f_db.get_string<attr::forecast_weather_description>() =
+                        first.get_string("description");
+                }
+            }
+
+            {
+                styx::object& temp(point.get_object("temp"));
+                f_db.get_double<attr::forecast_temp_day>() =
+                    temp.get_double("day");
+                f_db.get_double<attr::forecast_temp_night>() =
+                    temp.get_double("night");
+                f_db.get_double<attr::forecast_wind_speed>() =
+                    point.get_double("speed");
+                f_db.get_int<attr::forecast_wind_deg>() =
+                    point.get_int("deg");
+                f_db.get_int<attr::forecast_clouds_all>() =
+                    point.get_int("clouds");
+            }
+
+            f_db.save(connection());
+        }
+        atlas::log::information("aether::task::retrieve_forecast::daily_forecast_received") <<
+            "saved daily forecast";
+    }
+    catch(const std::exception& e)
+    {
+        atlas::log::error("aether::task::retrieve_forecast::daily_forecast_received") <<
+            e.what();
+    }
+
+    request_forecast();
+}
+
+void aether::task::retrieve_forecast::daily_forecast_error(const std::string& message)
+{
+    atlas::log::warning("aether::task::retrieve_forecast") <<
+        "could not retrieve daily forecast (communication error): " << message;
+
+    request_forecast();
+}
+
+void aether::task::retrieve_forecast::request_forecast()
+{
+    atlas::log::information("aether::task::retrieve_forecast::request_forecast") <<
+        "request";
     try
     {
         location l(hades::get_one<location>(connection()));
@@ -58,13 +163,13 @@ void aether::task::retrieve_forecast::run()
     }
     catch(const hades::exception&)
     {
-        atlas::log::warning("aether::task::retrieve_forecast") <<
+        atlas::log::warning("aether::task::retrieve_forecast::request_forecast") <<
             "could not retrieve forecast (location not set)";
         mark_finished();
     }
     catch(const std::exception&)
     {
-        atlas::log::warning("aether::task::retrieve_forecast") <<
+        atlas::log::warning("aether::task::retrieve_forecast::request_forecast") <<
             "could not retrieve forecast (unknown error)";
         mark_finished();
     }
