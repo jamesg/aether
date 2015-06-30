@@ -123,22 +123,32 @@
 .weather-list div {
     float: left;
     width: 20%;
-    cursor: pointer;
     text-align: center;
+    padding: 0.6em;
+    background-origin: content-box;
 }
 
 .weather-list div .weather-container {
     margin: 0.6em;
-    padding: 0.6em;
+    width: 100%;
+}
+
+.weather-list div .weather-container-active {
+    cursor: pointer;
+    background-color: lightblue;
+}
+
+.weather-list div .weather-container-active:hover {
+    background-color: blue;
+}
+
+.weather-list div .weather-container-inactive {
+    background-color: lightgrey;
 }
 
 .weather-list div br {
     display: block;
     margin-top: 1em;
-}
-
-.weather-list div:hover {
-    background-color: lightgrey;
 }
 
 .weather-list:after {

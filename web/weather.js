@@ -71,13 +71,18 @@ var WeatherPage = PageView.extend(
                 view: StaticView.extend({
                     tagName: 'div',
                     template: '\
-                    <div class="weather-container">\
+                    <div class="\
+                        weather-container\
+                        weather-container-<%if(detailed_available){%>active<%}else{%>inactive<%}%>\
+                        ">\
                     <%-str%><br>\
                     <span class="oi weather-icon" data-glyph="<%-icon%>" aria-hidden="true"> </span>\
+                    <br>\
                     <%if(detailed_available){%>\
-                        <br>\
                         <span class="oi" data-glyph="chevron-right" aria-hidden="true"> </span>\
-                    <%}else{%>&nbsp;<%}%>\
+                    <%}else{%>\
+                        <span class="oi" data-glyph="x" aria-hidden="true"> </span>\
+                    <%}%>\
                     </div>\
                     ',
                     templateParams: function() {
