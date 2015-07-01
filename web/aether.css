@@ -116,39 +116,72 @@
     width: auto;
 }
 
-.weather-list div:last-of-type {
-    /*padding-right: 0;*/
-}
-
-.weather-list div {
+.weather-list > div {
     float: left;
-    width: 20%;
+    height: 12em;
     text-align: center;
+    margin-bottom: 1.2em;
     padding: 0.6em;
     background-origin: content-box;
 }
 
+/*Very large screens can display seven weather cards.*/
+.weather-list > div {
+    width: 14.2%;
+}
+
+@media all and (max-width:1300px) {
+    .weather-list > div {
+        width: 25%;
+    }
+}
+
+@media all and (max-width:800px) {
+    .weather-list > div {
+        width: 50%;
+    }
+}
+
+@media all and (max-width:400px) {
+    .weather-list > div {
+        width: 100%;
+    }
+}
+
+
 .weather-list div .weather-container {
     margin: 0.6em;
     width: 100%;
+    height: inherit;
 }
 
 .weather-list div .weather-container-active {
     cursor: pointer;
-    background-color: lightblue;
+    background-color: #65b9eb;
 }
 
 .weather-list div .weather-container-active:hover {
-    background-color: blue;
+    background-color: #407594;
 }
 
 .weather-list div .weather-container-inactive {
-    background-color: lightgrey;
+    background-color: #7b9bad;
+}
+
+/*Container for two columns of weather data.*/
+.weather-container .weather-temperature-container {
+    width: 100%;
+}
+
+.weather-container .weather-temperature-container div {
+    float: left;
+    width: 50%;
+    padding: 0;
 }
 
 .weather-list div br {
     display: block;
-    margin-top: 1em;
+    margin-top: 1.5em;
 }
 
 .weather-list:after {
@@ -158,5 +191,5 @@
 }
 
 .weather-icon {
-    font-size: 5em;
+    font-size: 3.5em;
 }

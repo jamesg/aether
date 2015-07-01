@@ -76,7 +76,22 @@ var WeatherPage = PageView.extend(
                         weather-container-<%if(detailed_available){%>active<%}else{%>inactive<%}%>\
                         ">\
                     <%-str%><br>\
-                    <span class="oi weather-icon" data-glyph="<%-icon%>" aria-hidden="true"> </span>\
+                    <div class="weather-temperature-container">\
+                        <div class="weather-temperature">\
+                            <span>\
+                                <span class="oi" data-glyph="sun" aria-hidden="true"> </span>\
+                                <%-forecast_temp_day_c%>&deg;C\
+                            </span>\
+                            <br>\
+                            <span>\
+                                <span class="oi" data-glyph="moon" aria-hidden="true"> </span>\
+                                <%-forecast_temp_night_c%>&deg;C\
+                            </span>\
+                        </div>\
+                        <div class="weather-icon">\
+                            <span class="oi" data-glyph="<%-icon%>" aria-hidden="true"> </span>\
+                        </div>\
+                    </div>\
                     <br>\
                     <%if(detailed_available){%>\
                         <span class="oi" data-glyph="chevron-right" aria-hidden="true"> </span>\
@@ -94,12 +109,17 @@ var WeatherPage = PageView.extend(
                                 icon: coalesce(
                                     {
                                         Clear: 'sun',
+                                        Clouds: 'cloud',
                                         Rain: 'rain'
                                     }[params['forecast_weather_main']],
                                     'question-mark'
-                                )
+                                ),
+                                forecast_temp_day_c: kelvinToCelsius(params['forecast_temp_day']).toFixed(0),
+                                forecast_temp_night_c: kelvinToCelsius(params['forecast_temp_night']).toFixed(0)
                             }
                         );
+                        if(params.icon == 'question-mark')
+                            console.log('unknown weather type', params['forecast_weather_main'])
                         return params;
                     },
                     events: {
