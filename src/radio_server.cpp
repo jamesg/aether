@@ -46,8 +46,8 @@ void aether::radio_server::async_read_received(
         std::istream s(&m_buffer);
         std::getline(s, line);
     }
-    atlas::log::test("aether::radio_server::async_read_received") <<
-        "received " << line;
+    //atlas::log::test("aether::radio_server::async_read_received") <<
+        //"received " << line;
     try
     {
         styx::element e(styx::parse_json(line));
@@ -56,8 +56,8 @@ void aether::radio_server::async_read_received(
         serve(
             request,
             [this_ptr](const atlas::jsonrpc::result& result) {
-                atlas::log::information("aether::radio_server::async_read_received") <<
-                    "result: " << styx::serialise_json(result);
+                //atlas::log::information("aether::radio_server::async_read_received") <<
+                    //"result: " << styx::serialise_json(result);
                 this_ptr->send_result(result);
             }
             );
@@ -65,7 +65,7 @@ void aether::radio_server::async_read_received(
     catch(const std::exception& e)
     {
         atlas::log::error("aether::radio_server::async_read_received") <<
-            "parsing " << line << " " << e.what();
+            "parsing \"" << line << "\" " << e.what();
         async_read();
     }
 }

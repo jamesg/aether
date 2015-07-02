@@ -40,7 +40,13 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
         [&conn](const int moisture) {
             sensor default_sensor(hades::get_one<sensor>(conn));
             sensor_at_batch sab(
-                hades::get_by_id<sensor_at_batch>(conn, default_sensor.id())
+                hades::get_one<sensor_at_batch>(
+                    conn,
+                    hades::where(
+                        "sensor_id = ? ",
+                        hades::row<int>(default_sensor.get_int<attr::sensor_id>())
+                    )
+                )
             );
             moisture_log log(
                 batch::id_type{sab.copy_int<attr::batch_id>()}
@@ -54,7 +60,13 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
         [&conn](const double temperature) {
             sensor default_sensor(hades::get_one<sensor>(conn));
             sensor_at_batch sab(
-                hades::get_by_id<sensor_at_batch>(conn, default_sensor.id())
+                hades::get_one<sensor_at_batch>(
+                    conn,
+                    hades::where(
+                        "sensor_id = ? ",
+                        hades::row<int>(default_sensor.get_int<attr::sensor_id>())
+                    )
+                )
             );
             temperature_log log(
                 batch::id_type{sab.copy_int<attr::batch_id>()}
@@ -68,7 +80,13 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
         [&conn]() {
             sensor default_sensor(hades::get_one<sensor>(conn));
             sensor_at_batch sab(
-                hades::get_by_id<sensor_at_batch>(conn, default_sensor.id())
+                hades::get_one<sensor_at_batch>(
+                    conn,
+                    hades::where(
+                        "sensor_id = ? ",
+                        hades::row<int>(default_sensor.get_int<attr::sensor_id>())
+                    )
+                )
             );
             batch b(
                 hades::get_by_id<batch>(

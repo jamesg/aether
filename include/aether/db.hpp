@@ -344,7 +344,7 @@ namespace aether
     };
     class sensor_at_batch :
         public hades::tuple<attr::sensor_id, attr::batch_id>,
-        public hades::has_candidate_key<attr::sensor_id>,
+        public hades::has_candidate_key<attr::batch_id>,
         public hades::relation<relvar::sensor_at_batch>,
         public hades::crud<sensor_at_batch>
     {
@@ -501,18 +501,67 @@ namespace aether
          * \brief Save an object of key -> atom pairs as settings.
          */
         void save_settings(styx::object settings, hades::connection&);
+
         /*!
-         * \brief Get the value of an individual setting.
+         * \brief Get the value of a boolean setting.
+         * \throw std::exception if the setting is not found or cannot be
+         * interpreted as a boolean.
          */
-        styx::atom setting_value(hades::connection&, const std::string& key);
+        bool bool_setting(
+            hades::connection&,
+            const std::string& key
+        );
         /*!
-         * \brief Get the value of an individual setting.
+         * \brief Get the value of a boolean setting, or return a default value
+         * if the setting is unavailable.
+         * \param default_value Value to return if the setting is not found or
+         * cannot be interpreted as a boolean.
          */
-        styx::atom setting_value(
-                hades::connection&,
-                const std::string& key,
-                const styx::atom& default_value
-                );
+        bool bool_setting(
+            hades::connection&,
+            const std::string& key,
+            bool default_value
+        );
+        /*!
+         * \brief Get the value of an integer setting.
+         * \throw std::exception if the setting is not found or cannot be
+         * interpreted as an integer.
+         */
+        int int_setting(
+            hades::connection&,
+            const std::string& key
+        );
+        /*!
+         * \brief Get the value of an integer setting, or return a default
+         * value if the setting is unavailable.
+         * \param default_value Value to return if the setting is not found or
+         * cannot be interpreted as an integer.
+         */
+        int int_setting(
+            hades::connection&,
+            const std::string& key,
+            int default_value
+        );
+        /*!
+         * \brief Get the value of a string setting.
+         * \throw std::exception if the setting is not found or cannot be
+         * interpreted as a string.
+         */
+        std::string string_setting(
+            hades::connection&,
+            const std::string& key
+        );
+        /*!
+         * \brief Get the value of a string setting, or return a default value
+         * if the setting is unavailable.
+         * \param default_value Value to return if the setting is not found or
+         * cannot be interpreted as a string.
+         */
+        std::string string_setting(
+            hades::connection&,
+            const std::string& key,
+            const std::string& default_value
+        );
     }
 }
 

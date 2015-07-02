@@ -6,6 +6,59 @@
 #include "hades/devoid.hpp"
 #include "hades/exists.hpp"
 
+namespace
+{
+    template<typename Atom>
+    Atom setting_value(
+            hades::connection& conn,
+            const std::string& setting_name
+    )
+    {
+        return (
+            hades::get_one<aether::setting>(
+                conn,
+                hades::where(
+                    "setting_name = ? ",
+                    hades::row<std::string>(setting_name)
+                )
+            )
+        ).get_attr<aether::attr::setting_value, Atom>();
+    }
+    template<typename Atom>
+    Atom setting_value(
+            hades::connection& conn,
+            const std::string& setting_name,
+            const Atom default_value
+    )
+    {
+        try
+        {
+            if(
+                hades::exists<aether::setting>(
+                    conn,
+                    hades::where(
+                        "setting_name = ?",
+                        hades::row<std::string>(setting_name)
+                    )
+                )
+              )
+                return hades::get_one<aether::setting>(
+                        conn,
+                        hades::where(
+                            "setting_name = ?",
+                            hades::row<std::string>(setting_name)
+                        )
+                    ).get_attr<aether::attr::setting_value, Atom>();
+        }
+        catch(const std::exception& e)
+        {
+            atlas::log::warning("aether::db setting_value") <<
+                "getting setting value: " << e.what();
+        }
+        return default_value;
+    }
+}
+
 const char aether::attr::kb_family_id[] = "kb_family_id";
 const char aether::attr::kb_family_cname[] = "kb_family_cname";
 const char aether::attr::kb_family_lname[] = "kb_family_lname";
@@ -238,9 +291,11 @@ void aether::db::create(hades::connection& conn)
         );
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_sensor_at_batch ( "
-        " sensor_id INTEGER PRIMARY KEY, "
-        " batch_id INTEGER REFERENCES aether_batch(batch_id), "
-        " FOREIGN KEY(sensor_id) REFERENCES aether_sensor(sensor_id) ON DELETE CASCADE "
+        " batch_id INTEGER PRIMARY KEY, "
+        " sensor_id INTEGER, "
+        " FOREIGN KEY(batch_id) REFERENCES aether_batch(batch_id), "
+        " FOREIGN KEY(sensor_id) REFERENCES aether_sensor(sensor_id) "
+        "  ON DELETE CASCADE "
         " ) ",
         conn
         );
@@ -408,7 +463,10 @@ styx::object aether::db::settings(hades::connection& conn)
     return out;
 }
 
-void aether::db::save_settings(styx::object settings, hades::connection& conn)
+void aether::db::save_settings(
+        styx::object settings,
+        hades::connection& conn
+)
 {
     styx::list l;
     for(std::pair<std::string, styx::element> p : settings)
@@ -421,17 +479,54 @@ void aether::db::save_settings(styx::object settings, hades::connection& conn)
     setting::save_collection(l, conn);
 }
 
-styx::atom aether::db::setting_value(
+bool aether::db::bool_setting(
         hades::connection& conn,
         const std::string& setting_name
         )
 {
-    return (
-        hades::custom_select_one<setting, hades::row<std::string>, aether::attr::setting_value>(
-                conn,
-                "SELECT setting_value FROM aether_setting "
-                "WHERE setting_name = ? ",
-                hades::row<std::string>(setting_name)
-                )
-        ).get_string<aether::attr::setting_value>();
+    return setting_value<bool>(conn, setting_name);
 }
+
+bool aether::db::bool_setting(
+        hades::connection& conn,
+        const std::string& setting_name,
+        const bool default_value
+        )
+{
+    return setting_value<bool>(conn, setting_name, default_value);
+}
+
+int aether::db::int_setting(
+        hades::connection& conn,
+        const std::string& setting_name
+        )
+{
+    return setting_value<int>(conn, setting_name);
+}
+
+int aether::db::int_setting(
+        hades::connection& conn,
+        const std::string& setting_name,
+        const int default_value
+        )
+{
+    return setting_value<int>(conn, setting_name, default_value);
+}
+
+std::string aether::db::string_setting(
+        hades::connection& conn,
+        const std::string& setting_name
+        )
+{
+    return setting_value<std::string>(conn, setting_name);
+}
+
+std::string aether::db::string_setting(
+        hades::connection& conn,
+        const std::string& setting_name,
+        const std::string& default_value
+        )
+{
+    return setting_value<std::string>(conn, setting_name, default_value);
+}
+

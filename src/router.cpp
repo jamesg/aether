@@ -167,11 +167,19 @@ aether::router::router(
                 boost::posix_time::second_clock::universal_time()
                 );
             bp.insert(conn);
+
+            if(b.has_key("sensor_id"))
+            {
+                sensor_at_batch sab;
+                sab.set_id(b.id());
+                sab.get_int<attr::sensor_id>() = b.get_int("sensor_id");
+                sab.insert(conn);
+            }
             return atlas::http::json_response(b);
         },
         [&conn](const atlas::auth::token_type& token) {
             // implies
-            return !(styx::cast<int>(db::setting_value(conn, "permission_create_batch")) == 1) ||
+            return !db::bool_setting(conn, "permission_create_batch", false) ||
                 atlas::auth::is_superuser(conn, token);
         }
         );
@@ -199,6 +207,17 @@ aether::router::router(
                         );
                     current_phase.update(conn);
                 }
+                sensor_at_batch sab;
+                sab.set_id(b.id());
+                if(b.has_key("sensor_id"))
+                {
+                    sab.get_int<attr::sensor_id>() = b.get_int("sensor_id");
+                    sab.insert(conn);
+                }
+                else
+                {
+                    sab.destroy(conn);
+                }
             }
             catch(const std::exception& e)
             {
@@ -210,7 +229,7 @@ aether::router::router(
         },
         [&conn](const atlas::auth::token_type& token, int) {
             // implies
-            return !(styx::cast<int>(db::setting_value(conn, "permission_move_batch")) == 1) ||
+            return !db::bool_setting(conn, "permission_move_batch", false) ||
                 atlas::auth::is_superuser(conn, token);
         }
         );
