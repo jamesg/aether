@@ -109,7 +109,7 @@ sketch.hex:	sketch.elf
 
 upload:	sketch.hex
 	avrdude -v -patmega328p -carduino -P${DEVICE} -b${PROGRAM_BAUDRATE} -D \
-		-Uflash:w:sketch.hex:i
+		-Uflash:w:sketch.hex:i -F
 
 .PHONY:	monitor
 
