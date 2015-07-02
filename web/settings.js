@@ -69,6 +69,7 @@ var PhaseForm = StaticView.extend(
         },
         initialize: function() {
             StaticView.prototype.initialize.apply(this, arguments);
+            this.on('create', this.save.bind(this));
             this.on('save', this.save.bind(this));
         }
     }
@@ -377,4 +378,3 @@ var UsersPage = PageView.extend(
         }
     }
     );
-
