@@ -4,12 +4,17 @@
 #include "EEPROM.h"
 #include "ArduinoJson.h"
 #include "LiquidCrystal.h"
-#include "OneWire.h"
+// #include "OneWire.h"
 
 #include "timer.hpp"
 
 #define INCOMING_SIZE 200
 #define INVALID_LAST_REQUEST_ID -1
+
+const int TEMPERATURE_SENSOR_AMB_R = 2000;
+const int TEMPERATURE_SENSOR_DIVIDER_R = 4700;
+
+// const float TEMPERATURE_SENSOR_COEFF
 
 // JSONRPC id of the last outgoing request.
 int last_request_id;
@@ -21,7 +26,7 @@ success_callback_type success_callback;
 error_callback_type error_callback;
 
 LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
-OneWire ds(10);
+// OneWire ds(10);
 
 // Timer to wait for a reply from the server.
 timer callback_timer;
@@ -29,8 +34,8 @@ timer callback_timer;
 char incoming_buffer[INCOMING_SIZE];
 int incoming_index;
 
-bool ds18b20_found;
-byte ds18b20_addr[8];
+// bool ds18b20_found;
+// byte ds18b20_addr[8];
 
 void reset_callbacks()
 {
@@ -41,20 +46,20 @@ void reset_callbacks()
     error_callback = 0;
 }
 
-void set_ds18b20_mode()
-{
-    // Set the conversion to 9 bits.
-
-    if(!ds.reset())
-        return;
-    ds.skip();
-    ds.write(0x4e, 1);
-    // Write first two bytes (temperature).
-    ds.write(0, 1);
-    ds.write(0, 1);
-    // Write the configuration register.
-    ds.write(0x1f, 1);
-}
+// void set_ds18b20_mode()
+// {
+//     // Set the conversion to 9 bits.
+//
+//     if(!ds.reset())
+//         return;
+//     ds.skip();
+//     ds.write(0x4e, 1);
+//     // Write first two bytes (temperature).
+//     ds.write(0, 1);
+//     ds.write(0, 1);
+//     // Write the configuration register.
+//     ds.write(0x1f, 1);
+// }
 
 void setup()
 {
@@ -62,11 +67,11 @@ void setup()
     success_callback = 0;
     incoming_index = 0;
 
-    ds.reset_search();
-    ds18b20_found = ds.search(ds18b20_addr);
-
-    if(ds18b20_found)
-        set_ds18b20_mode();
+    // ds.reset_search();
+    // ds18b20_found = ds.search(ds18b20_addr);
+    //
+    // if(ds18b20_found)
+    //     set_ds18b20_mode();
 
     lcd.begin(16,2);
     lcd.print("Plant Monitor");
@@ -76,8 +81,15 @@ void setup()
     digitalWrite(8, HIGH);
     Serial.begin(9600);
 
+    float temp = 0.0;
+    decode_temperature(&temp);
+    char buf[16];
+    dtostrf(temp, 0, 1, buf);
+//    snprintf(buf, sizeof(buf), "Temp %f", temp);
+    log_string(buf);
+
     // Start the state machine.
-    callback_timer.after(0, &send_status);
+    callback_timer.after(10000, &send_status);
 }
 
 int decode_moisture()
@@ -88,40 +100,80 @@ int decode_moisture()
 
 int decode_temperature(float *out)
 {
-    if(!ds.reset())
-        return 1;
-    ds.skip();
-    // Start the temperature conversion.
-    ds.write(0x44, 1);
+    // if(!ds.reset())
+    //     return 1;
+    // ds.skip();
+    // // Start the temperature conversion.
+    // ds.write(0x44, 1);
+    //
+    // // The datasheet specifies 93.75ms to do the conversion.
+    // delay(100);
+    //
+    // if(!ds.reset())
+    //     return 1;
+    // ds.skip();
+    // // Read the scratchpad.
+    // ds.write(0xBE);
+    //
+    // byte i;
+    // byte data[9];
+    //
+    // // The scratchpad is 9 bytes.  The last byte is a CRC.
+    // for(i = 0; i < 9; i++) {
+    //     data[i] = ds.read();
+    // }
+    //
+    // int sign_bit = data[1] & 0x80;
+    // int reading = ((data[1] & 0x07) << 5) | ((data[0] >> 3) & 0x1f);
+    //
+    // // On power up, the temperature register is set to 85 degrees.  If this
+    // // temperature is read, assume it was not read correctly.
+    // if(data[0] == 0x50 && data[1] == 0x05)
+    //     return 1;
+    //
+    // *out = (sign_bit ? -1.0 : 1.0) * 0.5 * (float)reading;
 
-    // The datasheet specifies 93.75ms to do the conversion.
-    delay(100);
+    int reading = analogRead(5);
 
-    if(!ds.reset())
-        return 1;
-    ds.skip();
-    // Read the scratchpad.
-    ds.write(0xBE);
+    // Vin -- Rconst -(input)- Rtemp -- Gnd
 
-    byte i;
-    byte data[9];
+    // Vmeasured = Vin * (Rtemp / (Rtemp + Rconst) )
+    // Vmeasured / Vin = Rtemp / (Rtemp + Rconst)
+    // (Vmeasured / Vin) * (Rtemp + Rconst) = Rtemp
+    // Rtemp * (Vmeasured / Vin) + Rconst * (Vmeasured / Vin) = Rtemp
+    // Rtemp * (Vmeasured / Vin) - Rtemp = - (Rconst * (Vmeasured / Vin) )
+    // Rtemp * ( (Vmeasured / Vin) - 1) = - (Rconst * (Vmeasured / Vin) )
+    // Rtemp = - (Rconst * (Vmeasured / Vin) ) / ( (Vmeasured / Vin) - 1)
 
-    // The scratchpad is 9 bytes.  The last byte is a CRC.
-    for(i = 0; i < 9; i++) {
-        data[i] = ds.read();
-    }
-
-    int sign_bit = data[1] & 0x80;
-    int reading = ((data[1] & 0x07) << 5) | ((data[0] >> 3) & 0x1f);
-
-    // On power up, the temperature register is set to 85 degrees.  If this
-    // temperature is read, assume it was not read correctly.
-    if(data[0] == 0x50 && data[1] == 0x05)
-        return 1;
-
-    *out = (sign_bit ? -1.0 : 1.0) * 0.5 * (float)reading;
-
+    float ratio = (float)reading / 1024.0f;
+    int resistance = - ((float)TEMPERATURE_SENSOR_DIVIDER_R * ratio) /
+        (ratio - 1.0f);
+    *out = kty81_lookup(resistance);
     return 0;
+}
+
+float kty81_lookup(int resistance) {
+    int lookup_table[] = {
+        // -50 to 50 degrees C in 10 degree increments
+        1030, 1135, 1247, 1367, 1495, 1630, 1772, 1922, 2080, 2245, 2417
+    };
+
+    // Extreme cases.
+    if(resistance > lookup_table[10])
+        return 50.0f;
+    if(resistance < lookup_table[0])
+        return -50.0f;
+
+    int i = 0;
+    while(i < sizeof(lookup_table) - 1 && resistance > lookup_table[i + 1])
+        ++i;
+
+    // resistance is between lookup_table[i] and lookup_table[i + 1]
+    return -50.0f + (i * 10.0f) +
+            (
+                (float)(resistance - lookup_table[i]) /
+                (float)(lookup_table[i + 1] - lookup_table[i])
+            ) * 10.0f;
 }
 
 void log_string(const char *str)

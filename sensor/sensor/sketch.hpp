@@ -9,6 +9,8 @@ typedef StaticJsonBuffer<100> json_buffer_type;
 typedef void(*success_callback_type)(JsonObject&);
 typedef void(*error_callback_type)(error_type, const char*);
 
+float kty81_lookup(int resistance);
+
 void log_string(const char *str);
 
 void send_status();
