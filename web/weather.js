@@ -2,6 +2,83 @@ var kelvinToCelsius = function(degK) {
     return degK - 273.15;
 };
 
+// Map of forecast_weather_main content to an appropriate icon.
+var weatherIcon = {
+    Clear: 'sun',
+    Clouds: 'cloud',
+    Rain: 'rain'
+};
+
+// Visualisation type for weather symbols.
+var symbolVis = {
+    enter: function(self, storage, className, data, callbacks) {
+        // Select the highest z-index.
+        var insertionPoint = xChart.visutils.getInsertionPoint(9);
+
+        storage.container = self._g.selectAll('.temperaturechartsymbols' + className)
+            .data(
+                data,
+                function(d) {
+                    return d.className;
+                }
+            );
+        storage.container.enter().insert('g', insertionPoint).attr(
+            'class',
+            function (d, i) {
+                return 'temperaturechartsymbols' + className.replace(/\./g, ' ') +
+                    ' color' + i;
+            }
+        );
+        storage.symbols = storage.container.selectAll('g').data(
+            function (d) {
+                return d.data;
+            },
+            function (d) {
+                return d.x;
+            }
+        );
+        storage.symbols.enter()
+            .insert('g')
+            .attr(
+                'transform',
+                function(d) {
+                    return 'translate(' +
+                        (self.xScale(d.x) + self.xScale.rangeBand() / 2) + ' ' +
+                        self.yScale(d.y) +
+                        ') translate(-18 -18)';
+                }
+            )
+            .insert('use')
+            .attr('xlink:href', function(d) { return '#' + d['symbol']; })
+            .attr('transform', 'scale(4)');
+    },
+    update: function(self, storage, timing) {
+        storage.symbols.transition().duration(timing)
+            .style('opacity', 1)
+            .attr(
+                'transform',
+                function(d) {
+                    // self.xScale and self.yScale will have changed.
+                    return 'translate(' +
+                        (self.xScale(d.x) + self.xScale.rangeBand() / 2) + ' ' +
+                        self.yScale(d.y) +
+                        ') translate(-18 -18)';
+                }
+            );
+    },
+    exit: function(self, storage, timing) {
+        storage.symbols.exit()
+            .transition().duration(timing)
+            .style('opacity', 0);
+    },
+    destroy: function(self, storage, timing) {
+        storage.symbols.transition().duration(timing)
+            .style('opacity', 0)
+            .remove();
+    }
+};
+xChart.setVis('symbolVis', symbolVis);
+
 var DailyForecast = RestModel.extend(
     {
         idAttribute: 'forecast_dt',
@@ -107,11 +184,7 @@ var WeatherPage = PageView.extend(
                             {
                                 str: moment(params['date']).format('dddd Do MMMM'),
                                 icon: coalesce(
-                                    {
-                                        Clear: 'sun',
-                                        Clouds: 'cloud',
-                                        Rain: 'rain'
-                                    }[params['forecast_weather_main']],
+                                    weatherIcon[params['forecast_weather_main']],
                                     'question-mark'
                                 ),
                                 forecast_temp_day_c: kelvinToCelsius(params['forecast_temp_day']).toFixed(0),
@@ -158,7 +231,11 @@ var WeatherPage = PageView.extend(
                 function(point) {
                     return {
                         x: moment(point.get('forecast_dt'), 'X').format('HH:mm'),
-                        y: Number(kelvinToCelsius(point.get('forecast_main_temp')).toFixed(1))
+                        y: Number(kelvinToCelsius(point.get('forecast_main_temp')).toFixed(1)),
+                        symbol: coalesce(
+                            weatherIcon[point.get('forecast_weather_main')],
+                            'question-mark'
+                        )
                     };
                 }
                 );
@@ -178,6 +255,13 @@ var WeatherPage = PageView.extend(
                     {
                         className: '.temperaturechartdata',
                         interpolation: 'linear',
+                        data: temperatureSeries
+                    }
+                ],
+                comp: [
+                    {
+                        type: 'symbolVis',
+                        className: '.comp.temperaturechartsymbols',
                         data: temperatureSeries
                     }
                 ]

@@ -34,6 +34,7 @@
 #rainchart .color0 .fill{
   fill: rgb(0, 153, 255);
 }
+
 </style>
 
 </head>
@@ -97,6 +98,8 @@
     </div>
 </script>
 
+<img src="/atlas/open-iconic/sprite/open-iconic.svg" class="iconic-sprite" style="display:none;" />
+
 <script type="text/javascript" src="/atlas/underscore.js"></script>
 <script type="text/javascript" src="/atlas/backbone.js"></script>
 <script type="text/javascript" src="/atlas/jquery.min.js"></script>
@@ -104,10 +107,14 @@
 <script type="text/javascript" src="/atlas/d3/d3.js"></script>
 <script type="text/javascript" src="/atlas/xcharts/xcharts.js"></script>
 <script type="text/javascript" src="/atlas/stacked_application.js"></script>
+<script type="text/javascript" src="/atlas/svg-injector.min.js"></script>
 <script type="text/javascript" src="application.js"></script>
 <script type="text/javascript" src="models.js"></script>
 <script type="text/javascript" src="weather.js"></script>
 <script type="text/javascript">
+var mySVGsToInject = document.querySelectorAll('.iconic-sprite');
+SVGInjector(mySVGsToInject);
+
 Backbone.$ = $;
 var gApplication = new StackedApplication(WeatherPage);
 gApplication.goHome();
