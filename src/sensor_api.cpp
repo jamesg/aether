@@ -48,9 +48,19 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
                     )
                 )
             );
-            moisture_log log(
-                batch::id_type{sab.copy_int<attr::batch_id>()}
-            );
+            batch::id_type id{sab.copy_int<attr::batch_id>()};
+
+            // Do not record a moisture reading if a moisture reading was
+            // recorded less than 30 minutes ago.
+            if(
+                atlas::db::most_recent<moisture_log>(conn, id).date() >
+                atlas::db::date::to_unix_time(
+                    boost::posix_time::second_clock::universal_time() -
+                    boost::posix_time::minutes(30)
+                )
+              )
+                return false;
+            moisture_log log(id);
             log.record(moisture, conn);
             return true;
         }
