@@ -496,21 +496,21 @@ bool aether::db::bool_setting(
     return setting_value<bool>(conn, setting_name, default_value);
 }
 
-int aether::db::int_setting(
+styx::int_type aether::db::int_setting(
         hades::connection& conn,
         const std::string& setting_name
         )
 {
-    return setting_value<int>(conn, setting_name);
+    return setting_value<styx::int_type>(conn, setting_name);
 }
 
-int aether::db::int_setting(
+styx::int_type aether::db::int_setting(
         hades::connection& conn,
         const std::string& setting_name,
-        const int default_value
+        const styx::int_type default_value
         )
 {
-    return setting_value<int>(conn, setting_name, default_value);
+    return setting_value<styx::int_type>(conn, setting_name, default_value);
 }
 
 std::string aether::db::string_setting(

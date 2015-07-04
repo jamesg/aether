@@ -36,7 +36,7 @@ namespace
                 hades::where(
                     "aether_forecast.forecast_dt >= ? AND "
                     "aether_forecast.forecast_dt < ? ",
-                    hades::row<int, int>(
+                    hades::row<styx::int_type, styx::int_type>(
                         to_unix_time(from),
                         to_unix_time(to)
                     )
@@ -73,7 +73,7 @@ namespace
             hades::filter(
                 hades::where(
                     "aether_daily_forecast.forecast_dt >= ? ",
-                    hades::row<int>(
+                    hades::row<styx::int_type>(
                         to_unix_time(
                             boost::posix_time::ptime(from) +
                             boost::posix_time::seconds(timezone_offset_s)
@@ -98,7 +98,7 @@ namespace
                 conn,
                 hades::where(
                     "forecast_dt >= ? AND forecast_dt < ?",
-                    hades::row<int, int>(
+                    hades::row<styx::int_type, styx::int_type>(
                         to_unix_time(
                             boost::posix_time::from_time_t(point.copy_int("forecast_dt")) +
                             boost::posix_time::seconds(timezone_offset_s)
@@ -131,7 +131,7 @@ aether::weather_router::weather_router(hades::connection& conn) {
                     hades::filter(
                         hades::where(
                             "aether_forecast.forecast_dt = ?",
-                            hades::row<int>(dt)
+                            hades::row<styx::int_type>(dt)
                             ),
                         hades::order_by("aether_forecast.forecast_dt ASC", 1)
                         )
@@ -145,12 +145,12 @@ aether::weather_router::weather_router(hades::connection& conn) {
         // Find the nearest dt.
         forecast nearest = hades::custom_select_one<
             forecast,
-            hades::row<int>,
+            hades::row<styx::int_type>,
             attr::forecast_dt>(
                 conn,
                 "SELECT forecast_dt FROM aether_forecast "
                 " ORDER BY ABS(? - aether_forecast.forecast_dt) ASC LIMIT 1",
-                hades::row<int>(dt)
+                hades::row<styx::int_type>(dt)
                 );
         // Return the forecast.
         styx::list points = hades::equi_outer_join<
@@ -164,7 +164,7 @@ aether::weather_router::weather_router(hades::connection& conn) {
                 hades::filter(
                     hades::where(
                         "aether_forecast.forecast_dt = ?",
-                        hades::row<int>(nearest.get_int<attr::forecast_dt>())
+                        hades::row<styx::int_type>(nearest.get_int<attr::forecast_dt>())
                         ),
                     hades::order_by("aether_forecast.forecast_dt ASC", 1)
                     )
