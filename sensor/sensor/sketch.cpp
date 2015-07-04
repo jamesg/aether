@@ -74,7 +74,7 @@ void setup()
     // Enable the radio module.
     pinMode(8, OUTPUT);
     digitalWrite(8, HIGH);
-    Serial.begin(115200);
+    Serial.begin(9600);
 
     // Start the state machine.
     callback_timer.after(0, &send_status);
@@ -151,11 +151,38 @@ void send_status_received(JsonObject& result)
     callback_timer.after(1000, &send_moisture);
 }
 
-void send_status_error(const char *error)
+void send_status_error(const error_type err, const char *error)
 {
     log_string("send status err");
 
     callback_timer.after(0, &send_status);
+}
+
+void send_ready_to_receive()
+{
+    json_buffer_type json_buffer;
+    JsonObject& root = json_buffer.createObject();
+    root["method"] = "ready_to_receive";
+    JsonArray& params = root.createNestedArray("params");
+    root["id"] = 1;
+    jsonrpc_request(root, &send_status_received, &send_status_error);
+}
+
+void send_ready_to_receive_received(JsonObject& result)
+{
+    bool ready = result["result"];
+    if(ready)
+        callback_timer.after(0, &send_moisture);
+    else
+        callback_timer.after(0, &long_wait);
+}
+
+void send_ready_to_receive_error(error_type err, const char*)
+{
+    if(err == TIMEOUT)
+        callback_timer.after(0, &short_wait);
+    else
+        callback_timer.after(0, &long_wait);
 }
 
 void send_moisture()
@@ -166,7 +193,7 @@ void send_moisture()
     JsonArray& params = root.createNestedArray("params");
     int moisture_val = decode_moisture();
     params.add(moisture_val);
-    root["id"] = last_request_id = 2;
+    root["id"] = 2;
     jsonrpc_request(root, &send_moisture_received, &send_moisture_error);
 }
 
@@ -181,11 +208,12 @@ void send_moisture_received(JsonObject& result)
     callback_timer.after(1000, &send_temperature);
 }
 
-void send_moisture_error(const char *error)
+void send_moisture_error(const error_type err, const char *error)
 {
-    log_string("send moisture err");
-
-    callback_timer.after(0, &send_moisture);
+    if(err == TIMEOUT)
+        callback_timer.after(0, &short_wait);
+    else
+        callback_timer.after(0, &long_wait);
 }
 
 void send_temperature()
@@ -198,12 +226,12 @@ void send_temperature()
         root["method"] = "record_temperature";
         JsonArray& params = root.createNestedArray("params");
         params.add(temperature, 1);
-        root["id"] = last_request_id = 3;
+        root["id"] = 3;
         jsonrpc_request(root, &send_temperature_received, &send_temperature_error);
     }
     else
     {
-        callback_timer.after(0, &send_status);
+        callback_timer.after(0, &long_wait);
     }
 }
 
@@ -215,14 +243,81 @@ void send_temperature_received(JsonObject& result)
         log_string("temp success");
     else
         log_string("temp error");
-    callback_timer.after(1000, &send_status);
+    callback_timer.after(1000, &request_location);
 }
 
-void send_temperature_error(const char *error)
+void send_temperature_error(const error_type err, const char *error)
 {
-    log_string("send temp err");
+    if(err == TIMEOUT)
+        callback_timer.after(0, &short_wait);
+    else
+        callback_timer.after(0, &long_wait);
+}
 
-    callback_timer.after(0, &send_temperature);
+void request_location()
+{
+    json_buffer_type json_buffer;
+    JsonObject& root = json_buffer.createObject();
+    root["method"] = "location";
+    JsonArray& params = root.createNestedArray("params");
+    root["id"] = 4;
+    jsonrpc_request(root, &location_received, &location_error);
+}
+
+void location_received(JsonObject& result)
+{
+    const char *location = result["result"];
+    if(location)
+        log_string(location);
+    else
+        log_string("location error");
+    callback_timer.after(1000, &request_cname);
+}
+
+void location_error(error_type err, const char*)
+{
+    if(err == TIMEOUT)
+        callback_timer.after(0, &short_wait);
+    else
+        callback_timer.after(0, &long_wait);
+}
+
+void request_cname()
+{
+    json_buffer_type json_buffer;
+    JsonObject& root = json_buffer.createObject();
+    root["method"] = "variety_cname";
+    JsonArray& params = root.createNestedArray("params");
+    root["id"] = 5;
+    jsonrpc_request(root, &cname_received, &cname_error);
+}
+
+void cname_received(JsonObject& result)
+{
+    const char *cname = result["result"];
+    if(cname)
+        log_string(cname);
+    else
+        log_string("cname unknown");
+    callback_timer.after(0, &long_wait);
+}
+
+void cname_error(error_type err, const char*)
+{
+    if(err == TIMEOUT)
+        callback_timer.after(0, &short_wait);
+    else
+        callback_timer.after(0, &long_wait);
+}
+
+void long_wait()
+{
+    callback_timer.after(5000, &send_status);
+}
+
+void short_wait()
+{
+    callback_timer.after(1000, &send_ready_to_receive);
 }
 
 void jsonrpc_request(
@@ -263,7 +358,7 @@ void handle_jsonrpc_result(JsonObject& result)
             reset_callbacks();
             const char *error_str = result["error"];
             if(ec)
-                ec(error_str);
+                ec(JSONRPC, error_str);
         }
     }
 }
@@ -273,8 +368,7 @@ void handle_jsonrpc_timeout()
     error_callback_type cb = error_callback;
     reset_callbacks();
     if(cb)
-        // Null indicates a timeout.
-        cb(0);
+        cb(TIMEOUT, 0);
     char buf[16];
     snprintf(buf, sizeof(buf), "err %lu", millis());
     log_string(buf);
@@ -313,4 +407,3 @@ void loop()
     callback_timer.update();
     check_incoming_message();
 }
-
