@@ -9,6 +9,8 @@ typedef StaticJsonBuffer<100> json_buffer_type;
 typedef void(*success_callback_type)(JsonObject&);
 typedef void(*error_callback_type)(error_type, const char*);
 
+// Look up the temperature indicated by the given resistance across a KTY81/220
+// temperature sensor.
 float kty81_lookup(int resistance);
 
 void log_string(const char *str);
@@ -40,41 +42,22 @@ void cname_error(error_type, const char*);
 void long_wait();
 void short_wait();
 
-/*!
- * \brief Call a JSONRPC method on the server.
- */
+// Call a JSONRPC method on the server.
 void jsonrpc_request(
         JsonObject& request,
         success_callback_type success,
         error_callback_type error
         );
 
-/*!
- * \brief Process a JSONRPC result that has been received from the server.
- */
+// Process a JSONRPC result that has been received from the server.
 void handle_jsonrpc_result(JsonObject&);
 
-/*!
- * \brief Take action if no JSONRPC reply has been received from the server.
- */
+// Take action if no JSONRPC reply has been received from the server.
 void handle_jsonrpc_timeout();
 
-/*!
- * \brief Read the temperature from the DS18B20 sensor.
- *
- * \note This function takes at least 100ms to execute.
- *
- * \param out Pointer to temperature value.
- *
- * \return 0 on success, 1 on failure.
- */
-int decode_temperature(float *out);
+// Read the temperature from the KTY81 sensor.
+float decode_temperature();
 
-/*!
- * \brief Get the moisture value.
- *
- * \return A value between 0 and 1023 indicating the current moisture level.
- */
 int decode_moisture();
 
 extern "C"

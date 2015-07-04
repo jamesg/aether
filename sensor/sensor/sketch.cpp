@@ -4,17 +4,13 @@
 #include "EEPROM.h"
 #include "ArduinoJson.h"
 #include "LiquidCrystal.h"
-// #include "OneWire.h"
 
 #include "timer.hpp"
 
 #define INCOMING_SIZE 200
 #define INVALID_LAST_REQUEST_ID -1
 
-const int TEMPERATURE_SENSOR_AMB_R = 2000;
 const int TEMPERATURE_SENSOR_DIVIDER_R = 4700;
-
-// const float TEMPERATURE_SENSOR_COEFF
 
 // JSONRPC id of the last outgoing request.
 int last_request_id;
@@ -34,9 +30,6 @@ timer callback_timer;
 char incoming_buffer[INCOMING_SIZE];
 int incoming_index;
 
-// bool ds18b20_found;
-// byte ds18b20_addr[8];
-
 void reset_callbacks()
 {
     callback_timer.reset();
@@ -46,32 +39,11 @@ void reset_callbacks()
     error_callback = 0;
 }
 
-// void set_ds18b20_mode()
-// {
-//     // Set the conversion to 9 bits.
-//
-//     if(!ds.reset())
-//         return;
-//     ds.skip();
-//     ds.write(0x4e, 1);
-//     // Write first two bytes (temperature).
-//     ds.write(0, 1);
-//     ds.write(0, 1);
-//     // Write the configuration register.
-//     ds.write(0x1f, 1);
-// }
-
 void setup()
 {
     last_request_id = INVALID_LAST_REQUEST_ID;
     success_callback = 0;
     incoming_index = 0;
-
-    // ds.reset_search();
-    // ds18b20_found = ds.search(ds18b20_addr);
-    //
-    // if(ds18b20_found)
-    //     set_ds18b20_mode();
 
     lcd.begin(16,2);
     lcd.print("Plant Monitor");
@@ -81,15 +53,8 @@ void setup()
     digitalWrite(8, HIGH);
     Serial.begin(9600);
 
-    float temp = 0.0;
-    decode_temperature(&temp);
-    char buf[16];
-    dtostrf(temp, 0, 1, buf);
-//    snprintf(buf, sizeof(buf), "Temp %f", temp);
-    log_string(buf);
-
     // Start the state machine.
-    callback_timer.after(10000, &send_status);
+    callback_timer.after(100, &send_status);
 }
 
 int decode_moisture()
@@ -98,58 +63,31 @@ int decode_moisture()
     return moisture_val;
 }
 
-int decode_temperature(float *out)
+float decode_temperature()
 {
-    // if(!ds.reset())
-    //     return 1;
-    // ds.skip();
-    // // Start the temperature conversion.
-    // ds.write(0x44, 1);
-    //
-    // // The datasheet specifies 93.75ms to do the conversion.
-    // delay(100);
-    //
-    // if(!ds.reset())
-    //     return 1;
-    // ds.skip();
-    // // Read the scratchpad.
-    // ds.write(0xBE);
-    //
-    // byte i;
-    // byte data[9];
-    //
-    // // The scratchpad is 9 bytes.  The last byte is a CRC.
-    // for(i = 0; i < 9; i++) {
-    //     data[i] = ds.read();
-    // }
-    //
-    // int sign_bit = data[1] & 0x80;
-    // int reading = ((data[1] & 0x07) << 5) | ((data[0] >> 3) & 0x1f);
-    //
-    // // On power up, the temperature register is set to 85 degrees.  If this
-    // // temperature is read, assume it was not read correctly.
-    // if(data[0] == 0x50 && data[1] == 0x05)
-    //     return 1;
-    //
-    // *out = (sign_bit ? -1.0 : 1.0) * 0.5 * (float)reading;
-
     int reading = analogRead(5);
 
+    // Voltage Divider Diagram.
     // Vin -- Rconst -(input)- Rtemp -- Gnd
+    // The temperature sensor is between the input pin and ground.
 
-    // Vmeasured = Vin * (Rtemp / (Rtemp + Rconst) )
-    // Vmeasured / Vin = Rtemp / (Rtemp + Rconst)
-    // (Vmeasured / Vin) * (Rtemp + Rconst) = Rtemp
-    // Rtemp * (Vmeasured / Vin) + Rconst * (Vmeasured / Vin) = Rtemp
-    // Rtemp * (Vmeasured / Vin) - Rtemp = - (Rconst * (Vmeasured / Vin) )
-    // Rtemp * ( (Vmeasured / Vin) - 1) = - (Rconst * (Vmeasured / Vin) )
-    // Rtemp = - (Rconst * (Vmeasured / Vin) ) / ( (Vmeasured / Vin) - 1)
+    // Starting with the voltage divider equation, work out the resistance of
+    // the sensor.
+
+    // Vm = Vin * (Rtemp / (Rtemp + Rconst) )
+    // Vm / Vin = Rtemp / (Rtemp + Rconst)                        Divide by Vin
+    // (Vm / Vin) * (Rtemp + Rconst) = Rtemp       Multiply by (Rtemp + Rconst)
+    // Rtemp * (Vm / Vin) + Rconst * (Vm / Vin) = Rtemp               Factorise
+    // Rtemp - Rtemp * (Vm / Vin) = Rconst * (Vm / Vin)     Collect Rtemp terms
+    // Rtemp * ( 1 - (Vm / Vin) ) = Rconst * (Vm / Vin)               Factorise
+    // Rtemp = (Rconst * (Vm / Vin) ) / (1 - (Vm / Vin) )   Divide to get Rtemp
 
     float ratio = (float)reading / 1024.0f;
-    int resistance = - ((float)TEMPERATURE_SENSOR_DIVIDER_R * ratio) /
-        (ratio - 1.0f);
-    *out = kty81_lookup(resistance);
-    return 0;
+    // Compute the resistance of the temperature sensor in Ohms.  Will be
+    // roughly 1000-3000 Ohms.
+    int resistance = ((float)TEMPERATURE_SENSOR_DIVIDER_R * ratio) /
+        (1.0f - ratio);
+    return kty81_lookup(resistance);
 }
 
 float kty81_lookup(int resistance) {
@@ -270,21 +208,14 @@ void send_moisture_error(const error_type err, const char *error)
 
 void send_temperature()
 {
-    float temperature;
-    if(decode_temperature(&temperature) == 0)
-    {
-        json_buffer_type json_buffer;
-        JsonObject& root = json_buffer.createObject();
-        root["method"] = "record_temperature";
-        JsonArray& params = root.createNestedArray("params");
-        params.add(temperature, 1);
-        root["id"] = 3;
-        jsonrpc_request(root, &send_temperature_received, &send_temperature_error);
-    }
-    else
-    {
-        callback_timer.after(0, &long_wait);
-    }
+    float temperature = decode_temperature();
+    json_buffer_type json_buffer;
+    JsonObject& root = json_buffer.createObject();
+    root["method"] = "record_temperature";
+    JsonArray& params = root.createNestedArray("params");
+    params.add(temperature, 1);
+    root["id"] = 3;
+    jsonrpc_request(root, &send_temperature_received, &send_temperature_error);
 }
 
 void send_temperature_received(JsonObject& result)
