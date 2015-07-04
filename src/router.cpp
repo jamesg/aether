@@ -120,7 +120,7 @@ aether::router::router(
                             conn,
                             hades::where(
                                 "aether_batch.batch_id = ? ",
-                                hades::row<int>(batch_id)
+                                hades::row<styx::int_type>(batch_id)
                                 )
                             )
                 );
@@ -135,7 +135,7 @@ aether::router::router(
             return atlas::http::json_response(
                 hades::custom_select<
                     batch,
-                    hades::row<int, int>,
+                    hades::row<styx::int_type, styx::int_type>,
                     attr::batch_id, attr::start, attr::finish,
                     attr::phase_id, attr::phase_desc
                     >(
@@ -151,7 +151,7 @@ aether::router::router(
                         " JOIN aether_phase "
                         "  ON aether_batch_phase_history.phase_id = aether_phase.phase_id "
                         " WHERE batch_id = ? ",
-                        hades::row<int, int>(batch_id, batch_id)
+                        hades::row<styx::int_type, styx::int_type>(batch_id, batch_id)
                     )
                 );
         }
@@ -239,7 +239,7 @@ aether::router::router(
             return atlas::http::json_response(
                 hades::custom_select<
                     batch,
-                    hades::row<int, int>,
+                    hades::row<styx::int_type, styx::int_type>,
                     attr::batch_id,
                     attr::phase_id, attr::phase_desc,
                     attr::kb_variety_id, attr::kb_variety_cname, attr::kb_variety_lname,
@@ -278,7 +278,7 @@ aether::router::router(
                     "  aether_batch.batch_id IS NOT NULL AND "
                     "  aether_batch_phase.phase_id = ? "
                     " GROUP BY aether_batch.batch_id ",
-                    hades::row<int, int>(phase_id, phase_id)
+                    hades::row<styx::int_type, styx::int_type>(phase_id, phase_id)
                     )
                 );
                 //hades::outer_join<
@@ -293,7 +293,7 @@ aether::router::router(
                             //"aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id AND "
                             //"aether_batch.batch_id IS NOT NULL AND "
                             //"aether_batch_phase.phase_id = ? ",
-                            //hades::row<int>(phase_id)
+                            //hades::row<styx::int_type>(phase_id)
                             //)
                         //)
                 //);

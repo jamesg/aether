@@ -527,7 +527,7 @@ namespace aether
          * \throw std::exception if the setting is not found or cannot be
          * interpreted as an integer.
          */
-        int int_setting(
+        styx::int_type int_setting(
             hades::connection&,
             const std::string& key
         );
@@ -537,10 +537,10 @@ namespace aether
          * \param default_value Value to return if the setting is not found or
          * cannot be interpreted as an integer.
          */
-        int int_setting(
+        styx::int_type int_setting(
             hades::connection&,
             const std::string& key,
-            int default_value
+            styx::int_type default_value
         );
         /*!
          * \brief Get the value of a string setting.

@@ -78,7 +78,7 @@ aether::kb_router::kb_router(hades::connection& conn)
                 conn,
                 hades::where(
                     "aether_kb_variety_harvest_mon.kb_variety_id = ?",
-                    hades::row<int>(variety_id)
+                    hades::row<styx::int_type>(variety_id)
                     )
                 );
             for(kb::variety_harvest_mon mon : harvest_mon)
@@ -89,7 +89,7 @@ aether::kb_router::kb_router(hades::connection& conn)
                 conn,
                 hades::where(
                     "aether_kb_variety_plant_mon.kb_variety_id = ?",
-                    hades::row<int>(variety_id)
+                    hades::row<styx::int_type>(variety_id)
                     )
                 );
             for(kb::variety_plant_mon mon : plant_mon)
@@ -100,7 +100,7 @@ aether::kb_router::kb_router(hades::connection& conn)
                 conn,
                 hades::where(
                     "aether_kb_variety_sow_mon.kb_variety_id = ?",
-                    hades::row<int>(variety_id)
+                    hades::row<styx::int_type>(variety_id)
                     )
                 );
             for(kb::variety_sow_mon mon : sow_mon)
@@ -119,14 +119,14 @@ aether::kb_router::kb_router(hades::connection& conn)
                 months.append(
                     kb::variety_harvest_mon::id_type{
                         v.copy_int<attr::kb_variety_id>(),
-                        styx::cast<int>(e)
+                        styx::cast<styx::int_type>(e)
                     }
                     );
             kb::variety_harvest_mon::overwrite_collection(
                 months,
                 hades::where(
                     "aether_kb_variety_harvest_mon.kb_variety_id = ?",
-                    hades::row<int>(v.copy_int<attr::kb_variety_id>())
+                    hades::row<styx::int_type>(v.copy_int<attr::kb_variety_id>())
                     ),
                 conn
                 );
@@ -138,14 +138,14 @@ aether::kb_router::kb_router(hades::connection& conn)
                 months.append(
                     kb::variety_plant_mon::id_type{
                         v.copy_int<attr::kb_variety_id>(),
-                        styx::cast<int>(e)
+                        styx::cast<styx::int_type>(e)
                     }
                     );
             kb::variety_plant_mon::overwrite_collection(
                 months,
                 hades::where(
                     "aether_kb_variety_plant_mon.kb_variety_id = ?",
-                    hades::row<int>(v.copy_int<attr::kb_variety_id>())
+                    hades::row<styx::int_type>(v.copy_int<attr::kb_variety_id>())
                     ),
                 conn
                 );
@@ -157,14 +157,14 @@ aether::kb_router::kb_router(hades::connection& conn)
                 months.append(
                     kb::variety_sow_mon::id_type{
                         v.copy_int<attr::kb_variety_id>(),
-                        styx::cast<int>(e)
+                        styx::cast<styx::int_type>(e)
                     }
                     );
             kb::variety_sow_mon::overwrite_collection(
                 months,
                 hades::where(
                     "aether_kb_variety_sow_mon.kb_variety_id = ?",
-                    hades::row<int>(v.copy_int<attr::kb_variety_id>())
+                    hades::row<styx::int_type>(v.copy_int<attr::kb_variety_id>())
                     ),
                 conn
                 );
@@ -204,7 +204,7 @@ aether::kb_router::kb_router(hades::connection& conn)
                     conn,
                     hades::where(
                         "aether_kb_variety.kb_family_id = ?",
-                        hades::row<int>(family_id)
+                        hades::row<styx::int_type>(family_id)
                         )
                     )
                 );
@@ -220,7 +220,7 @@ aether::kb_router::kb_router(hades::connection& conn)
                             "aether_kb_variety.kb_variety_id = "
                             " aether_kb_variety_sow_mon.kb_variety_id AND "
                             "kb_variety_sow_mon_month = ?",
-                            hades::row<int>(month)
+                            hades::row<styx::int_type>(month)
                             )
                         )
                     );
@@ -236,7 +236,7 @@ aether::kb_router::kb_router(hades::connection& conn)
                             "aether_kb_variety.kb_variety_id = "
                             " aether_kb_variety_plant_mon.kb_variety_id AND "
                             "kb_variety_plant_mon_month = ?",
-                            hades::row<int>(month)
+                            hades::row<styx::int_type>(month)
                             )
                         )
                     );
