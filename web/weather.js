@@ -37,6 +37,9 @@ var symbolVis = {
                 return d.x;
             }
         );
+
+        // Create a group for each symbol to translate it independently of
+        // scaling.
         storage.symbols.enter()
             .insert('g')
             .attr(
@@ -45,12 +48,14 @@ var symbolVis = {
                     return 'translate(' +
                         (self.xScale(d.x) + self.xScale.rangeBand() / 2) + ' ' +
                         self.yScale(d.y) +
-                        ') translate(-18 -18)';
+                        ')';
                 }
             )
             .insert('use')
+            // Use an Open Iconic icon.
             .attr('xlink:href', function(d) { return '#' + d['symbol']; })
-            .attr('transform', 'scale(4)');
+            // Centre the symbol on (0, 0) and scale it.
+            .attr('transform', 'scale(5) translate(-4 -4)');
     },
     update: function(self, storage, timing) {
         storage.symbols.transition().duration(timing)
@@ -62,7 +67,7 @@ var symbolVis = {
                     return 'translate(' +
                         (self.xScale(d.x) + self.xScale.rangeBand() / 2) + ' ' +
                         self.yScale(d.y) +
-                        ') translate(-18 -18)';
+                        ')';
                 }
             );
     },
