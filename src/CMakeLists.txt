@@ -12,8 +12,10 @@ add_library(
     radio_server.cpp
     router.cpp
     sensor_api.cpp
+    temperature_model.cpp
     weather_router.cpp
     )
+include_directories("/usr/include/eigen3")
 include_directories(./)
 add_subdirectory(openweathermap)
 add_subdirectory(task)
@@ -32,3 +34,13 @@ target_link_libraries(
     ${Boost_LIBRARIES}
     )
 
+add_executable(
+    aether-test
+    test/main.cpp
+    test/temperature_model.cpp
+)
+target_link_libraries(
+    aether-test
+    aether-server-lib
+)
+add_test(aether-test aether-test)
