@@ -179,6 +179,10 @@
     padding: 0;
 }
 
+.weather-temperature-container-large {
+    font-size: large;
+}
+
 .weather-list div br {
     display: block;
     margin-top: 1.5em;

@@ -228,7 +228,20 @@ var WeatherPage = PageView.extend(
                 },
                 template: '\
                 <h2>Summary</h2>\
-                Min: <%-minTemp%> &deg;C, max: <%-maxTemp%> &deg;C\
+                <div class="weather-temperature-container weather-temperature-container-large">\
+                    <div class="weather-temperature">\
+                        <h3>Maximum Daytime Temperature</h3>\
+                        <span>\
+                            <span class="oi" data-glyph="sun" aria-hidden="true"> </span>\
+                            <%-maxTemp%>&deg;C\
+                        </span>\
+                        <h3>Minimum Nighttime Temperature</h3>\
+                        <span>\
+                            <span class="oi" data-glyph="moon" aria-hidden="true"> </span>\
+                            <%-minTemp%>&deg;C\
+                        </span>\
+                    </div>\
+                </div>\
                 ',
                 model: this._forecast
             })).render();
