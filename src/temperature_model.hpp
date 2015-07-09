@@ -1,6 +1,7 @@
 #ifndef AETHER_TEMPERATURE_MODEL_HPP
 #define AETHER_TEMPERATURE_MODEL_HPP
 
+#define EIGEN_DONT_ALIGN
 #include <Eigen/Core>
 
 #include "aether/db.hpp"
