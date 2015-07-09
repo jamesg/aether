@@ -24,6 +24,7 @@ AETHER_DECLARE_STATIC_STRING(aether_css)
 AETHER_DECLARE_STATIC_STRING(application_js)
 AETHER_DECLARE_STATIC_STRING(board_html)
 AETHER_DECLARE_STATIC_STRING(board_js)
+AETHER_DECLARE_STATIC_STRING(chart_js)
 AETHER_DECLARE_STATIC_STRING(index_html)
 AETHER_DECLARE_STATIC_STRING(index_js)
 AETHER_DECLARE_STATIC_STRING(knowledgebase_editor_html)
@@ -56,6 +57,7 @@ aether::router::router(
     install_static_text("/application.js", AETHER_STATIC_STD_STRING(application_js));
     install_static_text("/board.html", AETHER_STATIC_STD_STRING(board_html));
     install_static_text("/board.js", AETHER_STATIC_STD_STRING(board_js));
+    install_static_text("/chart.js", AETHER_STATIC_STD_STRING(chart_js));
     install_static_text("/index.html", AETHER_STATIC_STD_STRING(index_html));
     install_static_text("/index.js", AETHER_STATIC_STD_STRING(index_js));
     install_static_text("/knowledgebase.html", AETHER_STATIC_STD_STRING(knowledgebase_html));
@@ -308,7 +310,7 @@ aether::router::router(
         atlas::http::matcher("/api/phase", "GET"),
         [&conn]() {
             return atlas::http::json_response(
-                hades::equi_outer_join<phase, phase_order>(
+                hades::equi_outer_join<phase, phase_order, phase_temperature>(
                     conn,
                     hades::order_by("aether_phase_order.phase_order ASC")
                     )
