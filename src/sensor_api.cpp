@@ -157,8 +157,9 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
                 "SELECT aether_phase.phase_desc FROM aether_sensor_at_batch "
                 " LEFT OUTER JOIN aether_batch_phase "
                 " ON aether_sensor_at_batch.batch_id = aether_batch_phase.batch_id "
-                " LEFT OUTER JOIN aether_sensor"
-                " ON aether_phase.phase_id = aether_batch_phase.phase_id ",
+                " LEFT OUTER JOIN aether_phase "
+                " ON aether_batch_phase.phase_id = aether_phase.phase_id "
+                " WHERE aether_sensor_at_batch.sensor_id = ? ",
                 hades::row<styx::int_type>(default_sensor.get_int<attr::sensor_id>())
             );
             return p.get_string<attr::phase_desc>();
