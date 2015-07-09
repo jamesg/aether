@@ -9,11 +9,15 @@ typedef StaticJsonBuffer<100> json_buffer_type;
 typedef void(*success_callback_type)(JsonObject&);
 typedef void(*error_callback_type)(error_type, const char*);
 
+void print_startup();
+void print_temperature();
+void print_variety();
+void print_phase();
+void print_location();
+
 // Look up the temperature indicated by the given resistance across a KTY81/220
 // temperature sensor.
 float kty81_lookup(int resistance);
-
-void log_string(const char *str);
 
 void send_status();
 void send_status_received(JsonObject&);
@@ -42,6 +46,10 @@ void location_error(error_type, const char*);
 void request_cname();
 void cname_received(JsonObject&);
 void cname_error(error_type, const char*);
+
+void request_phase();
+void phase_received(JsonObject&);
+void phase_error(error_type, const char *);
 
 void long_wait();
 void short_wait();
