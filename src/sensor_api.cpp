@@ -1,6 +1,7 @@
 #include "sensor_api.hpp"
 
 #include "aether/db.hpp"
+#include "hades/custom_select_one.hpp"
 #include "hades/exists.hpp"
 #include "hades/get_by_id.hpp"
 #include "hades/get_one.hpp"
@@ -129,6 +130,26 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
         [&conn]() {
             location l = hades::get_one<location>(conn);
             return l.get_string<attr::location_city>();
+        }
+    );
+    install<std::string>(
+        "phase",
+        [&conn]() {
+            sensor default_sensor(hades::get_one<sensor>(conn));
+            phase p = hades::custom_select_one<
+                phase,
+                hades::row<styx::int_type>,
+                attr::phase_desc>
+            (
+                conn,
+                "SELECT aether_phase.phase_desc FROM aether_sensor_at_batch "
+                " LEFT OUTER JOIN aether_batch_phase "
+                " ON aether_sensor_at_batch.batch_id = aether_batch_phase.batch_id "
+                " LEFT OUTER JOIN aether_sensor"
+                " ON aether_phase.phase_id = aether_batch_phase.phase_id ",
+                hades::row<styx::int_type>(default_sensor.get_int<attr::sensor_id>())
+            );
+            return p.get_string<attr::phase_desc>();
         }
     );
 }
