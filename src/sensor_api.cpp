@@ -69,8 +69,8 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
         "record_temperature",
         [&conn](const double temperature) {
             sensor default_sensor(hades::get_one<sensor>(conn));
-            sensor_at_batch sab(
-                hades::get_one<sensor_at_batch>(
+            sensor_at_phase sap(
+                hades::get_one<sensor_at_phase>(
                     conn,
                     hades::where(
                         "sensor_id = ? ",
@@ -78,7 +78,7 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
                     )
                 )
             );
-            batch::id_type id{sab.copy_int<attr::batch_id>()};
+            phase::id_type id{sap.copy_int<attr::phase_id>()};
 
             // Do not record a temperature if a temperature was recorded less
             // than 30 minutes ago.
