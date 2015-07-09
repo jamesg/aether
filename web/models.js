@@ -6,7 +6,8 @@ var Phase = RestModel.extend(
     {
         defaults: {
             phase_desc: '',
-            phase_order: 0
+            phase_order: 0,
+            temperature: null
         },
         idAttribute: 'phase_id',
         url: function() {
@@ -197,6 +198,7 @@ var Settings = RestModel.extend(
 // Weather Forecast.
 //
 
+// Short range forecast.  Available every three hours for roughly the next week.
 var Forecast = RestModel.extend(
         {
             idAttribute: 'forecast_dt',
@@ -215,6 +217,31 @@ var ForecastCollection = RestCollection.extend(
             model: Forecast
         }
         );
+
+// Daily forecast.  Available for the next 5-16 days, depending on the location.
+var DailyForecast = RestModel.extend(
+    {
+        idAttribute: 'forecast_dt',
+        defaults: {
+            date: '',
+            detailed_available: false,
+            forecast_weather_main: '',
+            forecast_weather_description: '',
+            forecast_temp_day: 0,
+            forecast_temp_night: 0,
+            forecast_wind_speed: 0,
+            forecast_wind_deg: 0,
+            forecast_clouds: 0
+        }
+    }
+);
+
+var DailyForecastCollection = RestCollection.extend(
+    {
+        model: DailyForecast,
+        url: restUri('weather/day')
+    }
+);
 
 //
 // Authentication.
@@ -256,4 +283,3 @@ var CurrentUser = User.extend(
             }
         }
         );
-

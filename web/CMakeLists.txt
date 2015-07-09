@@ -7,6 +7,7 @@ atlas_add_web_library(
         application.js
         board.html
         board.js
+        chart.js
         index.html
         index.js
         knowledgebase.html
@@ -23,4 +24,3 @@ atlas_add_web_library(
         weather.html
         weather.js
         )
-

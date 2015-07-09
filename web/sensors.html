@@ -4,6 +4,7 @@
 <head>
 
 <title>Plant Monitor</title>
+<link href="/atlas/xcharts/xcharts.css" rel="stylesheet" type="text/css" media="all"></link>
 <link href="/atlas/css/defaults.css" rel="stylesheet" type="text/css" media="all"></link>
 <link href="/atlas/css/form.css" rel="stylesheet" type="text/css" media="all"></link>
 <link href="/atlas/css/grid.css" rel="stylesheet" type="text/css" media="all"></link>
@@ -18,6 +19,16 @@
     type="text/css"
     media="all">
 </link>
+
+<style type="text/css" media="all">
+/* Temperature curve. */
+#temperaturechart .color0 .line {
+    stroke: rgb(248, 168, 27);
+}
+#temperaturechart .color0 .fill {
+  fill: rgba(248, 168, 27, 0.1);
+}
+</style>
 
 </head>
 
@@ -57,17 +68,51 @@
 
 <script type="text/template" id="sensorspage-template">
 <h1>Sensors <small>View the status of plant environment sensors</small></h1>
-<table name="sensors" class="action-table"></table>
+<div class="grid">
+    <div class="col-1-2">
+        <h2>By Phase</h2>
+        <table name="phases" class="action-table"></table>
+    </div>
+    <div class="col-1-2">
+        <h2>By Batch</h2>
+        <table name="batches"></table>
+    </div>
+</div>
+<div class="grid">
+    <div class="col-1-1">
+        <h2>Sensor List</h2>
+        <table name="sensors"></table>
+    </div>
+</div>
 </script>
+
+<script type="text/template" id="sensorforecastpage-template">
+    <h1 name="date">Sensor Forecast</h1>
+    <p name="days"></p>
+    <figure
+        id="temperaturechart"
+        style="width: auto; margin-left: 0px; margin-right: 0px; height: 400px;">
+    </figure>
+</script>
+
+<img src="/atlas/open-iconic/sprite/open-iconic.svg" class="iconic-sprite" style="display:none;" />
 
 <script type="text/javascript" src="/atlas/underscore.js"></script>
 <script type="text/javascript" src="/atlas/backbone.js"></script>
 <script type="text/javascript" src="/atlas/jquery.min.js"></script>
+<script type="text/javascript" src="/atlas/moment.min.js"></script>
+<script type="text/javascript" src="/atlas/d3/d3.js"></script>
+<script type="text/javascript" src="/atlas/xcharts/xcharts.js"></script>
 <script type="text/javascript" src="/atlas/stacked_application.js"></script>
+<script type="text/javascript" src="/atlas/svg-injector.min.js"></script>
 <script type="text/javascript" src="application.js"></script>
+<script type="text/javascript" src="chart.js"></script>
 <script type="text/javascript" src="models.js"></script>
 <script type="text/javascript" src="sensors.js"></script>
 <script type="text/javascript">
+var mySVGsToInject = document.querySelectorAll('.iconic-sprite');
+SVGInjector(mySVGsToInject);
+
 Backbone.$ = $;
 var gApplication = new StackedApplication(SensorsPage);
 gApplication.goHome();
@@ -76,4 +121,3 @@ gApplication.goHome();
 </body>
 
 </html>
-
