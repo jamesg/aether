@@ -12,23 +12,15 @@ namespace
     const int feature_count = 3;
 }
 
-aether::temperature_model::temperature_model(hades::connection& conn)
+aether::temperature_model::temperature_model(
+    hades::connection& conn,
+    phase::id_type phase_id
+    )
 {
-    sensor default_sensor(hades::get_one<sensor>(conn));
-    sensor_at_batch sab(
-        hades::get_one<sensor_at_batch>(
-            conn,
-            hades::where(
-                "sensor_id = ? ",
-                hades::row<styx::int_type>(default_sensor.get_int<attr::sensor_id>())
-            )
-        )
-    );
-    batch::id_type batch_id{sab.copy_int<attr::batch_id>()};
-
     styx::list points(
         hades::custom_select<
             forecast,
+            hades::row<styx::int_type>,
             attr::forecast_dt,
             attr::forecast_main_temp,
             attr::forecast_clouds_all,
@@ -39,7 +31,8 @@ aether::temperature_model::temperature_model(hades::connection& conn)
             " measured_temperature, "
             " MIN(log_time_diff) "
             " FROM ( "
-            "  SELECT aether_forecast.forecast_dt AS forecast_dt, "
+            "  SELECT "
+            "   aether_forecast.forecast_dt AS forecast_dt, "
             "   aether_forecast_main.forecast_main_temp AS forecast_main_temp, "
             "   aether_forecast_clouds.forecast_clouds_all AS forecast_clouds_all, "
             "   aether_temperature_log.temperature AS measured_temperature, "
@@ -56,16 +49,21 @@ aether::temperature_model::temperature_model(hades::connection& conn)
             "  aether_temperature_log "
             "  ON "
             "   aether_temperature_log.log_time < "
-            "    aether_forecast.forecast_dt + 3600 AND "
+            "    aether_forecast.forecast_dt + 5400 AND "
             "   aether_temperature_log.log_time > "
-            "    aether_forecast.forecast_dt - 3600 "
+            "    aether_forecast.forecast_dt - 5400 "
+            "  WHERE aether_temperature_log.phase_id = ? "
             " ) "
-            " GROUP BY forecast_dt "
+            " GROUP BY forecast_dt ",
+            hades::row<styx::int_type>(phase_id.get_int<attr::phase_id>())
         )
     );
 
     if(points.size() == 0)
         throw std::runtime_error("cannot train temperature model with no data");
+
+    atlas::log::information("aether::temperature_model::temperature_model") <<
+        "training model with " << points.size() << " examples";
 
     Eigen::Matrix<feature_type, Eigen::Dynamic, Eigen::Dynamic> feature_matrix(points.size(), feature_count);
     Eigen::Matrix<feature_type, Eigen::Dynamic, 1> output_vector(points.size(), 1);
@@ -83,12 +81,20 @@ aether::temperature_model::temperature_model(hades::connection& conn)
             point.get_double(temperature_log::date_attribute);
     }
 
+    atlas::log::information("aether::temperature_model::temperature_model") <<
+        "feature matrix\n" << feature_matrix;
+    atlas::log::information("aether::temperature_model::temperature_model") <<
+        "output vector\n" << output_vector;
+
     Eigen::Matrix<feature_type, Eigen::Dynamic, Eigen::Dynamic> temp =
         feature_matrix.transpose() * feature_matrix;
     m_theta =
         temp.colPivHouseholderQr().solve(
             feature_matrix.transpose() * output_vector
         );
+
+    atlas::log::information("aether::temperature_model::temperature_model") <<
+        "theta\n" << m_theta;
 }
 
 aether::temperature_model::feature_type

@@ -15,8 +15,19 @@ namespace
         {
             aether::db::create(conn());
 
+            // Create a phase.
+            m_phase.save(conn());
+
             // Create a batch.
             m_batch.save(conn());
+
+            // Move the batch to the phase.
+            aether::batch_phase bp;
+            bp.get_int<aether::attr::batch_id>() =
+                m_batch.get_int<aether::attr::batch_id>();
+            bp.get_int<aether::attr::phase_id>() =
+                m_phase.get_int<aether::attr::phase_id>();
+            bp.save(conn());
 
             // Move the default sensor to the batch.
             aether::sensor default_sensor(hades::get_one<aether::sensor>(conn()));
@@ -34,9 +45,14 @@ namespace
         {
             return m_batch;
         }
+        aether::phase phase()
+        {
+            return m_phase;
+        }
     private:
         hades::connection m_connection;
         aether::batch m_batch;
+        aether::phase m_phase;
     };
 
     const int base_time = 1436086800;
@@ -59,8 +75,8 @@ SCENARIO("aether::temperature_model") {
                 base_time;
             fm.get_double<aether::attr::forecast_main_temp>() = 20.0;
             fc.get_int<aether::attr::forecast_clouds_all>() = 50;
-            tl.get_int<aether::attr::batch_id>() =
-                fixture.batch().get_int<aether::attr::batch_id>();
+            tl.get_int<aether::attr::phase_id>() =
+                fixture.phase().get_int<aether::attr::phase_id>();
             tl.get_double<aether::attr::temperature>() = 21.0;
             f.save(conn);
             fm.save(conn);
@@ -80,8 +96,8 @@ SCENARIO("aether::temperature_model") {
                 base_time + 10800;
             fm.get_double<aether::attr::forecast_main_temp>() = 22.0;
             fc.get_int<aether::attr::forecast_clouds_all>() = 50;
-            tl.get_int<aether::attr::batch_id>() =
-                fixture.batch().get_int<aether::attr::batch_id>();
+            tl.get_int<aether::attr::phase_id>() =
+                fixture.phase().get_int<aether::attr::phase_id>();
             tl.get_double<aether::attr::temperature>() = 23.0;
             f.save(conn);
             fm.save(conn);
@@ -89,7 +105,7 @@ SCENARIO("aether::temperature_model") {
             tl.save(conn);
         }
 
-        aether::temperature_model model(conn);
+        aether::temperature_model model(conn, fixture.phase().id());
 
         // Test on seen data.
         // There are only two points, so the model should fit perfectly.
@@ -141,8 +157,8 @@ SCENARIO("aether::temperature_model") {
                 base_time;
             fm.get_double<aether::attr::forecast_main_temp>() = 20.0;
             fc.get_int<aether::attr::forecast_clouds_all>() = 100;
-            tl.get_int<aether::attr::batch_id>() =
-                fixture.batch().get_int<aether::attr::batch_id>();
+            tl.get_int<aether::attr::phase_id>() =
+                fixture.phase().get_int<aether::attr::phase_id>();
             tl.get_double<aether::attr::temperature>() = 20.0;
             f.save(conn);
             fm.save(conn);
@@ -162,8 +178,8 @@ SCENARIO("aether::temperature_model") {
                 base_time + 10800;
             fm.get_double<aether::attr::forecast_main_temp>() = 21.0;
             fc.get_int<aether::attr::forecast_clouds_all>() = 0;
-            tl.get_int<aether::attr::batch_id>() =
-                fixture.batch().get_int<aether::attr::batch_id>();
+            tl.get_int<aether::attr::phase_id>() =
+                fixture.phase().get_int<aether::attr::phase_id>();
             tl.get_double<aether::attr::temperature>() = 27.0;
             f.save(conn);
             fm.save(conn);
@@ -183,8 +199,8 @@ SCENARIO("aether::temperature_model") {
                 base_time + 21600;
             fm.get_double<aether::attr::forecast_main_temp>() = 22.0;
             fc.get_int<aether::attr::forecast_clouds_all>() = 50;
-            tl.get_int<aether::attr::batch_id>() =
-                fixture.batch().get_int<aether::attr::batch_id>();
+            tl.get_int<aether::attr::phase_id>() =
+                fixture.phase().get_int<aether::attr::phase_id>();
             tl.get_double<aether::attr::temperature>() = 25.0;
             f.save(conn);
             fm.save(conn);
@@ -192,7 +208,7 @@ SCENARIO("aether::temperature_model") {
             tl.save(conn);
         }
 
-        aether::temperature_model model(conn);
+        aether::temperature_model model(conn, fixture.phase().id());
 
         // Test on seen data.
         styx::list seen(
