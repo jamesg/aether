@@ -50,12 +50,12 @@ SCENARIO("openweathermap::forecast") {
                 // weather data, so data cannot be predicted fully.
 
                 // Temperatures are in degrees Kelvin (273 Kelvin == 0 Celsius).
-                REQUIRE(point.get_object("main").copy_int("temp") > 253);
-                REQUIRE(point.get_object("main").copy_int("temp") < 313);
-                REQUIRE(point.get_object("main").copy_int("temp_min") > 253);
-                REQUIRE(point.get_object("main").copy_int("temp_min") < 313);
-                REQUIRE(point.get_object("main").copy_int("temp_max") > 253);
-                REQUIRE(point.get_object("main").copy_int("temp_max") < 313);
+                REQUIRE(point.get_object("main").copy_int("temp") > -20);
+                REQUIRE(point.get_object("main").copy_int("temp") < 50);
+                REQUIRE(point.get_object("main").copy_int("temp_min") > -20);
+                REQUIRE(point.get_object("main").copy_int("temp_min") < 50);
+                REQUIRE(point.get_object("main").copy_int("temp_max") > -20);
+                REQUIRE(point.get_object("main").copy_int("temp_max") < 50);
 
                 // Percentage scales.
                 REQUIRE(point.get_object("main").copy_int("humidity") >= 0);

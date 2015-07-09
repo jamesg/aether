@@ -1,112 +1,100 @@
-var kelvinToCelsius = function(degK) {
-    return degK - 273.15;
-};
-
-// Map of forecast_weather_main content to an appropriate icon.
-var weatherIcon = {
-    Clear: 'sun',
-    Clouds: 'cloud',
-    Rain: 'rain'
-};
-
-// Visualisation type for weather symbols.
-var symbolVis = {
-    enter: function(self, storage, className, data, callbacks) {
-        // Select the highest z-index.
-        var insertionPoint = xChart.visutils.getInsertionPoint(9);
-
-        storage.container = self._g.selectAll('.temperaturechartsymbols' + className)
-            .data(
-                data,
-                function(d) {
-                    return d.className;
+var DaysView = CollectionView.extend({
+    initialize: function() {
+        CollectionView.prototype.initialize.apply(this, arguments);
+    },
+    initializeView: function(view) {
+        this.listenTo(
+            view,
+            'click',
+            (function() {
+                this.trigger('click', view.model);
+            }).bind(this)
+        );
+    },
+    view: StaticView.extend({
+        tagName: 'div',
+        template: '\
+        <div class="\
+            weather-container\
+            weather-container-<%if(detailed_available){%>active<%}else{%>inactive<%}%>\
+            ">\
+        <%-str%><br>\
+        <div class="weather-temperature-container">\
+            <div class="weather-temperature">\
+                <span>\
+                    <span class="oi" data-glyph="sun" aria-hidden="true"> </span>\
+                    <%-forecast_temp_day_c%>&deg;C\
+                </span>\
+                <br>\
+                <span>\
+                    <span class="oi" data-glyph="moon" aria-hidden="true"> </span>\
+                    <%-forecast_temp_night_c%>&deg;C\
+                </span>\
+            </div>\
+            <div class="weather-icon">\
+                <span class="oi" data-glyph="<%-icon%>" aria-hidden="true"> </span>\
+            </div>\
+        </div>\
+        <br>\
+        <%if(detailed_available){%>\
+            <span class="oi" data-glyph="chevron-right" aria-hidden="true"> </span>\
+        <%}else{%>\
+            <span class="oi" data-glyph="x" aria-hidden="true"> </span>\
+        <%}%>\
+        </div>\
+        ',
+        templateParams: function() {
+            var params = _.clone(this.model.attributes);
+            _.extend(
+                params,
+                {
+                    str: moment(params['date']).format('dddd Do MMMM'),
+                    icon: coalesce(
+                        weatherIcon[params['forecast_weather_main']],
+                        'question-mark'
+                    ),
+                    forecast_temp_day_c: Number(params['forecast_temp_day']).toFixed(0),
+                    forecast_temp_night_c: Number(params['forecast_temp_night']).toFixed(0)
                 }
             );
-        storage.container.enter().insert('g', insertionPoint).attr(
-            'class',
-            function (d, i) {
-                return 'temperaturechartsymbols' + className.replace(/\./g, ' ') +
-                    ' color' + i;
-            }
-        );
-        storage.symbols = storage.container.selectAll('g').data(
-            function (d) {
-                return d.data;
-            },
-            function (d) {
-                return d.x;
-            }
-        );
-
-        // Create a group for each symbol to translate it independently of
-        // scaling.
-        storage.symbols.enter()
-            .insert('g')
-            .attr(
-                'transform',
-                function(d) {
-                    return 'translate(' +
-                        (self.xScale(d.x) + self.xScale.rangeBand() / 2) + ' ' +
-                        self.yScale(d.y) +
-                        ')';
-                }
-            )
-            .insert('use')
-            // Use an Open Iconic icon.
-            .attr('xlink:href', function(d) { return '#' + d['symbol']; })
-            // Centre the symbol on (0, 0) and scale it.
-            .attr('transform', 'scale(5) translate(-4 -4)');
-    },
-    update: function(self, storage, timing) {
-        storage.symbols.transition().duration(timing)
-            .style('opacity', 1)
-            .attr(
-                'transform',
-                function(d) {
-                    // self.xScale and self.yScale will have changed.
-                    return 'translate(' +
-                        (self.xScale(d.x) + self.xScale.rangeBand() / 2) + ' ' +
-                        self.yScale(d.y) +
-                        ')';
-                }
-            );
-    },
-    exit: function(self, storage, timing) {
-        storage.symbols.exit()
-            .transition().duration(timing)
-            .style('opacity', 0);
-    },
-    destroy: function(self, storage, timing) {
-        storage.symbols.transition().duration(timing)
-            .style('opacity', 0)
-            .remove();
-    }
-};
-xChart.setVis('symbolVis', symbolVis);
-
-var DailyForecast = RestModel.extend(
-    {
-        idAttribute: 'forecast_dt',
-        defaults: {
-            date: '',
-            detailed_available: false,
-            forecast_weather_main: '',
-            forecast_weather_description: '',
-            forecast_temp_day: 0,
-            forecast_temp_night: 0,
-            forecast_wind_speed: 0,
-            forecast_wind_deg: 0,
-            forecast_clouds: 0
+            if(params.icon == 'question-mark')
+                console.log('unknown weather type', params['forecast_weather_main'])
+            return params;
+        },
+        events: {
+            click: 'selectDay'
+        },
+        selectDay: function() {
+            this.trigger('click');
         }
-    }
-);
+    })
+});
 
-var DailyForecastCollection = RestCollection.extend(
-    {
-        model: DailyForecast,
-        url: restUri('weather/day')
-    }
-);
+var SummaryView = StaticView.extend({
+    templateParams: function() {
+        return {
+            maxTemp: Number(_.max(this.model.pluck('forecast_main_temp'))).toFixed(1),
+            minTemp: Number(_.min(this.model.pluck('forecast_main_temp'))).toFixed(1)
+        };
+    },
+    template: '\
+    <h2>Summary</h2>\
+    <div class="weather-temperature-container weather-temperature-container-large">\
+        <div class="weather-temperature">\
+            <h3>Maximum Daytime Temperature</h3>\
+            <span>\
+                <span class="oi" data-glyph="sun" aria-hidden="true"> </span>\
+                <%-maxTemp%>&deg;C\
+            </span>\
+            <h3>Minimum Nighttime Temperature</h3>\
+            <span>\
+                <span class="oi" data-glyph="moon" aria-hidden="true"> </span>\
+                <%-minTemp%>&deg;C\
+            </span>\
+        </div>\
+    </div>\
+    '
+});
 
 var WeatherPage = PageView.extend(
     {
@@ -132,6 +120,8 @@ var WeatherPage = PageView.extend(
             PageView.prototype.initialize.apply(this, arguments);
             PageView.prototype.render.apply(this);
 
+            this._chart = new Chart({ id: 'temperaturechart', type: 'line' })
+
             var location = new Location;
             location.fetch();
             (new StaticView({
@@ -144,128 +134,26 @@ var WeatherPage = PageView.extend(
             // Assuming there is a detailed forecast for the current day.
             this.gotoDay(moment().format('YYYY-MM-DD'));
 
-            var page = this;
-
             var dailyForecast = new DailyForecastCollection;
             dailyForecast.fetch();
-            (new CollectionView({
+            this._daysView = new DaysView({
                 el: this.$('div[name=days]'),
-                view: StaticView.extend({
-                    tagName: 'div',
-                    template: '\
-                    <div class="\
-                        weather-container\
-                        weather-container-<%if(detailed_available){%>active<%}else{%>inactive<%}%>\
-                        ">\
-                    <%-str%><br>\
-                    <div class="weather-temperature-container">\
-                        <div class="weather-temperature">\
-                            <span>\
-                                <span class="oi" data-glyph="sun" aria-hidden="true"> </span>\
-                                <%-forecast_temp_day_c%>&deg;C\
-                            </span>\
-                            <br>\
-                            <span>\
-                                <span class="oi" data-glyph="moon" aria-hidden="true"> </span>\
-                                <%-forecast_temp_night_c%>&deg;C\
-                            </span>\
-                        </div>\
-                        <div class="weather-icon">\
-                            <span class="oi" data-glyph="<%-icon%>" aria-hidden="true"> </span>\
-                        </div>\
-                    </div>\
-                    <br>\
-                    <%if(detailed_available){%>\
-                        <span class="oi" data-glyph="chevron-right" aria-hidden="true"> </span>\
-                    <%}else{%>\
-                        <span class="oi" data-glyph="x" aria-hidden="true"> </span>\
-                    <%}%>\
-                    </div>\
-                    ',
-                    templateParams: function() {
-                        var params = _.clone(this.model.attributes);
-                        _.extend(
-                            params,
-                            {
-                                str: moment(params['date']).format('dddd Do MMMM'),
-                                icon: coalesce(
-                                    weatherIcon[params['forecast_weather_main']],
-                                    'question-mark'
-                                ),
-                                forecast_temp_day_c: kelvinToCelsius(params['forecast_temp_day']).toFixed(0),
-                                forecast_temp_night_c: kelvinToCelsius(params['forecast_temp_night']).toFixed(0)
-                            }
-                        );
-                        if(params.icon == 'question-mark')
-                            console.log('unknown weather type', params['forecast_weather_main'])
-                        return params;
-                    },
-                    events: {
-                        click: 'selectDay'
-                    },
-                    selectDay: function() {
-                        // Detailed data may not be available for dates some
-                        // time in the future.
-                        if(this.model.get('detailed_available'))
-                            page.gotoDay(this.model.get('date'));
-                    }
-                }),
                 model: dailyForecast
-            }));
+            });
+            this._daysView.render();
+            this.listenTo(
+                this._daysView,
+                'click',
+                (function(dayModel) {
+                    // Detailed data may not be available for dates some time
+                    // in the future.
+                    if(dayModel.get('detailed_available'))
+                        this.gotoDay(dayModel.get('date'));
+                }).bind(this)
+            );
         },
-        _initializeCharts: function() {
-            (new StaticView({
-                el: this.$('div[name=summary]'),
-                templateParams: function() {
-                    return {
-                        maxTemp: kelvinToCelsius(
-                                _.max(this.model.pluck('forecast_main_temp'))
-                                ).toFixed(1),
-                        minTemp: kelvinToCelsius(
-                                _.min(this.model.pluck('forecast_main_temp'))
-                                ).toFixed(1)
-                    };
-                },
-                template: '\
-                <h2>Summary</h2>\
-                <div class="weather-temperature-container weather-temperature-container-large">\
-                    <div class="weather-temperature">\
-                        <h3>Maximum Daytime Temperature</h3>\
-                        <span>\
-                            <span class="oi" data-glyph="sun" aria-hidden="true"> </span>\
-                            <%-maxTemp%>&deg;C\
-                        </span>\
-                        <h3>Minimum Nighttime Temperature</h3>\
-                        <span>\
-                            <span class="oi" data-glyph="moon" aria-hidden="true"> </span>\
-                            <%-minTemp%>&deg;C\
-                        </span>\
-                    </div>\
-                </div>\
-                ',
-                model: this._forecast
-            })).render();
-            var temperatureSeries = this._forecast.map(
-                function(point) {
-                    return {
-                        x: moment(point.get('forecast_dt'), 'X').format('HH:mm'),
-                        y: Number(kelvinToCelsius(point.get('forecast_main_temp')).toFixed(1)),
-                        symbol: coalesce(
-                            weatherIcon[point.get('forecast_weather_main')],
-                            'question-mark'
-                        )
-                    };
-                }
-                );
-            var rainSeries = this._forecast.map(
-                function(point) {
-                    return {
-                        x: moment(point.get('forecast_dt'), 'X').format('HH:mm'),
-                        y: Number(point.get('forecast_rain'))
-                    };
-                }
-                );
-            var temperatureChartData = {
+        chartData: function() {
+            return {
                 xScale: 'ordinal',
                 yScale: 'linear',
                 type: 'line',
@@ -273,39 +161,45 @@ var WeatherPage = PageView.extend(
                     {
                         className: '.temperaturechartdata',
                         interpolation: 'linear',
-                        data: temperatureSeries
+                        type: 'line',
+                        data: this._forecast.map(
+                            function(point) {
+                                return {
+                                    x: moment(point.get('forecast_dt'), 'X').format('HH:mm'),
+                                    y: Number.parseFloat(point.get('forecast_main_temp'))
+                                };
+                            }
+                        )
                     }
                 ],
                 comp: [
                     {
                         type: 'symbolVis',
                         className: '.comp.temperaturechartsymbols',
-                        data: temperatureSeries
+                        data: this._forecast.map(
+                            function(point) {
+                                return {
+                                    x: moment(point.get('forecast_dt'), 'X').format('HH:mm'),
+                                    y: Number.parseFloat(point.get('forecast_main_temp')),
+                                    symbol: coalesce(
+                                        weatherIcon[point.get('forecast_weather_main')],
+                                        'question-mark'
+                                    )
+                                };
+                            }
+                        )
                     }
                 ]
             };
-            var rainChartData = {
-                xScale: 'ordinal',
-                yScale: 'linear',
-                type: 'bar',
-                main: [
-                    {
-                        className: '.temperaturechartdata',
-                        interpolation: 'linear',
-                        data: rainSeries
-                    }
-                ]
-            };
-            if(_.has(this, '_temperatureChart'))
-                this._temperatureChart.setData(temperatureChartData);
-            else
-                this._temperatureChart =
-                    new xChart('line', temperatureChartData, '#temperaturechart');
-            if(_.has(this, '_rainChart'))
-                this._rainChart.setData(rainChartData);
-            else
-                this._rainChart =
-                    new xChart('bar', rainChartData, '#rainchart');
+        },
+        _initializeCharts: function() {
+            // Day summary.
+            (new SummaryView({
+                el: this.$('div[name=summary]'),
+                model: this._forecast
+            })).render();
+
+            this._chart.setData(this.chartData());
         },
         render: function() {
         }

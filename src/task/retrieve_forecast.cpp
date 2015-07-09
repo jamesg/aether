@@ -47,9 +47,10 @@ void aether::task::retrieve_forecast::request_daily_forecast()
         atlas::http::get_json(
             io_ptr(),
             hades::mkstr() <<
-                "http://api.openweathermap.org/data/2.5/forecast/daily?lat=" <<
-                l.get_double<attr::location_lat>() << "&lon=" <<
-                l.get_double<attr::location_lon>(),
+                "http://api.openweathermap.org/data/2.5/forecast/daily" <<
+                "?units=metric" <<
+                "&lat=" << l.get_double<attr::location_lat>() <<
+                "&lon=" << l.get_double<attr::location_lon>(),
             boost::bind(
                 &retrieve_forecast::daily_forecast_received,
                 shared_from_this(),
@@ -146,9 +147,10 @@ void aether::task::retrieve_forecast::request_forecast()
         atlas::http::get_json(
             io_ptr(),
             hades::mkstr() <<
-                "http://api.openweathermap.org/data/2.5/forecast?lat=" <<
-                l.get_double<attr::location_lat>() << "&lon=" <<
-                l.get_double<attr::location_lon>(),
+                "http://api.openweathermap.org/data/2.5/forecast" <<
+                "?units=metric" <<
+                "&lat=" << l.get_double<attr::location_lat>() <<
+                "&lon=" << l.get_double<attr::location_lon>(),
             boost::bind(
                 &retrieve_forecast::forecast_received,
                 shared_from_this(),

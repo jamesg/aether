@@ -3,6 +3,7 @@
 
 #include <Eigen/Core>
 
+#include "aether/db.hpp"
 #include "styx/object.hpp"
 
 namespace hades
@@ -17,7 +18,7 @@ namespace aether
     public:
         typedef float feature_type;
 
-        explicit temperature_model(hades::connection& conn);
+        temperature_model(hades::connection& conn, phase::id_type phase_id);
 
         /*!
         \brief Estimate the actual air temperature given the current weather

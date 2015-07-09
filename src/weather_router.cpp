@@ -9,6 +9,8 @@
 #include "hades/exists.hpp"
 #include "hades/join.hpp"
 
+#include "temperature_model.hpp"
+
 namespace
 {
     int to_unix_time(boost::posix_time::ptime t)
@@ -117,6 +119,10 @@ namespace
 }
 
 aether::weather_router::weather_router(hades::connection& conn) {
+    //
+    // Weather Forecast
+    //
+
     install<int>(
         atlas::http::matcher("/([0-9]+)", "GET"),
         [&conn](const int dt) {
@@ -225,13 +231,35 @@ aether::weather_router::weather_router(hades::connection& conn) {
             else
                 timezone_offset_s =
                     boost::lexical_cast<int>(params.find("timezone")->second) * 60;
-            return atlas::http::json_response(
+
+            styx::list f(
                 detailed_forecast(
                     conn,
                     boost::gregorian::from_string(date),
                     timezone_offset_s
                 )
             );
+
+            // Optionally compare the forecast temperatures to temperatures
+            // predicted by the temperature model.
+            if(params.find("phase_id") != params.end())
+            {
+                phase::id_type phase_id{
+                    boost::lexical_cast<styx::int_type>(
+                        params.find("phase_id")->second
+                    )
+                };
+                temperature_model model(conn, phase_id);
+
+                for(styx::element& e : f)
+                {
+                    styx::object& point = boost::get<styx::object>(e);
+                    point.get_double("model_temperature") =
+                        model.estimate(point);
+                }
+            }
+
+            return atlas::http::json_response(f);
         }
         );
 }
