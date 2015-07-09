@@ -10,7 +10,10 @@
 #define INCOMING_SIZE 200
 #define INVALID_LAST_REQUEST_ID -1
 
-const int TEMPERATURE_SENSOR_DIVIDER_R = 4700;
+const int SOIL_MOISTURE_PIN = -1;
+
+const int TEMPERATURE_SENSOR_DIVIDER_R = 10000;
+const int TEMPERATURE_SENSOR_PIN = -1;
 
 // JSONRPC id of the last outgoing request.
 int last_request_id;
@@ -21,8 +24,14 @@ success_callback_type success_callback;
 // Callback to use when a JSONRPC request has failed.
 error_callback_type error_callback;
 
-LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
-// OneWire ds(10);
+// HD44780 connections:
+// RS - 6
+// E  - 5
+// D4 - 4
+// D5 - 3
+// D6 - 2
+// D7 - 9
+LiquidCrystal lcd(6, 5, 4, 3, 2, 9);
 
 // Timer to wait for a reply from the server.
 timer callback_timer;
@@ -57,15 +66,19 @@ void setup()
     callback_timer.after(100, &send_status);
 }
 
-int decode_moisture()
+bool decode_moisture(int& out)
 {
-    int moisture_val = analogRead(0);
-    return moisture_val;
+    if(SOIL_MOISTURE_PIN < 0)
+        return false;
+    out = analogRead(SOIL_MOISTURE_PIN) / (1023.0/100.0);
 }
 
-float decode_temperature()
+bool decode_temperature(float& out)
 {
-    int reading = analogRead(5);
+    if(TEMPERATURE_SENSOR_PIN < 0)
+        return false;
+
+    int reading = analogRead(TEMPERATURE_SENSOR_PIN);
 
     // Voltage Divider Diagram.
     // Vin -- Rconst -(input)- Rtemp -- Gnd
@@ -82,12 +95,12 @@ float decode_temperature()
     // Rtemp * ( 1 - (Vm / Vin) ) = Rconst * (Vm / Vin)               Factorise
     // Rtemp = (Rconst * (Vm / Vin) ) / (1 - (Vm / Vin) )   Divide to get Rtemp
 
-    float ratio = (float)reading / 1024.0f;
+    float ratio = (float)reading / 1023.0f;
     // Compute the resistance of the temperature sensor in Ohms.  Will be
     // roughly 1000-3000 Ohms.
     int resistance = ((float)TEMPERATURE_SENSOR_DIVIDER_R * ratio) /
         (1.0f - ratio);
-    return kty81_lookup(resistance);
+    out = kty81_lookup(resistance);
 }
 
 float kty81_lookup(int resistance) {
@@ -97,13 +110,13 @@ float kty81_lookup(int resistance) {
     };
 
     // Extreme cases.
-    if(resistance > lookup_table[10])
+    if(resistance >= lookup_table[10])
         return 50.0f;
     if(resistance < lookup_table[0])
         return -50.0f;
 
     int i = 0;
-    while(i < sizeof(lookup_table) - 1 && resistance > lookup_table[i + 1])
+    while(i < sizeof(lookup_table) - 1 && resistance >= lookup_table[i + 1])
         ++i;
 
     // resistance is between lookup_table[i] and lookup_table[i + 1]
@@ -177,14 +190,21 @@ void send_ready_to_receive_error(error_type err, const char*)
 
 void send_moisture()
 {
-    json_buffer_type json_buffer;
-    JsonObject& root = json_buffer.createObject();
-    root["method"] = "record_moisture";
-    JsonArray& params = root.createNestedArray("params");
-    int moisture_val = decode_moisture();
-    params.add(moisture_val);
-    root["id"] = 2;
-    jsonrpc_request(root, &send_moisture_received, &send_moisture_error);
+    int moisture_val;
+    if(decode_moisture(moisture_val))
+    {
+        json_buffer_type json_buffer;
+        JsonObject& root = json_buffer.createObject();
+        root["method"] = "record_moisture";
+        JsonArray& params = root.createNestedArray("params");
+        params.add(moisture_val);
+        root["id"] = 2;
+        jsonrpc_request(root, &send_moisture_received, &send_moisture_error);
+    }
+    else
+    {
+        callback_timer.after(0, &send_temperature);
+    }
 }
 
 void send_moisture_received(JsonObject& result)
@@ -208,19 +228,26 @@ void send_moisture_error(const error_type err, const char *error)
 
 void send_temperature()
 {
-    float temperature = decode_temperature();
-    json_buffer_type json_buffer;
-    JsonObject& root = json_buffer.createObject();
-    root["method"] = "record_temperature";
-    JsonArray& params = root.createNestedArray("params");
-    params.add(temperature, 1);
-    root["id"] = 3;
-    jsonrpc_request(root, &send_temperature_received, &send_temperature_error);
+    float temperature;
+    if(decode_temperature(temperature))
+    {
+        json_buffer_type json_buffer;
+        JsonObject& root = json_buffer.createObject();
+        root["method"] = "record_temperature";
+        JsonArray& params = root.createNestedArray("params");
+        // decode_temperature is only accurate to a whole number.
+        params.add(roundf(temperature), 1);
+        root["id"] = 3;
+        jsonrpc_request(root, &send_temperature_received, &send_temperature_error);
+    }
+    else
+    {
+        callback_timer.after(0, &request_location);
+    }
 }
 
 void send_temperature_received(JsonObject& result)
 {
-    log_string("rec temp");
     bool status = result["result"];
     if(status)
         log_string("temp success");
