@@ -120,6 +120,11 @@ namespace aether
 
         extern const char daily_forecast[];
     }
+    namespace view
+    {
+        extern const char sensor_at_phase[];
+        extern const char phase_temperature[];
+    }
     namespace flag
     {
         extern const char kb_variety_container[];
@@ -349,23 +354,44 @@ namespace aether
         public hades::crud<sensor_at_batch>
     {
     };
+    // View onto sensor_at_batch and batch_phase.
+    class sensor_at_phase :
+        public hades::tuple<attr::sensor_id, attr::phase_id>,
+        public hades::has_candidate_key<attr::batch_id>,
+        public hades::relation<view::sensor_at_phase>,
+        public hades::crud<sensor_at_phase>
+    {
+    };
+    // View onto phase and temperature_log.
+    class phase_temperature :
+        public hades::tuple<attr::phase_id, attr::log_time, attr::temperature>,
+        public hades::has_candidate_key<attr::phase_id>,
+        public hades::relation<view::phase_temperature>,
+        public hades::crud<phase_temperature>
+    {
+    };
 
     //
     // Sensor logs.
     //
 
+    // Soil moisture is logged with respect to a batch of plants (the soil
+    // moisture sensor can only take a local reading).
     typedef atlas::db::date_series<
         batch::id_type,
         relvar::moisture_log,
         attr::moisture,
         attr::log_time>
         moisture_log;
+    // Air temperature is logged with respect to a phase (it is assumed that the
+    // air temperature is similar across the whole location).
     typedef atlas::db::date_series<
-        batch::id_type,
+        phase::id_type,
         relvar::temperature_log,
         attr::temperature,
         attr::log_time>
         temperature_log;
+    // Singleton location.  The location of the installation.
     class location :
         public hades::tuple<
             attr::location_city,
@@ -404,9 +430,7 @@ namespace aether
     // Weather Forecast.
     //
 
-    /*!
-     * \brief Basic forecast; other forecast tables reference this table.
-     */
+    // Basic forecast; indicates presence of forecast data for a timestamp.
     class forecast :
         public hades::tuple<attr::forecast_dt>,
         public hades::has_candidate_key<attr::forecast_dt>,
@@ -415,6 +439,7 @@ namespace aether
     {
     };
 
+    // Cloud cover forecast (as a percentage).
     class forecast_clouds :
         public hades::tuple<attr::forecast_dt, attr::forecast_clouds_all>,
         public hades::has_candidate_key<attr::forecast_dt>,
@@ -423,6 +448,7 @@ namespace aether
     {
     };
 
+    // Basic forecast data (temperature, pressure etc.).
     class forecast_main :
         public hades::tuple<
             attr::forecast_dt,
@@ -440,6 +466,7 @@ namespace aether
     {
     };
 
+    // Rain in mm/3h.
     class forecast_rain :
         public hades::tuple<attr::forecast_dt, attr::forecast_rain>,
         public hades::has_candidate_key<attr::forecast_dt>,
@@ -448,6 +475,7 @@ namespace aether
     {
     };
 
+    // Human-readable summary and description of the weather type.
     class forecast_weather :
         public hades::tuple<
             attr::forecast_dt,
@@ -460,6 +488,7 @@ namespace aether
     {
     };
 
+    // Wind speed and direction.
     class forecast_wind :
         public hades::tuple<
             attr::forecast_dt,
@@ -473,6 +502,7 @@ namespace aether
     {
     };
 
+    // Summary of forecast data provided daily.
     class daily_forecast :
         public hades::tuple<
             attr::forecast_dt,

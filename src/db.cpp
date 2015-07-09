@@ -127,6 +127,8 @@ const char aether::relvar::forecast_main[] = "aether_forecast_main";
 const char aether::relvar::forecast_weather[] = "aether_forecast_weather";
 const char aether::relvar::forecast_wind[] = "aether_forecast_wind";
 const char aether::relvar::daily_forecast[] = "aether_daily_forecast";
+const char aether::view::sensor_at_phase[] = "aether_sensor_at_phase";
+const char aether::view::phase_temperature[] = "aether_phase_temperature";
 const char aether::flag::kb_variety_container[] = "aether_kb_variety_container";
 const char aether::flag::kb_variety_flower[] = "aether_kb_variety_flower";
 const char aether::flag::kb_variety_prefer_shade[] = "aether_kb_variety_prefer_shade";
@@ -299,6 +301,34 @@ void aether::db::create(hades::connection& conn)
         " ) ",
         conn
         );
+    hades::devoid(
+        "CREATE VIEW IF NOT EXISTS aether_sensor_at_phase AS "
+        " SELECT DISTINCT "
+        "  aether_sensor_at_batch.sensor_id, aether_batch_phase.phase_id "
+        " FROM aether_sensor_at_batch "
+        " JOIN aether_batch_phase "
+        " ON aether_sensor_at_batch.batch_id = aether_batch_phase.batch_id ",
+        conn
+    );
+    hades::devoid(
+        "CREATE VIEW IF NOT EXISTS aether_phase_temperature AS "
+        "  SELECT "
+        "   phase_id, temperature, MAX(log_time) AS log_time "
+        "  FROM ( "
+        "   SELECT "
+        "    aether_phase.phase_id AS phase_id, "
+        "    strftime('%s', 'now') AS current_time, "
+        "    aether_temperature_log.temperature AS temperature, "
+        "    aether_temperature_log.log_time AS log_time, "
+        "    strftime('%s', 'now') - aether_temperature_log.log_time as time_diff "
+        "   FROM aether_temperature_log "
+        "   JOIN aether_phase "
+        "   ON aether_temperature_log.phase_id = aether_phase.phase_id "
+        "   WHERE time_diff >= 0 AND time_diff < 10800"
+        "  ) "
+        "  GROUP BY phase_id ",
+        conn
+    );
 
     //
     // Sensor logs.
@@ -315,10 +345,10 @@ void aether::db::create(hades::connection& conn)
         );
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_temperature_log ( "
-        " batch_id INTEGER REFERENCES aether_batch(batch_id), "
+        " phase_id INTEGER REFERENCES aether_phase(phase_id), "
         " log_time INTEGER, "
         " temperature REAL, "
-        " PRIMARY KEY(batch_id, log_time) "
+        " PRIMARY KEY(phase_id, log_time) "
         " ) ",
         conn
         );
@@ -529,4 +559,3 @@ std::string aether::db::string_setting(
 {
     return setting_value<std::string>(conn, setting_name, default_value);
 }
-
