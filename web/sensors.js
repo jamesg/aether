@@ -156,6 +156,7 @@ var SensorForecastPage = PageView.extend(
                         'Temperature Model for ' +
                         moment(date).format('dddd Do MMMM YYYY')
                     );
+                    console.log('chartdata', this.chartData());
                     this._chart.setData(this.chartData());
                 }).bind(this)
             });
@@ -191,6 +192,23 @@ var SensorForecastPage = PageView.extend(
                                 return {
                                     x: moment(point.get('forecast_dt'), 'X').format('HH:mm'),
                                     y: Number(point.get('model_temperature'))/* toFixed(1) is broken */
+                                };
+                            }
+                        )
+                    },
+                    {
+                        className: '.comp.sensorchartdata',
+                        interpolation: 'linear',
+                        type: 'line',
+                        data: this._forecast.filter(
+                            function(point) {
+                                return _.has(point.attributes, 'sensor_temperature');
+                            }
+                        ).map(
+                            function(point) {
+                                return {
+                                    x: moment(point.get('forecast_dt'), 'X').format('HH:mm'),
+                                    y: point.get('sensor_temperature')/* toFixed(1) is broken */
                                 };
                             }
                         )
