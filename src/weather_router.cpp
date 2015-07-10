@@ -256,6 +256,32 @@ aether::weather_router::weather_router(hades::connection& conn) {
                     styx::object& point = boost::get<styx::object>(e);
                     point.get_double("model_temperature") =
                         model.estimate(point);
+
+                    temperature_log t = atlas::db::nearest<temperature_log>(
+                        conn,
+                        phase_id,
+                        boost::posix_time::from_time_t(
+                            point.get_int(attr::forecast_dt)
+                        )
+                    );
+                    atlas::log::test("sensor_temperature") << "t " <<
+                                    t.get_int<attr::log_time>() <<
+                                    " point " << point.get_int(attr::forecast_dt);
+                    try
+                    {
+                        if(
+                                std::abs(
+                                    t.get_int<attr::log_time>() -
+                                    point.get_int(attr::forecast_dt)
+                                ) < 10800
+                        )
+                            point.get_double("sensor_temperature") =
+                                t.get_double<attr::temperature>();
+                    }
+                    catch(const std::exception& e)
+                    {
+                        atlas::log::test("sensor_temperature") << "e " << e.what();
+                    }
                 }
             }
 
