@@ -10,10 +10,10 @@ typedef void(*success_callback_type)(JsonObject&);
 typedef void(*error_callback_type)(error_type, const char*);
 
 void print_startup();
+void print_location();
+void print_phase();
 void print_temperature();
 void print_variety();
-void print_phase();
-void print_location();
 
 // Look up the temperature indicated by the given resistance across a KTY81/220
 // temperature sensor.

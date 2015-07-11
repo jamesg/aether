@@ -14,8 +14,8 @@
 
 const int SOIL_MOISTURE_PIN = -1;
 
-const int TEMPERATURE_SENSOR_DIVIDER_R = 10000;
-const int TEMPERATURE_SENSOR_PIN = -1;
+const int TEMPERATURE_SENSOR_DIVIDER_R = 1000;
+const int TEMPERATURE_SENSOR_PIN = 3;
 
 // JSONRPC id of the last outgoing request.
 int last_request_id;
@@ -50,7 +50,6 @@ char lcd_location_s[LCD_LINE_SIZE];
 
 void reset_callbacks()
 {
-
     last_request_id = INVALID_LAST_REQUEST_ID;
     success_callback = 0;
     error_callback = 0;
@@ -83,6 +82,24 @@ void print_startup()
 {
     lcd.clear();
     lcd.print(lcd_startup_s);
+    callback_timer.after(4000, &print_location);
+}
+
+void print_location()
+{
+    lcd.clear();
+    lcd.print("Location");
+    lcd.setCursor(0, 1);
+    lcd.print(lcd_location_s);
+    callback_timer.after(4000, &print_phase);
+}
+
+void print_phase()
+{
+    lcd.clear();
+    lcd.print("Phase");
+    lcd.setCursor(0, 1);
+    lcd.print(lcd_phase_s);
     callback_timer.after(4000, &print_temperature);
 }
 
@@ -95,12 +112,7 @@ void print_temperature()
     lcd.print("Temperature");
     lcd.setCursor(0, 1);
     lcd.print(lcd_temperature_s);
-    callback_timer.after(4000, &print_phase);
-}
-
-void print_phase()
-{
-    callback_timer.after(0, &print_variety);
+    callback_timer.after(4000, &print_variety);
 }
 
 void print_variety()
@@ -110,15 +122,6 @@ void print_variety()
     lcd.setCursor(0, 1);
     lcd.print(lcd_variety_s);
     callback_timer.after(4000, &print_location);
-}
-
-void print_location()
-{
-    lcd.clear();
-    lcd.print("Location");
-    lcd.setCursor(0, 1);
-    lcd.print(lcd_location_s);
-    callback_timer.after(4000, &print_temperature);
 }
 
 bool decode_moisture(int& out)
@@ -310,7 +313,7 @@ void request_location()
 void location_received(JsonObject& result)
 {
     const char *location = result["result"];
-    strncpy(lcd_variety_s, location, sizeof(lcd_variety_s));
+    strncpy(lcd_location_s, location, sizeof(lcd_location_s));
     callback_timer.after(1000, &request_cname);
 }
 
@@ -354,7 +357,7 @@ void request_phase()
     root["method"] = "phase";
     JsonArray& params = root.createNestedArray("params");
     root["id"] = 6;
-    jsonrpc_request(root, &cname_received, &cname_error);
+    jsonrpc_request(root, &phase_received, &phase_error);
 }
 
 void phase_received(JsonObject& result)
@@ -374,7 +377,8 @@ void phase_error(error_type err, const char*)
 
 void long_wait()
 {
-    callback_timer.after(5000, &send_status);
+    // One minute.
+    callback_timer.after(60000, &send_status);
 }
 
 void short_wait()
