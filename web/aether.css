@@ -197,3 +197,39 @@
 .weather-icon {
     font-size: 3.5em;
 }
+
+.cardmenu {
+
+}
+
+.cardmenu > div {
+    width: 16.6%;
+    float: left;
+    text-align: center;
+    margin-bottom: 1.2em;
+    padding: 0.6em;
+    background-origin: content-box;
+}
+
+.cardmenu > div > .cardmenu-container {
+    border-radius: 1em;
+    background-color: #e0e0e0;
+}
+
+@media all and (max-width:1300px) {
+    .cardmenu > div {
+        width: 25%;
+    }
+}
+
+@media all and (max-width:800px) {
+    .cardmenu > div {
+        width: 50%;
+    }
+}
+
+@media all and (max-width:400px) {
+    .cardmenu > div {
+        width: 100%;
+    }
+}

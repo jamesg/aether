@@ -37,38 +37,57 @@
                 <a href="/board.html">Progress Board</a>
             </li>
             <li>
-                <span class="oi" data-glyph="wrench" aria-hidden="true"> </span>
-                <a href="/settings.html">Settings</a>
-            </li>
-            <li>
-                <span class="oi" data-glyph="magnifying-glass" aria-hidden="true"> </span>
-                <a href="/knowledgebase.html">Knowledge Base</a>
-            </li>
-            <li>
                 <span class="oi" data-glyph="droplet" aria-hidden="true"> </span>
                 <a href="/sensors.html">Sensors</a>
             </li>
         </ul>
         <span id="current-user" class="current-user"></span>
     </div>
-    <ul id="navigation" class="navigation navigation-breadcrumbs"></ul>
+    <!-- <ul id="navigation" class="navigation navigation-breadcrumbs"></ul> -->
 </div>
 <div id="template-content" class="content"></div>
 
 <script type="text/template" id="homepage-template">
-    <h1>Plant Monitor</h1>
-    <p>Under construction</p>
-    <h2>Weather</h2>
-    <p>Weather warnings will appear here.</p>
-    <h2>Plant Progress Check</h2>
-    <h2>Varieties to Sow Indoors</h2>
-    <p class="advice">Here are some varieties to consider sowing indoors this month.</p>
-    <ul name="sow-varieties"></ul>
-    <h2>Varieties to Sow Outdoors</h2>
-    <p class="advice">Here are some varieties to consider sowing outdoors.</p>
-    <ul name="plant-varieties"></ul>
-    <h2>Development</h2>
-    <p class="advice"><a href="knowledgebase_editor.html">Knowledge Base Editor</a>.</p>
+    <h1 style="text-align: center;">Plant Monitor</h1>
+    <div class="grid cardmenu">
+        <div>
+            <div class="cardmenu-container">
+                <h2>Progress Board</h2>
+            </div>
+        </div>
+        <div>
+            <div class="cardmenu-container">
+                <h2>Settings</h2>
+            </div>
+        </div>
+        <div>
+            <div class="cardmenu-container">
+                <h2>Sensors</h2>
+            </div>
+        </div>
+        <div>
+            <div class="cardmenu-container">
+                <h2>Weather</h2>
+            </div>
+        </div>
+        <div>
+            <div class="cardmenu-container">
+                <h2>Knowledge Base</h2>
+                <h3>Varieties to Sow Indoors</h3>
+                <p class="advice">Here are some varieties to consider sowing indoors this month.</p>
+                <ul name="sow-varieties"></ul>
+                <h3>Varieties to Sow Outdoors</h3>
+                <p class="advice">Here are some varieties to consider sowing outdoors.</p>
+                <ul name="plant-varieties"></ul>
+            </div>
+        </div>
+        <div>
+            <div class="cardmenu-container">
+                <h2>Development</h2>
+                <p class="advice"><a href="knowledgebase_editor.html">Knowledge Base Editor</a>.</p>
+            </div>
+        </div>
+    </div>
 </script>
 
 <script type="text/javascript" src="/atlas/underscore.js"></script>
@@ -88,4 +107,3 @@ gApplication.goHome();
 </body>
 
 </html>
-
