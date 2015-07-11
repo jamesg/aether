@@ -105,6 +105,9 @@ var SensorForecastPage = PageView.extend(
             this._daysView = new CollectionView({
                 el: this.$('p[name=days]'),
                 model: dailyForecast,
+                filter: function(model) {
+                    return model.get('detailed_available');
+                },
                 view: StaticView.extend({
                     tagName: 'button',
                     className: 'tag',

@@ -73,8 +73,12 @@ var DaysView = CollectionView.extend({
 var SummaryView = StaticView.extend({
     templateParams: function() {
         return {
-            maxTemp: Number(_.max(this.model.pluck('forecast_main_temp'))).toFixed(1),
-            minTemp: Number(_.min(this.model.pluck('forecast_main_temp'))).toFixed(1)
+            maxTemp: Number(
+                _.max(this.model.pluck('forecast_main_temp'), Number.parseFloat)
+            ).toFixed(1),
+            minTemp: Number(
+                _.min(this.model.pluck('forecast_main_temp'), Number.parseFloat)
+            ).toFixed(1)
         };
     },
     template: '\
