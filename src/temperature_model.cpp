@@ -8,7 +8,7 @@
 
 namespace
 {
-    const int feature_count = 3;
+    const int feature_count = 11;
 }
 
 aether::temperature_model::temperature_model(
@@ -110,15 +110,34 @@ aether::temperature_model::estimate(styx::object f)
 }
 
 aether::temperature_model::feature_vector_type
-aether::temperature_model::feature_vector(styx::object f)
+aether::temperature_model::feature_vector(styx::object example)
 {
     feature_vector_type out(feature_count, 1);
+    boost::posix_time::ptime example_time =
+        boost::posix_time::from_time_t(example.get_int("forecast_dt"));
+    boost::posix_time::time_duration example_tod = example_time.time_of_day();
     out <<
         // Bias unit.
         1,
         // Forecast temperature.
-        f.get_double("forecast_main_temp"),
+        example.get_double("forecast_main_temp"),
         // Forecast cloud cover.
-        f.get_double("forecast_clouds_all");
+        example.get_double("forecast_clouds_all"),
+        // Time is between midnight and 3am.
+        (example_tod.hours() >= 0 && example_tod.hours() < 3),
+        // Time is between 3am and 6am.
+        (example_tod.hours() >= 3 && example_tod.hours() < 6),
+        // Time is between 6am and 9am.
+        (example_tod.hours() >= 6 && example_tod.hours() < 9),
+        // Time is between 9am and 12pm.
+        (example_tod.hours() >= 9 && example_tod.hours() < 12),
+        // Time is between 12pm and 3pm.
+        (example_tod.hours() >= 12 && example_tod.hours() < 15),
+        // Time is between 3pm and 6pm.
+        (example_tod.hours() >= 15 && example_tod.hours() < 18),
+        // Time is between 6pm and 9pm.
+        (example_tod.hours() >= 18 && example_tod.hours() < 21),
+        // Time is between 9pm and midnight.
+        (example_tod.hours() >= 21 && example_tod.hours() < 24);
     return out;
 }
