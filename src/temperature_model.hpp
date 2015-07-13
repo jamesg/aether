@@ -36,6 +36,11 @@ namespace aether
         */
         feature_vector_type feature_vector(styx::object);
 
+        /*!
+        \brief Compute theta by training the model once.
+        */
+        feature_vector_type theta(hades::connection&, phase::id_type);
+
         /*
         \brief Learnt linear regression parameters.
         */

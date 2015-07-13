@@ -2,7 +2,6 @@
 
 #include <Eigen/Dense>
 
-#include "aether/db.hpp"
 #include "atlas/log/log.hpp"
 #include "hades/custom_select.hpp"
 #include "hades/join.hpp"
@@ -16,6 +15,16 @@ aether::temperature_model::temperature_model(
     hades::connection& conn,
     phase::id_type phase_id
     )
+{
+    m_theta = theta(conn, phase_id);
+    atlas::log::information("aether::temperature_model::temperature_model") <<
+        "theta\n" << m_theta;
+}
+
+aether::temperature_model::feature_vector_type aether::temperature_model::theta(
+    hades::connection& conn,
+    phase::id_type phase_id
+)
 {
     styx::list points(
         hades::custom_select<
@@ -62,7 +71,7 @@ aether::temperature_model::temperature_model(
     if(points.size() == 0)
         throw std::runtime_error("cannot train temperature model with no data");
 
-    atlas::log::information("aether::temperature_model::temperature_model") <<
+    atlas::log::information("aether::temperature_model::theta") <<
         "training model with " << points.size() << " examples";
 
     Eigen::Matrix<feature_type, Eigen::Dynamic, Eigen::Dynamic> feature_matrix(points.size(), feature_count);
@@ -81,20 +90,16 @@ aether::temperature_model::temperature_model(
             point.get_double(temperature_log::date_attribute);
     }
 
-    atlas::log::information("aether::temperature_model::temperature_model") <<
+    atlas::log::information("aether::temperature_model::theta") <<
         "feature matrix\n" << feature_matrix;
-    atlas::log::information("aether::temperature_model::temperature_model") <<
+    atlas::log::information("aether::temperature_model::theta") <<
         "output vector\n" << output_vector;
 
     Eigen::Matrix<feature_type, Eigen::Dynamic, Eigen::Dynamic> temp =
         feature_matrix.transpose() * feature_matrix;
-    m_theta =
-        temp.colPivHouseholderQr().solve(
+    return temp.colPivHouseholderQr().solve(
             feature_matrix.transpose() * output_vector
         );
-
-    atlas::log::information("aether::temperature_model::temperature_model") <<
-        "theta\n" << m_theta;
 }
 
 aether::temperature_model::feature_type
