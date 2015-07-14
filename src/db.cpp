@@ -310,25 +310,6 @@ void aether::db::create(hades::connection& conn)
         " ON aether_sensor_at_batch.batch_id = aether_batch_phase.batch_id ",
         conn
     );
-    hades::devoid(
-        "CREATE VIEW IF NOT EXISTS aether_phase_temperature AS "
-        "  SELECT "
-        "   phase_id, temperature, MAX(log_time) AS log_time "
-        "  FROM ( "
-        "   SELECT "
-        "    aether_phase.phase_id AS phase_id, "
-        "    strftime('%s', 'now') AS current_time, "
-        "    aether_temperature_log.temperature AS temperature, "
-        "    aether_temperature_log.log_time AS log_time, "
-        "    strftime('%s', 'now') - aether_temperature_log.log_time as time_diff "
-        "   FROM aether_temperature_log "
-        "   JOIN aether_phase "
-        "   ON aether_temperature_log.phase_id = aether_phase.phase_id "
-        "   WHERE time_diff >= 0 AND time_diff < 10800"
-        "  ) "
-        "  GROUP BY phase_id ",
-        conn
-    );
 
     //
     // Sensor logs.
@@ -352,6 +333,25 @@ void aether::db::create(hades::connection& conn)
         " ) ",
         conn
         );
+    hades::devoid(
+        "CREATE VIEW IF NOT EXISTS aether_phase_temperature AS "
+        "  SELECT "
+        "   phase_id, temperature, MAX(log_time) AS log_time "
+        "  FROM ( "
+        "   SELECT "
+        "    aether_phase.phase_id AS phase_id, "
+        "    strftime('%s', 'now') AS current_time, "
+        "    aether_temperature_log.temperature AS temperature, "
+        "    aether_temperature_log.log_time AS log_time, "
+        "    strftime('%s', 'now') - aether_temperature_log.log_time as time_diff "
+        "   FROM aether_temperature_log "
+        "   JOIN aether_phase "
+        "   ON aether_temperature_log.phase_id = aether_phase.phase_id "
+        "   WHERE time_diff >= 0 AND time_diff < 10800"
+        "  ) "
+        "  GROUP BY phase_id ",
+        conn
+    );
 
     //
     // Sensor flags.
