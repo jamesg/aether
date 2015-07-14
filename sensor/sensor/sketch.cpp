@@ -4,6 +4,7 @@
 #include "EEPROM.h"
 #include "ArduinoJson.h"
 #include "LiquidCrystal.h"
+#include "OneWire.h"
 
 #include "timer.hpp"
 
@@ -12,10 +13,14 @@
 
 #define LCD_LINE_SIZE 16
 
+const bool USE_ARDUINO_RADIO_SHIELD = false;
+
 const int SOIL_MOISTURE_PIN = -1;
 
 const int TEMPERATURE_SENSOR_DIVIDER_R = 1000;
 const int TEMPERATURE_SENSOR_PIN = 3;
+
+const int DS18B20_PIN = 11;
 
 // JSONRPC id of the last outgoing request.
 int last_request_id;
@@ -35,11 +40,15 @@ error_callback_type error_callback;
 // D7 - 9
 LiquidCrystal lcd(6, 5, 4, 3, 2, 9);
 
+OneWire ds(DS18B20_PIN);
+
 // Timer to wait for a reply from the server.
 timer callback_timer;
 
 char incoming_buffer[INCOMING_SIZE];
 int incoming_index;
+
+float ds18b20_temperature;
 
 const char lcd_startup_s[] = "Aether";
 
@@ -60,6 +69,7 @@ void setup()
     last_request_id = INVALID_LAST_REQUEST_ID;
     success_callback = 0;
     incoming_index = 0;
+    ds18b20_temperature = NAN;
 
     lcd_temperature_s[0] = '\0';
     lcd_phase_s[0] = '\0';
@@ -67,15 +77,89 @@ void setup()
     lcd_location_s[0] = '\0';
 
     lcd.begin(16,2);
-    callback_timer.after(0, &print_startup);
+    callback_timer.after(1000, &print_startup);
 
     // Enable the radio module.
-    pinMode(8, OUTPUT);
-    digitalWrite(8, HIGH);
+    if(USE_ARDUINO_RADIO_SHIELD)
+    {
+        pinMode(8, OUTPUT);
+        digitalWrite(8, HIGH);
+    }
     Serial.begin(9600);
+
+    // Set up the DS18B20 sensor.
+    if(set_ds18b20_mode())
+        request_ds18b20_temperature();
 
     // Start the state machine.
     callback_timer.after(100, &send_status);
+}
+
+bool set_ds18b20_mode()
+{
+    byte ds18b20_addr[8];
+    ds.reset_search();
+    bool ds18b20_found = ds.search(ds18b20_addr);
+    if(!ds18b20_found)
+    {
+        lcd.print("not found");
+        delay(1000);
+        return false;
+    }
+
+    // if(!ds.reset())
+    //     // The configuration cannot be set.
+    //     return false;
+    // ds.skip();
+    // ds.write(0x4e, 1);
+    // // Write first two bytes (temperature).
+    // ds.write(0, 1);
+    // ds.write(0, 1);
+    // // Write the configuration register.
+    // ds.write(0x1f, 1);
+    // // The configuration has been set.
+    return true;
+}
+
+void request_ds18b20_temperature()
+{
+    if(!ds.reset())
+        return;
+    ds.skip();
+    // Instruct the DS18B20 to start the conversion.
+    ds.write(0x44, 1);
+    // The conversion can take 750ms.
+    callback_timer.after(1000, &store_ds18b20_temperature);
+}
+
+void store_ds18b20_temperature()
+{
+    if(!ds.reset())
+    {
+        ds18b20_temperature = NAN;
+        return;
+    }
+    ds.skip();
+    ds.write(0xBE);
+    byte i;
+    byte data[9];
+    for(i = 0; i < 9; ++i)
+        data[i] = ds.read();
+
+    int sign_bit = data[1] & 0x80;
+    int reading = ((data[1] & 0x07) << 8) + data[0];
+
+    // On power up, the temperature register is set to 85 degrees.  If this
+    // temperature is read, assume it was not read correctly.
+    if(data[0] == 0x50 && data[1] == 0x05)
+    {
+        ds18b20_temperature = NAN;
+        return;
+    }
+
+    ds18b20_temperature = (sign_bit ? -1.0 : 1.0) * ((float)reading / 16.0);
+
+    callback_timer.after(10000, &request_ds18b20_temperature);
 }
 
 void print_startup()
@@ -105,9 +189,8 @@ void print_phase()
 
 void print_temperature()
 {
-    float temperature;
-    if(decode_temperature(temperature))
-        dtostrf(temperature, 2, 0, lcd_temperature_s);
+    if(ds18b20_temperature != NAN)
+        dtostrf(ds18b20_temperature, 2, 1, lcd_temperature_s);
     lcd.clear();
     lcd.print("Temperature");
     lcd.setCursor(0, 1);
@@ -268,15 +351,13 @@ void send_moisture_error(const error_type err, const char *error)
 
 void send_temperature()
 {
-    float temperature;
-    if(decode_temperature(temperature))
+    if(ds18b20_temperature != NAN)
     {
         json_buffer_type json_buffer;
         JsonObject& root = json_buffer.createObject();
         root["method"] = "record_temperature";
         JsonArray& params = root.createNestedArray("params");
-        // decode_temperature is only accurate to a whole number.
-        params.add(roundf(temperature), 1);
+        params.add(ds18b20_temperature, 2);
         root["id"] = 3;
         jsonrpc_request(root, &send_temperature_received, &send_temperature_error);
     }

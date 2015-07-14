@@ -9,6 +9,10 @@ typedef StaticJsonBuffer<100> json_buffer_type;
 typedef void(*success_callback_type)(JsonObject&);
 typedef void(*error_callback_type)(error_type, const char*);
 
+bool set_ds18b20_mode();
+void request_ds18b20_temperature();
+void store_ds18b20_temperature();
+
 void print_startup();
 void print_location();
 void print_phase();
