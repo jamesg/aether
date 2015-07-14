@@ -80,6 +80,15 @@ int main(const int argc, const char *argv[])
     }
     hades::connection conn(dbfile);
 
-    aether::export_knowledgebase(conn);
+    try
+    {
+        aether::export_knowledgebase(conn);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << "error exporting knowledgebase: " << e.what() << std::endl;
+        return 1;
+    }
+    
     return 0;
 }

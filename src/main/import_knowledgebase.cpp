@@ -40,13 +40,38 @@ int main(const int argc, const char *argv[])
         return 1;
     }
     hades::connection conn(dbfile);
-    aether::db::create(conn);
+
+    try
+    {
+        aether::db::create(conn);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << "error creating database: " << e.what() << std::endl;
+    }
 
     styx::element kb_e;
-    if(infile == "")
-        kb_e = styx::parse_json(std::cin);
-    else
-        kb_e = styx::parse_json_file(infile);
-    aether::import_knowledgebase(kb_e, conn);
+    try
+    {
+        if(infile == "")
+            kb_e = styx::parse_json(std::cin);
+        else
+            kb_e = styx::parse_json_file(infile);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << "error parsing json: " << e.what() << std::endl;
+    }
+
+    try
+    {
+        aether::import_knowledgebase(kb_e, conn);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << "importing data: " << e.what() << std::endl;
+        return 1;
+    }
+
     return 0;
 }
