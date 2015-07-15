@@ -20,6 +20,24 @@ void aether::import_knowledgebase(styx::element kb_e, hades::connection& conn)
         {
             kb::variety v(e);
             v.save(conn);
+            for(kb::variety_harvest_mon mon : v.get_list("harvest_mon"))
+            {
+                mon.get_int<attr::kb_variety_id>() =
+                    v.get_int<attr::kb_variety_id>();
+                mon.save(conn);
+            }
+            for(kb::variety_plant_mon mon : v.get_list("plant_mon"))
+            {
+                mon.get_int<attr::kb_variety_id>() =
+                    v.get_int<attr::kb_variety_id>();
+                mon.save(conn);
+            }
+            for(kb::variety_sow_mon mon : v.get_list("sow_mon"))
+            {
+                mon.get_int<attr::kb_variety_id>() =
+                    v.get_int<attr::kb_variety_id>();
+                mon.save(conn);
+            }
         }
     }
 }

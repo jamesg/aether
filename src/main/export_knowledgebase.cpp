@@ -26,39 +26,27 @@ void aether::export_knowledgebase(hades::connection& conn)
             styx::object& v = boost::get<styx::object>(e);
             styx::int_type variety_id = v.get_int(attr::kb_variety_id);
 
-            styx::list harvest_mon = kb::variety_harvest_mon::get_collection(
+            v.get_list("harvest_mon") = kb::variety_harvest_mon::get_collection(
                 conn,
                 hades::where(
                     "aether_kb_variety_harvest_mon.kb_variety_id = ?",
                     hades::row<styx::int_type>(variety_id)
                 )
             );
-            for(kb::variety_harvest_mon mon : harvest_mon)
-                v.get_list("harvest_mon").append(
-                    mon.get_int<attr::kb_variety_harvest_mon_month>()
-                );
-            styx::list plant_mon = kb::variety_plant_mon::get_collection(
+            v.get_list("plant_mon") = kb::variety_plant_mon::get_collection(
                 conn,
                 hades::where(
                     "aether_kb_variety_plant_mon.kb_variety_id = ?",
                     hades::row<styx::int_type>(variety_id)
                 )
             );
-            for(kb::variety_plant_mon mon : plant_mon)
-                v.get_list("plant_mon").append(
-                    mon.get_int<attr::kb_variety_plant_mon_month>()
-                );
-            styx::list sow_mon = kb::variety_sow_mon::get_collection(
+            v.get_list("sow_mon") = kb::variety_sow_mon::get_collection(
                 conn,
                 hades::where(
                     "aether_kb_variety_sow_mon.kb_variety_id = ?",
                     hades::row<styx::int_type>(variety_id)
                 )
             );
-            for(kb::variety_sow_mon mon : sow_mon)
-                v.get_list("sow_mon").append(
-                    mon.get_int<attr::kb_variety_sow_mon_month>()
-                );
         }
     }
     std::cout << styx::serialise_json(families) << std::endl;
@@ -89,6 +77,6 @@ int main(const int argc, const char *argv[])
         std::cerr << "error exporting knowledgebase: " << e.what() << std::endl;
         return 1;
     }
-    
+
     return 0;
 }
