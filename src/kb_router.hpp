@@ -16,9 +16,11 @@ namespace aether
     class kb_router : public atlas::http::router
     {
     public:
-        explicit kb_router(hades::connection& conn);
+        kb_router(
+            boost::shared_ptr<boost::asio::io_service>,
+            hades::connection& conn
+        );
     };
 }
 
 #endif
-

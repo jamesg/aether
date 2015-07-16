@@ -118,7 +118,12 @@ namespace
     }
 }
 
-aether::weather_router::weather_router(hades::connection& conn) {
+aether::weather_router::weather_router(
+    boost::shared_ptr<boost::asio::io_service> io,
+    hades::connection& conn
+) :
+    router(io)
+{
     //
     // Weather Forecast
     //

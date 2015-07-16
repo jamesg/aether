@@ -49,7 +49,8 @@ namespace
 aether::router::router(
         boost::shared_ptr<boost::asio::io_service> io,
         hades::connection& conn
-        )
+    ) :
+    atlas::http::application_router(io)
 {
     install_static_text("/", "html", AETHER_STATIC_STD_STRING(index_html));
 
@@ -74,10 +75,10 @@ aether::router::router(
     install_static_text("/weather.html", AETHER_STATIC_STD_STRING(weather_html));
     install_static_text("/weather.js", AETHER_STATIC_STD_STRING(weather_js));
 
-    boost::shared_ptr<atlas::http::router> kbr(new kb_router(conn));
+    boost::shared_ptr<atlas::http::router> kbr(new kb_router(io, conn));
     install(atlas::http::matcher("/api/kb(.*)", 1), kbr);
 
-    boost::shared_ptr<atlas::http::router> auth(new atlas::auth::router(conn));
+    boost::shared_ptr<atlas::http::router> auth(new atlas::auth::router(io, conn));
     install(atlas::http::matcher("/api/auth(.*)", 1), auth);
 
     boost::shared_ptr<sensor_api> sapi(new sensor_api(io, conn));
@@ -86,7 +87,7 @@ aether::router::router(
         boost::bind(&atlas::api::server::serve, sapi, _1, _2, _3, _4)
         );
 
-    boost::shared_ptr<atlas::http::router> weather_r(new weather_router(conn));
+    boost::shared_ptr<atlas::http::router> weather_r(new weather_router(io, conn));
     install(atlas::http::matcher("/api/weather(.*)", 1), weather_r);
 
     //

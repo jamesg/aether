@@ -7,7 +7,11 @@
 #include "hades/join.hpp"
 #include "styx/cast.hpp"
 
-aether::kb_router::kb_router(hades::connection& conn)
+aether::kb_router::kb_router(
+    boost::shared_ptr<boost::asio::io_service> io,
+    hades::connection& conn
+) :
+    router(io)
 {
     //
     // Knowledge Base.

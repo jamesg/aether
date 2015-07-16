@@ -16,9 +16,11 @@ namespace aether
     class weather_router : public atlas::http::router
     {
     public:
-        explicit weather_router(hades::connection&);
+        explicit weather_router(
+            boost::shared_ptr<boost::asio::io_service>,
+            hades::connection&
+        );
     };
 }
 
 #endif
-

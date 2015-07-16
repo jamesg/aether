@@ -51,20 +51,22 @@ aether::server::server(
     m_router.reset(new aether::router(io, *m_connection));
     m_http_server.reset(
         new atlas::http::server(m_io, opts.address.c_str(), opts.port.c_str())
-        );
-    boost::shared_ptr<atlas::http::router> atlas_router(atlas::http::static_files());
+    );
+    boost::shared_ptr<atlas::http::router> atlas_router(
+        atlas::http::static_files(io)
+    );
     // Forward requests starting with '/atlas' to the Atlas static file router.
     m_http_server->router().install(
         atlas::http::matcher("/atlas(.*)"),
         boost::bind(&atlas::http::router::serve, atlas_router, _1, _2, _3, _4)
-        );
+    );
     // Forward all other requests to the application router.  The priority
     // argument (1) gives this handler a lower priority than the /atlas
     // handler.
     m_http_server->router().install(
         atlas::http::matcher("(.*)", 1),
         boost::bind(&atlas::http::router::serve, m_router, _1, _2, _3, _4)
-        );
+    );
 
     try
     {
@@ -78,15 +80,15 @@ aether::server::server(
 
     // Retrieve a new weather forecast every hour.
     m_retrieve_forecast_task = atlas::task::poll::create(
-            boost::bind(
-                &task::retrieve_forecast::create,
-                _1,
-                _2,
-                boost::ref(*m_connection)
-                ),
-            3600000,
-            m_io
-            );
+        boost::bind(
+            &task::retrieve_forecast::create,
+            _1,
+            _2,
+            boost::ref(*m_connection)
+            ),
+        3600000,
+        m_io
+    );
     m_retrieve_forecast_task->run();
 
     // Retrieve a forecast now.
