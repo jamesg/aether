@@ -2,13 +2,6 @@ var kelvinToCelsius = function(degK) {
     return degK - 273.15;
 };
 
-// Map of forecast_weather_main content to an appropriate icon.
-var weatherIcon = {
-    Clear: 'sun',
-    Clouds: 'cloud',
-    Rain: 'rain'
-};
-
 // Visualisation type for weather symbols.
 var symbolVis = {
     enter: function(self, storage, className, data, callbacks) {

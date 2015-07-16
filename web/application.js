@@ -174,6 +174,15 @@ var LoadingView = StaticView.extend(
     }
 );
 
+// Map of forecast_weather_main content to an appropriate icon.
+var weatherIcon = function(name) {
+    return {
+        Clear: 'sun',
+        Clouds: 'cloud',
+        Rain: 'rain'
+    }[name];
+};
+
 /*
  * Display the currently signed in user.
  */

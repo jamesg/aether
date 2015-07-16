@@ -55,7 +55,7 @@ var DaysView = CollectionView.extend({
                 {
                     str: moment(params['date']).format('dddd Do MMMM'),
                     icon: coalesce(
-                        weatherIcon[params['forecast_weather_main']],
+                        weatherIcon(params['forecast_weather_main']),
                         'question-mark'
                     ),
                     forecast_temp_day_c: Number(params['forecast_temp_day']).toFixed(0),
@@ -180,7 +180,7 @@ var WeatherForecastView = StaticView.extend(
                                     x: moment(point.get('forecast_dt'), 'X').format('HH:mm'),
                                     y: Number.parseFloat(point.get('forecast_main_temp')),
                                     symbol: coalesce(
-                                        weatherIcon[point.get('forecast_weather_main')],
+                                        weatherIcon(point.get('forecast_weather_main')),
                                         'question-mark'
                                     )
                                 };

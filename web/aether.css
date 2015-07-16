@@ -203,7 +203,7 @@
 }
 
 .cardmenu > div {
-    width: 16.6%;
+    width: 25%;
     float: left;
     text-align: center;
     margin-bottom: 1.2em;
@@ -212,23 +212,28 @@
 }
 
 .cardmenu > div > .cardmenu-container {
-    border-radius: 1em;
-    background-color: #e0e0e0;
+    color: white;
+    background-color: #1abc9c;
+    padding: 1em;
 }
 
-@media all and (max-width:1300px) {
-    .cardmenu > div {
-        width: 25%;
-    }
+.cardmenu > div > .cardmenu-container a {
+    color: white;
+    text-decoration: none;
 }
 
-@media all and (max-width:800px) {
+.cardmenu > div > .cardmenu-container h2 {
+    border-bottom: 1px solid white;
+    text-align: left;
+}
+
+@media all and (max-width:1200px) {
     .cardmenu > div {
         width: 50%;
     }
 }
 
-@media all and (max-width:400px) {
+@media all and (max-width:600px) {
     .cardmenu > div {
         width: 100%;
     }
