@@ -92,7 +92,8 @@ aether::server::server(
     m_retrieve_forecast_task->run();
 
     // Retrieve a forecast now.
-    (task::retrieve_forecast::create(m_io, [](){}, *m_connection))->run();
+    if(!opts.skip_forecast)
+        (task::retrieve_forecast::create(m_io, [](){}, *m_connection))->run();
 }
 
 void aether::server::start()
@@ -116,6 +117,7 @@ int main(const int argc, const char *argv[])
         commandline::parameter("db", opts.db, "Database file path"),
         commandline::parameter("address", opts.address, "Server IP address"),
         commandline::parameter("port", opts.port, "Server port"),
+        commandline::flag("skip-forecast", opts.skip_forecast, "Do not request a forecast on startup"),
         commandline::flag("help", show_help, "Show a help message")
     };
     commandline::parse(argc, argv, options);

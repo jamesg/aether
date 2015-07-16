@@ -28,8 +28,10 @@ namespace aether
     public:
         struct options {
             std::string address, db, port;
+            bool skip_forecast;
             options() :
-                address("0.0.0.0")
+                address("0.0.0.0"),
+                skip_forecast(false)
             {
             }
         };
@@ -49,4 +51,3 @@ namespace aether
 }
 
 #endif
-
