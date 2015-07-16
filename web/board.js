@@ -530,7 +530,16 @@ var BoardPage = PageView.extend(
             this._phasesView = new CollectionView({
                 el: this.$('div[name=phases]'),
                 model: this._phases,
-                view: PhaseView
+                view: PhaseView,
+                emptyView: StaticView.extend({
+                    tagName: 'p',
+                    className: 'advice',
+                    template: '\
+                    There are currently no phases.  Go to the \
+                    <a href="settings.html">settings page</a> to set up a \
+                    phase before creating a batch.\
+                    '
+                })
             });
             this._phasesView.render();
         },

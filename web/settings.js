@@ -13,6 +13,10 @@ var SettingsPage = PageView.extend(
                     tagName: 'span',
                     className: 'tag',
                     template: '<%-phase_desc%>'
+                }),
+                emptyView: StaticView.extend({
+                    tagName: 'span',
+                    template: 'There are no phases.'
                 })
             })).render();
             this._location = new Location;
@@ -136,6 +140,10 @@ var PhasesPage = PageView.extend(
                         });
                         gApplication.modal(m);
                     }
+                }),
+                emptyView: StaticView.extend({
+                    tagName: 'li',
+                    template: 'There are no phases.'
                 }),
                 model: this._phases
             });

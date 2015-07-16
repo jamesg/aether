@@ -11,6 +11,11 @@ var DaysView = CollectionView.extend({
             }).bind(this)
         );
     },
+    emptyView: StaticView.extend({
+        tagName: 'p',
+        className: 'advice',
+        template: 'Weather forecast data is not available.'
+    }),
     view: StaticView.extend({
         tagName: 'div',
         template: '\
@@ -100,11 +105,19 @@ var SummaryView = StaticView.extend({
     '
 });
 
-var WeatherPage = PageView.extend(
+var WeatherForecastView = StaticView.extend(
     {
         pageTitle: 'Weather',
-        template: $('#weatherpage-template').html(),
+        template: $('#weatherforecast-template').html(),
+        fadeOut: function() {
+            this.$el.addClass('invisible');
+        },
+        fadeIn: function() {
+            this.$el.removeClass('invisible');
+            console.log('fade in');
+        },
         gotoDay: function(date) {
+            this.fadeOut();
             this.$('h1[name=weather-title]').html(
                 'Weather for ' +
                 moment(date).format('dddd Do MMMM YYYY')
@@ -114,15 +127,16 @@ var WeatherPage = PageView.extend(
                 // server will only provide weather for one day at the
                 // local timezone.
                 url: restUri(
-                    'weather/day/' + date + '?timezone=' +
-                    (new Date).getTimezoneOffset()
+                    'weather/day/' + moment(date).format('YYYY-MM-DD') +
+                    '?timezone=' + (new Date).getTimezoneOffset()
                     ),
                 success: this._initializeCharts.bind(this)
             });
         },
         initialize: function() {
-            PageView.prototype.initialize.apply(this, arguments);
-            PageView.prototype.render.apply(this);
+            StaticView.prototype.initialize.apply(this, arguments);
+            StaticView.prototype.render.apply(this);
+            this.fadeOut();
 
             this._chart = new Chart({ id: 'temperaturechart', type: 'line' })
 
@@ -135,26 +149,6 @@ var WeatherPage = PageView.extend(
             })).render();
 
             this._forecast = new ForecastCollection;
-            // Assuming there is a detailed forecast for the current day.
-            this.gotoDay(moment().format('YYYY-MM-DD'));
-
-            var dailyForecast = new DailyForecastCollection;
-            dailyForecast.fetch();
-            this._daysView = new DaysView({
-                el: this.$('div[name=days]'),
-                model: dailyForecast
-            });
-            this._daysView.render();
-            this.listenTo(
-                this._daysView,
-                'click',
-                (function(dayModel) {
-                    // Detailed data may not be available for dates some time
-                    // in the future.
-                    if(dayModel.get('detailed_available'))
-                        this.gotoDay(dayModel.get('date'));
-                }).bind(this)
-            );
         },
         chartData: function() {
             return {
@@ -197,6 +191,7 @@ var WeatherPage = PageView.extend(
             };
         },
         _initializeCharts: function() {
+            console.log('init chart');
             // Day summary.
             (new SummaryView({
                 el: this.$('div[name=summary]'),
@@ -204,8 +199,49 @@ var WeatherPage = PageView.extend(
             })).render();
 
             this._chart.setData(this.chartData());
+
+            this.fadeIn();
         },
         render: function() {
         }
     }
     );
+
+var WeatherPage = PageView.extend(
+    {
+        pageTitle: 'Weather',
+        template: $('#weatherpage-template').html(),
+        initialize: function() {
+            PageView.prototype.initialize.apply(this, arguments);
+            PageView.prototype.render.apply(this);
+
+            this._weatherForecastView = new WeatherForecastView({
+                el: this.$('div[name=forecast]')
+            });
+
+            // Assuming there is a detailed forecast for the current day.
+            this._weatherForecastView.gotoDay(moment());
+
+            var dailyForecast = new DailyForecastCollection;
+            dailyForecast.fetch();
+            this._daysView = new DaysView({
+                el: this.$('div[name=days]'),
+                model: dailyForecast
+            });
+            this._daysView.render();
+            this.listenTo(
+                this._daysView,
+                'click',
+                (function(dayModel) {
+                    // Detailed data may not be available for dates some time
+                    // in the future.
+                    if(dayModel.get('detailed_available'))
+                        this._weatherForecastView.gotoDay(dayModel.get('date'));
+                }).bind(this)
+            );
+
+        },
+        render: function() {
+        }
+    }
+)

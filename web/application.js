@@ -160,13 +160,19 @@ $(document).ajaxError(
             gApplication.modal(m);
         }
     }
-    );
+);
 
 var CurrentUserView = StaticView.extend(
-        {
-            template: '<%-username%>'
-        }
-        );
+    {
+        template: '<%-username%>'
+    }
+);
+
+var LoadingView = StaticView.extend(
+    {
+        template: 'Loading'
+    }
+);
 
 /*
  * Display the currently signed in user.

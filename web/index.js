@@ -14,6 +14,10 @@ var HomePage = PageView.extend(
                     tagName: 'li',
                     template: '<%-kb_variety_cname%>'
                 }),
+                emptyView: StaticView.extend({
+                    tagName: 'p',
+                    template: 'There are no varieties suitable for sowing this month.'
+                }),
                 model: sowVarieties
             })).render();
             var plantVarieties = new VarietyCollection;
@@ -40,4 +44,3 @@ var HomePage = PageView.extend(
         }
     }
     );
-
