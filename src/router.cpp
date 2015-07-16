@@ -111,6 +111,24 @@ aether::router::router(
                 );
         }
         );
+    install<>(
+        atlas::http::matcher("/api/batch/recently_moved", "GET"),
+        [&conn]() {
+            return atlas::http::json_response(
+                hades::outer_join<
+                    batch,
+                    batch_phase,
+                    kb::variety,
+                    kb::family>(
+                        conn,
+                        "aether_batch.batch_id = aether_batch_phase.batch_id AND "
+                        "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
+                        "aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id ",
+                        hades::order_by("aether_batch_phase.start DESC")
+                    )
+            );
+        }
+    );
     install<int>(
         atlas::http::matcher("/api/batch/([0-9]+)", "GET"),
         [&conn](const int batch_id) {
@@ -166,7 +184,7 @@ aether::router::router(
             batch_phase bp;
             bp.set_id(b.id());
             bp.get_int("phase_id") = b.get_int("phase_id");
-            bp.get_string<attr::start>() = atlas::db::date::to_string(
+            bp.get_int<attr::start>() = atlas::db::date::to_unix_time(
                 boost::posix_time::second_clock::universal_time()
                 );
             bp.insert(conn);
@@ -205,8 +223,9 @@ aether::router::router(
                     history.insert(conn);
                     // Overwrite the current phase.
                     current_phase.get_int<attr::phase_id>() = b.get_int(attr::phase_id);
-                    current_phase.get_string<attr::start>() = atlas::db::date::to_string(
-                        boost::posix_time::second_clock::universal_time()
+                    current_phase.get_int<attr::start>() =
+                        atlas::db::date::to_unix_time(
+                            boost::posix_time::second_clock::universal_time()
                         );
                     current_phase.update(conn);
                 }

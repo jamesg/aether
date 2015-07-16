@@ -140,7 +140,7 @@ const char aether::flag::temperature_sensor[] = "aether_temperature_sensor";
 aether::batch_phase_history::batch_phase_history(const batch_phase& e) :
     styx::object(e)
 {
-    get_string<attr::finish>() = atlas::db::date::to_string(
+    get_int<attr::finish>() = atlas::db::date::to_unix_time(
             boost::posix_time::second_clock::universal_time()
             );
 }
@@ -265,7 +265,7 @@ void aether::db::create(hades::connection& conn)
         "CREATE TABLE IF NOT EXISTS aether_batch_phase ( "
         " batch_id INTEGER REFERENCES aether_batch(batch_id), "
         " phase_id INTEGER REFERENCES aether_phase(phase_id), "
-        " start VARCHAR, "
+        " start INTEGER, "
         " UNIQUE(batch_id, phase_id) "
         " ) ",
         conn
@@ -274,8 +274,8 @@ void aether::db::create(hades::connection& conn)
         "CREATE TABLE IF NOT EXISTS aether_batch_phase_history ( "
         " batch_id INTEGER REFERENCES aether_batch(batch_id), "
         " phase_id INTEGER REFERENCES aether_phase(phase_id), "
-        " start VARCHAR, "
-        " finish VARCHAR "
+        " start INTEGER, "
+        " finish INTEGER "
         " ) ",
         conn
         );

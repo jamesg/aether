@@ -183,28 +183,6 @@ aether::weather_router::weather_router(
             return atlas::http::json_response(points.at(0));
         }
         );
-    install_get<>(
-        atlas::http::matcher("/today", "GET"),
-        [&conn](std::map<std::string, std::string> params) {
-            int timezone_offset_s = 0;
-            if(params.find("timezone") == params.end())
-                atlas::log::warning("aether::weather_router") <<
-                    "no timezone specified; using 0 (UTC)";
-            else
-                timezone_offset_s =
-                    boost::lexical_cast<int>(params.find("timezone")->second) * 60;
-            return atlas::http::json_response(
-                forecast_range(
-                    conn,
-                    boost::posix_time::ptime(boost::gregorian::day_clock::universal_day()) +
-                        boost::posix_time::seconds(timezone_offset_s),
-                    boost::posix_time::ptime(boost::gregorian::day_clock::universal_day()) +
-                        boost::gregorian::days(1) +
-                        boost::posix_time::seconds(timezone_offset_s)
-                )
-            );
-        }
-        );
     // Get a summary weather forecast for all available days.
     install_get<>(
         atlas::http::matcher("/day", "GET"),
@@ -225,10 +203,9 @@ aether::weather_router::weather_router(
             );
         }
     );
-    // Get a detailed weather forecast for a single day.
-    install_get<std::string>(
-        atlas::http::matcher("/day/([^/]+)", "GET"),
-        [&conn](std::map<std::string, std::string> params, std::string date) {
+    install_get<>(
+        atlas::http::matcher("/today", "GET"),
+        [&conn](std::map<std::string, std::string> params) {
             int timezone_offset_s = 0;
             if(params.find("timezone") == params.end())
                 atlas::log::warning("aether::weather_router") <<
@@ -236,6 +213,28 @@ aether::weather_router::weather_router(
             else
                 timezone_offset_s =
                     boost::lexical_cast<int>(params.find("timezone")->second) * 60;
+            styx::list forecast = daily_forecast_range(
+                conn,
+                boost::gregorian::day_clock::universal_day(),
+                timezone_offset_s
+            );
+            if(forecast.size() > 0)
+                return atlas::http::json_response(forecast.at(0));
+            else
+                return atlas::http::text_response(404, "day not found");
+        }
+    );
+    // Get a detailed weather forecast for a single day.
+    install_get<std::string>(
+        atlas::http::matcher("/day/([^/]+)", "GET"),
+        [&conn](std::map<std::string, std::string> params, std::string date) {
+            int timezone_offset_s = 0;
+            auto tz = params.find("timezone");
+            if(tz == params.end())
+                atlas::log::warning("aether::weather_router") <<
+                    "no timezone specified; using 0 (UTC)";
+            else
+                timezone_offset_s = boost::lexical_cast<int>(tz->second) * 60;
 
             styx::list f(
                 detailed_forecast(

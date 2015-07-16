@@ -149,10 +149,11 @@
 }
 
 
-.weather-list div .weather-container {
+.weather-container {
     margin: 0.6em;
     width: 100%;
     height: inherit;
+    text-align: center;
 }
 
 .weather-list div .weather-container-active {
@@ -205,7 +206,6 @@
 .cardmenu > div {
     width: 25%;
     float: left;
-    text-align: center;
     margin-bottom: 1.2em;
     padding: 0.6em;
     background-origin: content-box;
@@ -224,7 +224,6 @@
 
 .cardmenu > div > .cardmenu-container h2 {
     border-bottom: 1px solid white;
-    text-align: left;
 }
 
 @media all and (max-width:1200px) {

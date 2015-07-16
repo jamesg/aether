@@ -1,5 +1,5 @@
 var formatUtcDate = function(str) {
-    return moment.utc(str).local().format('dddd, Do MMMM YYYY h:mma');
+    return moment.unix(str).local().format('dddd, Do MMMM YYYY h:mma');
 };
 
 var NewBatchWizard = function() {

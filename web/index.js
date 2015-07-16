@@ -49,6 +49,23 @@ var HomePage = PageView.extend(
         initialize: function() {
             PageView.prototype.initialize.apply(this, arguments);
             PageView.prototype.render.apply(this);
+
+            var batches = new BatchCollection;
+            batches.fetch({ url: restUri('/batch/recently_moved') });
+            (new CollectionView({
+                el: this.$('ul[name=batches]'),
+                model: batches,
+                limit: 3,
+                view: StaticView.extend({
+                    tagName: 'li',
+                    template: '<%-kb_variety_cname%>'
+                }),
+                emptyView: StaticView.extend({
+                    tagName: 'li',
+                    template: 'There are no batches.'
+                })
+            })).render();
+
             var sowVarieties = new VarietyCollection;
             sowVarieties.fetch({
                 url: restUri('kb/month/' + moment().format('M') + '/sow/variety')
@@ -74,6 +91,10 @@ var HomePage = PageView.extend(
                 view: StaticView.extend({
                     tagName: 'li',
                     template: '<%-kb_variety_cname%>'
+                }),
+                emptyView: StaticView.extend({
+                    tagName: 'li',
+                    template: 'There are no varieties suitable for sowing this month.'
                 }),
                 model: plantVarieties
             })).render();
