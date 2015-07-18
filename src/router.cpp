@@ -120,18 +120,22 @@ aether::router::router(
         atlas::http::matcher("/api/batch/recently_moved", "GET"),
         [&conn]() {
             return atlas::http::json_response(
-                hades::outer_join<
+                hades::join<
                     batch,
                     batch_phase,
                     phase,
                     kb::variety,
                     kb::family>(
                         conn,
-                        "aether_batch.batch_id = aether_batch_phase.batch_id AND "
-                        "aether_batch_phase.phase_id = aether_phase.phase_id AND "
-                        "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
-                        "aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id ",
-                        hades::order_by("aether_batch_phase.start DESC")
+                        hades::filter(
+                            hades::where(
+                                "aether_batch.batch_id = aether_batch_phase.batch_id AND "
+                                "aether_batch_phase.phase_id = aether_phase.phase_id AND "
+                                "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
+                                "aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id "
+                            ),
+                            hades::order_by("aether_batch_phase.start DESC")
+                        )
                     )
             );
         }
