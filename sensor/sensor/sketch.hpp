@@ -13,6 +13,9 @@ bool set_ds18b20_mode();
 void request_ds18b20_temperature();
 void store_ds18b20_temperature();
 
+void radio_enable();
+void radio_disable();
+
 void print_startup();
 void print_location();
 void print_phase();

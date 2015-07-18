@@ -11,9 +11,13 @@
 #define INCOMING_SIZE 200
 #define INVALID_LAST_REQUEST_ID -1
 
-#define LCD_LINE_SIZE 16
+const int LCD_LINE_SIZE = 16;
+const int LCD_LINE_COUNT = 2;
 
 const bool USE_ARDUINO_RADIO_SHIELD = false;
+
+const int RADIO_ENABLE_PIN = 10;
+const int RADIO_BAUDRATE = 9600;
 
 const int SOIL_MOISTURE_PIN = -1;
 
@@ -66,9 +70,7 @@ void reset_callbacks()
 
 void setup()
 {
-    last_request_id = INVALID_LAST_REQUEST_ID;
-    success_callback = 0;
-    incoming_index = 0;
+    reset_callbacks();
     ds18b20_temperature = NAN;
 
     lcd_temperature_s[0] = '\0';
@@ -76,16 +78,8 @@ void setup()
     lcd_variety_s[0] = '\0';
     lcd_location_s[0] = '\0';
 
-    lcd.begin(16,2);
-    callback_timer.after(1000, &print_startup);
-
-    // Enable the radio module.
-    if(USE_ARDUINO_RADIO_SHIELD)
-    {
-        pinMode(8, OUTPUT);
-        digitalWrite(8, HIGH);
-    }
-    Serial.begin(9600);
+    lcd.begin(LCD_LINE_SIZE, LCD_LINE_COUNT);
+    callback_timer.after(0, &print_startup);
 
     // Set up the DS18B20 sensor.
     if(set_ds18b20_mode())
@@ -100,25 +94,7 @@ bool set_ds18b20_mode()
     byte ds18b20_addr[8];
     ds.reset_search();
     bool ds18b20_found = ds.search(ds18b20_addr);
-    if(!ds18b20_found)
-    {
-        lcd.print("not found");
-        delay(1000);
-        return false;
-    }
-
-    // if(!ds.reset())
-    //     // The configuration cannot be set.
-    //     return false;
-    // ds.skip();
-    // ds.write(0x4e, 1);
-    // // Write first two bytes (temperature).
-    // ds.write(0, 1);
-    // ds.write(0, 1);
-    // // Write the configuration register.
-    // ds.write(0x1f, 1);
-    // // The configuration has been set.
-    return true;
+    return ds18b20_found;
 }
 
 void request_ds18b20_temperature()
@@ -160,6 +136,22 @@ void store_ds18b20_temperature()
     ds18b20_temperature = (sign_bit ? -1.0 : 1.0) * ((float)reading / 16.0);
 
     callback_timer.after(10000, &request_ds18b20_temperature);
+}
+
+void radio_enable()
+{
+    if(RADIO_ENABLE_PIN > -1)
+    {
+        pinMode(RADIO_ENABLE_PIN, OUTPUT);
+        digitalWrite(RADIO_ENABLE_PIN, HIGH);
+    }
+    Serial.begin(RADIO_BAUDRATE);
+}
+
+void radio_disable()
+{
+    if(RADIO_ENABLE_PIN > -1)
+        digitalWrite(RADIO_ENABLE_PIN, LOW);
 }
 
 void print_startup()
@@ -270,6 +262,9 @@ float kty81_lookup(int resistance) {
 
 void send_status()
 {
+    // Enable the radio module.
+    radio_enable();
+
     json_buffer_type json_buffer;
     JsonObject& root = json_buffer.createObject();
     root["method"] = "status";
@@ -286,7 +281,10 @@ void send_status_received(JsonObject& result)
 
 void send_status_error(const error_type err, const char *error)
 {
-    callback_timer.after(0, &send_status);
+    if(err == TIMEOUT)
+        callback_timer.after(0, &short_wait);
+    else
+        callback_timer.after(0, &long_wait);
 }
 
 void send_ready_to_receive()
@@ -296,7 +294,11 @@ void send_ready_to_receive()
     root["method"] = "ready_to_receive";
     JsonArray& params = root.createNestedArray("params");
     root["id"] = 1;
-    jsonrpc_request(root, &send_status_received, &send_status_error);
+    jsonrpc_request(
+        root,
+        &send_ready_to_receive_received,
+        &send_ready_to_receive_error
+    );
 }
 
 void send_ready_to_receive_received(JsonObject& result)
@@ -458,6 +460,7 @@ void phase_error(error_type err, const char*)
 
 void long_wait()
 {
+    radio_disable();
     // One minute.
     callback_timer.after(60000, &send_status);
 }
@@ -501,7 +504,6 @@ void handle_jsonrpc_result(JsonObject& result)
         else
         {
             // Error.
-            reset_callbacks();
             const char *error_str = result["error"];
             if(ec)
                 ec(JSONRPC, error_str);
