@@ -94,6 +94,7 @@ aether::router::router(
     // Batches.
     //
 
+    // Get all batches.
     install<>(
         atlas::http::matcher("/api/batch", "GET"),
         [&conn]() {
@@ -101,16 +102,20 @@ aether::router::router(
                 hades::outer_join<
                     batch,
                     batch_phase,
+                    phase,
                     kb::variety,
                     kb::family>(
                         conn,
                         "aether_batch.batch_id = aether_batch_phase.batch_id AND "
+                        "aether_batch_phase.phase_id = aether_phase.phase_id AND "
                         "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
                         "aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id "
                         )
                 );
         }
-        );
+    );
+    // Get all batches ordered by the date they entered their current phase,
+    // descending.
     install<>(
         atlas::http::matcher("/api/batch/recently_moved", "GET"),
         [&conn]() {
@@ -118,10 +123,12 @@ aether::router::router(
                 hades::outer_join<
                     batch,
                     batch_phase,
+                    phase,
                     kb::variety,
                     kb::family>(
                         conn,
                         "aether_batch.batch_id = aether_batch_phase.batch_id AND "
+                        "aether_batch_phase.phase_id = aether_phase.phase_id AND "
                         "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
                         "aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id ",
                         hades::order_by("aether_batch_phase.start DESC")
@@ -129,6 +136,7 @@ aether::router::router(
             );
         }
     );
+    // Get a single batch.
     install<int>(
         atlas::http::matcher("/api/batch/([0-9]+)", "GET"),
         [&conn](const int batch_id) {
@@ -149,7 +157,10 @@ aether::router::router(
                 return atlas::http::json_error_response("batch not found");
             return atlas::http::json_response(batches.at(0));
         }
-        );
+    );
+    // Get the history of a batch (all phases it has been in) including the
+    // start and finish dates in each phase.  The finish date will be null if
+    // the batch is currently in a phase.
     install<int>(
         atlas::http::matcher("/api/batch/([0-9]+)/history", "GET"),
         [&conn](const int batch_id) {
@@ -176,7 +187,7 @@ aether::router::router(
                     )
                 );
         }
-        );
+    );
     install_json<batch>(
         atlas::http::matcher("/api/batch", "POST"),
         [&conn](batch b) {
@@ -203,7 +214,7 @@ aether::router::router(
             return !db::bool_setting(conn, "permission_create_batch", false) ||
                 atlas::auth::is_superuser(conn, token);
         }
-        );
+    );
     install_json<batch, int>(
         atlas::http::matcher("/api/batch/([0-9]+)", "PUT"),
         [&conn](batch b, const int batch_id) {
@@ -254,7 +265,7 @@ aether::router::router(
             return !db::bool_setting(conn, "permission_move_batch", false) ||
                 atlas::auth::is_superuser(conn, token);
         }
-        );
+    );
     install<int>(
         atlas::http::matcher("/api/phase/([0-9]+)/batch", "GET"),
         [&conn](const int phase_id) {
@@ -290,37 +301,20 @@ aether::router::router(
                     " UNION "
                     "  SELECT batch_id, start, finish, phase_id FROM aether_batch_phase_history "
                     " ) AS batch_history "
-                    " ON "
+                    " WHERE "
                     "  aether_batch.batch_id = aether_batch_phase.batch_id AND "
                     "  aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
                     "  aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id AND "
                     "  aether_batch_phase.phase_id = aether_phase.phase_id AND "
-                    "  aether_batch.batch_id = batch_history.batch_id "
-                    " WHERE "
+                    "  aether_batch.batch_id = batch_history.batch_id AND "
                     "  aether_batch.batch_id IS NOT NULL AND "
                     "  aether_batch_phase.phase_id = ? "
                     " GROUP BY aether_batch.batch_id ",
                     hades::row<styx::int_type, styx::int_type>(phase_id, phase_id)
-                    )
-                );
-                //hades::outer_join<
-                    //batch,
-                    //batch_phase,
-                    //kb::variety,
-                    //kb::family>(
-                        //conn,
-                        //"aether_batch.batch_id = aether_batch_phase.batch_id ",
-                        //hades::where(
-                            //"aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
-                            //"aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id AND "
-                            //"aether_batch.batch_id IS NOT NULL AND "
-                            //"aether_batch_phase.phase_id = ? ",
-                            //hades::row<styx::int_type>(phase_id)
-                            //)
-                        //)
-                //);
+                )
+            );
         }
-        );
+    );
 
     //
     // Phases.
@@ -333,8 +327,8 @@ aether::router::router(
                 hades::equi_outer_join<phase, phase_order, phase_temperature>(
                     conn,
                     hades::order_by("aether_phase_order.phase_order ASC")
-                    )
-                );
+                )
+            );
         }
         );
     install_json<styx::list>(
@@ -344,7 +338,7 @@ aether::router::router(
             phase_order::overwrite_collection(l, conn);
             return atlas::http::json_response(l);
         }
-        );
+    );
     install<int>(
         atlas::http::matcher("/api/phase/([0-9]+)", "DELETE"),
         [&conn](const int phase_id) {
@@ -357,7 +351,7 @@ aether::router::router(
             p.set_id(phase::id_type{po});
             return atlas::http::json_response(p.destroy(conn));
         }
-        );
+    );
     install<int>(
         atlas::http::matcher("/api/phase/([0-9]+)", "GET"),
         [&conn](const int phase_id) {
@@ -365,21 +359,42 @@ aether::router::router(
                 hades::get_by_id<phase>(conn, phase::id_type{phase_id})
                 );
         }
-        );
+    );
+    install<styx::int_type>(
+        atlas::http::matcher("/api/phase/([0-9]+)/temperature", "GET"),
+        [&conn](const styx::int_type phase_id) {
+            return atlas::http::json_response(
+                styx::first(
+                    hades::join<phase, temperature_log>(
+                        conn,
+                        hades::filter(
+                            hades::where(
+                                "aether_phase.phase_id = "
+                                " aether_temperature_log.phase_id AND "
+                                "aether_phase.phase_id = ?",
+                                hades::row<styx::int_type>(phase_id)
+                            ),
+                            hades::order_by("log_time DESC", 1)
+                        )
+                    )
+                )
+            );
+        }
+    );
     install_json<phase>(
         atlas::http::matcher("/api/phase", "POST"),
         [&conn](phase p) {
             p.insert(conn);
             return atlas::http::json_response(p);
         }
-        );
+    );
     install_json<phase, int>(
         atlas::http::matcher("/api/phase/([0-9]+)", "PUT"),
         [&conn](phase p, const int phase_id) {
             p.update(conn);
             return atlas::http::json_response(p);
         }
-        );
+    );
 
     //
     // Sensors.
@@ -396,7 +411,7 @@ aether::router::router(
                     >(conn)
                 );
         }
-        );
+    );
     install<int>(
         atlas::http::matcher("/api/sensor/([0-9]+)", "DELETE"),
         [&conn](const int sensor_id) {
@@ -404,7 +419,7 @@ aether::router::router(
             s.set_id(sensor::id_type{sensor_id});
             return atlas::http::json_response(s.destroy(conn));
         }
-        );
+    );
     install<int>(
         atlas::http::matcher("/api/sensor/([0-9]+)", "GET"),
         [&conn](const int sensor_id) {
@@ -412,24 +427,24 @@ aether::router::router(
                 hades::get_by_id<sensor>(
                     conn,
                     sensor::id_type{sensor_id}
-                    )
-                );
+                )
+            );
         }
-        );
+    );
     install_json<sensor>(
         atlas::http::matcher("/api/sensor", "POST"),
         [&conn](sensor s) {
             s.insert(conn);
             return atlas::http::json_response(s);
         }
-        );
+    );
     install_json<sensor, int>(
         atlas::http::matcher("/api/sensor/([0-9]+)", "PUT"),
         [&conn](sensor s, const int sensor_id) {
             s.update(conn);
             return atlas::http::json_response(s);
         }
-        );
+    );
 
     //
     // Location.
@@ -454,13 +469,13 @@ aether::router::router(
                 }
                 );
         }
-        );
+    );
     install_json<location>(
         atlas::http::matcher("/api/location", "DELETE"),
         [&conn](location l) {
             return atlas::http::json_response(l.destroy(conn));
         }
-        );
+    );
     install<>(
         atlas::http::matcher("/api/location", "GET"),
         [&conn]() {
@@ -468,21 +483,21 @@ aether::router::router(
                 throw atlas::http::exception("not found", 404);
             return atlas::http::json_response(hades::get_one<location>(conn));
         }
-        );
+    );
     install_json<location>(
         atlas::http::matcher("/api/location", "POST"),
         [&conn](location l) {
             l.save(conn);
             return atlas::http::json_response(l);
         }
-        );
+    );
     install_json<location>(
         atlas::http::matcher("/api/location", "PUT"),
         [&conn](location l) {
             l.save(conn);
             return atlas::http::json_response(l);
         }
-        );
+    );
 
     //
     // Settings
@@ -493,19 +508,19 @@ aether::router::router(
         [&conn]() {
             return atlas::http::json_response(db::settings(conn));
         }
-        );
+    );
     install_json<styx::object>(
         atlas::http::matcher("/api/settings", "POST"),
         [&conn](styx::object new_settings) {
             db::save_settings(new_settings, conn);
             return atlas::http::json_response(db::settings(conn));
         }
-        );
+    );
     install_json<styx::object>(
         atlas::http::matcher("/api/settings", "PUT"),
         [&conn](styx::object new_settings) {
             db::save_settings(new_settings, conn);
             return atlas::http::json_response(db::settings(conn));
         }
-        );
+    );
 }
