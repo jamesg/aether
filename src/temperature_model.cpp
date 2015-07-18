@@ -69,7 +69,7 @@ aether::temperature_model::feature_vector_type aether::temperature_model::theta(
     );
 
     if(points.size() == 0)
-        throw std::runtime_error("cannot train temperature model with no data");
+        throw temperature_model_exception();
 
     atlas::log::information("aether::temperature_model::theta") <<
         "training model with " << points.size() << " examples";
@@ -141,4 +141,9 @@ aether::temperature_model::feature_vector(styx::object example)
         // Time is between 9pm and midnight.
         (example_tod.hours() >= 21 && example_tod.hours() < 24) * temperature;
     return out;
+}
+
+const char *aether::temperature_model_exception::what() const noexcept
+{
+    return "cannot train temperature model with no data";
 }

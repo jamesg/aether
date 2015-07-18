@@ -1,6 +1,8 @@
 #ifndef AETHER_TEMPERATURE_MODEL_HPP
 #define AETHER_TEMPERATURE_MODEL_HPP
 
+#include <stdexcept>
+
 #define EIGEN_DONT_ALIGN
 #include <Eigen/Core>
 
@@ -14,6 +16,8 @@ namespace hades
 
 namespace aether
 {
+    class temperature_model_exception;
+
     class temperature_model
     {
     public:
@@ -45,6 +49,12 @@ namespace aether
         \brief Learnt linear regression parameters.
         */
         feature_vector_type m_theta;
+    };
+
+    class temperature_model_exception : public std::exception
+    {
+    public:
+        const char *what() const noexcept override;
     };
 }
 
