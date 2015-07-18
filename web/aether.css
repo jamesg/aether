@@ -211,6 +211,10 @@
     background-origin: content-box;
 }
 
+.cardmenu * {
+    color: white;
+}
+
 .cardmenu > div > .cardmenu-container {
     color: white;
     background-color: #1abc9c;

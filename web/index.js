@@ -1,3 +1,10 @@
+var varietyListAttributes = function() {
+    return {
+        style: 'border-left-color: ' +
+            this.model.get('kb_variety_colour') + ';'
+    };
+};
+
 var WeatherCardView = StaticView.extend({
     tagName: 'div',
     template: '\
@@ -58,7 +65,17 @@ var HomePage = PageView.extend(
                 limit: 3,
                 view: StaticView.extend({
                     tagName: 'li',
-                    template: '<%-kb_variety_cname%>'
+                    attributes: varietyListAttributes,
+                    templateParams: function() {
+                        var params = _.clone(this.model.attributes);
+                        _.extend(
+                            params,
+                            { date: moment.unix(params['start']).format('Do MMMM') }
+                        );
+                        return params;
+                    },
+                    template: '<%-kb_family_cname%> <%-kb_variety_cname%> \
+                        (<%-phase_desc%>), moved <%-date%>'
                 }),
                 emptyView: StaticView.extend({
                     tagName: 'li',
@@ -74,6 +91,7 @@ var HomePage = PageView.extend(
                 el: this.$('ul[name=sow-varieties]'),
                 view: StaticView.extend({
                     tagName: 'li',
+                    attributes: varietyListAttributes,
                     template: '<%-kb_variety_cname%>'
                 }),
                 emptyView: StaticView.extend({
@@ -82,6 +100,7 @@ var HomePage = PageView.extend(
                 }),
                 model: sowVarieties
             })).render();
+
             var plantVarieties = new VarietyCollection;
             plantVarieties.fetch({
                 url: restUri('kb/month/' + moment().format('M') + '/plant/variety')
@@ -90,6 +109,7 @@ var HomePage = PageView.extend(
                 el: this.$('ul[name=plant-varieties]'),
                 view: StaticView.extend({
                     tagName: 'li',
+                    attributes: varietyListAttributes,
                     template: '<%-kb_variety_cname%>'
                 }),
                 emptyView: StaticView.extend({
@@ -97,6 +117,21 @@ var HomePage = PageView.extend(
                     template: 'There are no varieties suitable for sowing this month.'
                 }),
                 model: plantVarieties
+            })).render();
+
+            var phases = new PhaseCollection;
+            phases.fetch();
+            (new TableView({
+                el: this.$('table[name=phases]'),
+                model: phases,
+                theadView: StaticView.extend({
+                    tagName: 'thead',
+                    template: '<th>Phase</th><th>Temperature</th>'
+                }),
+                trView: StaticView.extend({
+                    tagName: 'tr',
+                    template: '<td><%-phase_desc%></td><td><%-temperature%></td>'
+                })
             })).render();
 
             var todaysWeather = new DailyForecast;

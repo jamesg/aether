@@ -27,6 +27,17 @@ body {
 h1 {
     color: white;
 }
+
+.variety-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.variety-list li {
+    border-left: 5px solid transparent;
+    padding-left: 1em;
+}
+
 </style>
 
 </head>
@@ -63,7 +74,8 @@ h1 {
         <div>
             <div class="cardmenu-container">
                 <h2><a href="board.html">Progress Board</a></h2>
-                <ul name="batches"></ul>
+                <ul name="batches" class="variety-list"></ul>
+                &nbsp;
             </div>
         </div>
         <div>
@@ -74,6 +86,7 @@ h1 {
         <div>
             <div class="cardmenu-container">
                 <h2><a href="sensors.html">Sensors</a></h2>
+                <table name="phases" class="information-table"></table>
             </div>
         </div>
         <div>
@@ -84,10 +97,10 @@ h1 {
                 <h2><a href="knowledgebase.html">Knowledge Base</a></h2>
                 <h3>Varieties to Sow Indoors</h3>
                 <p class="advice">Here are some varieties to consider sowing indoors this month.</p>
-                <ul name="sow-varieties"></ul>
+                <ul name="sow-varieties" class="variety-list"></ul>
                 <h3>Varieties to Sow Outdoors</h3>
                 <p class="advice">Here are some varieties to consider sowing outdoors.</p>
-                <ul name="plant-varieties"></ul>
+                <ul name="plant-varieties" class="variety-list"></ul>
             </div>
         </div>
         <div>
