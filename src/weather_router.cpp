@@ -4,6 +4,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "aether/db.hpp"
+#include "atlas/http/server/exception.hpp"
 #include "hades/crud.ipp"
 #include "hades/custom_select_one.hpp"
 #include "hades/exists.hpp"
@@ -203,6 +204,7 @@ aether::weather_router::weather_router(
             );
         }
     );
+    // Get a weather summary for the current day.
     install_get<>(
         atlas::http::matcher("/today", "GET"),
         [&conn](std::map<std::string, std::string> params) {
@@ -225,6 +227,7 @@ aether::weather_router::weather_router(
         }
     );
     // Get a detailed weather forecast for a single day.
+    // Optionally include sensor data and temperature model data.
     install_get<std::string>(
         atlas::http::matcher("/day/([^/]+)", "GET"),
         [&conn](std::map<std::string, std::string> params, std::string date) {
@@ -248,42 +251,59 @@ aether::weather_router::weather_router(
             // predicted by the temperature model.
             if(params.find("phase_id") != params.end())
             {
-                phase::id_type phase_id{
-                    boost::lexical_cast<styx::int_type>(
-                        params.find("phase_id")->second
-                    )
-                };
-                temperature_model model(conn, phase_id);
-
-                for(styx::element& e : f)
+                auto pid = params.find("phase_id")->second;
+                try
                 {
-                    styx::object& point = boost::get<styx::object>(e);
-                    point.get_double("model_temperature") =
-                        model.estimate(point);
+                    phase::id_type phase_id{
+                        boost::lexical_cast<styx::int_type>(pid)
+                    };
 
-                    try
+                    temperature_model model(conn, phase_id);
+
+                    for(styx::element& e : f)
                     {
-                        temperature_log t = atlas::db::nearest<temperature_log>(
-                            conn,
-                            phase_id,
-                            boost::posix_time::from_time_t(
-                                point.get_int(attr::forecast_dt)
-                            )
-                        );
-                        // If the time is within 1h30m.
-                        if(
-                                std::abs(
-                                    t.get_int<attr::log_time>() -
+                        styx::object& point = boost::get<styx::object>(e);
+                        point.get_double("model_temperature") =
+                            model.estimate(point);
+
+                        try
+                        {
+                            temperature_log t = atlas::db::nearest<temperature_log>(
+                                conn,
+                                phase_id,
+                                boost::posix_time::from_time_t(
                                     point.get_int(attr::forecast_dt)
-                                ) < 5400
-                        )
-                            point.get_double("sensor_temperature") =
-                                t.get_double<attr::temperature>();
+                                )
+                            );
+                            // If the time is within 1h30m.
+                            if(
+                                    std::abs(
+                                        t.get_int<attr::log_time>() -
+                                        point.get_int(attr::forecast_dt)
+                                    ) < 5400
+                            )
+                                point.get_double("sensor_temperature") =
+                                    t.get_double<attr::temperature>();
+                        }
+                        catch(const std::exception& e)
+                        {
+                            // In case there is no sensor reading within 1h30m.
+                        }
                     }
-                    catch(const std::exception& e)
-                    {
-                        // In case there is no sensor reading within 1h30m.
-                    }
+                }
+                catch(const temperature_model_exception& e)
+                {
+                    // In case the temperature model could not be trained.
+                }
+                catch(const boost::bad_lexical_cast& e)
+                {
+                    // In case the phase id could not be interpreted.
+                    atlas::log::warning("aether::weather_router") <<
+                        "parsing phase id \"" << pid << "\": " << e.what();
+                    throw atlas::http::exception(
+                        "Phase id could not be parsed",
+                        400
+                    );
                 }
             }
 
