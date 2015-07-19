@@ -23,6 +23,7 @@ var PhaseCollection = RestCollection.extend(
         model: Phase,
         url: restUri('phase'),
         save: function(options) {
+            console.log('save phases');
             this.setOrder();
             if(_.isUndefined(options))
                 options = {};

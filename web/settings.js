@@ -69,7 +69,8 @@ var PhaseForm = StaticView.extend(
                         this.trigger('finished');
                     }).bind(this)
                 }
-                )
+            );
+            // this.trigger('finished');
         },
         initialize: function() {
             StaticView.prototype.initialize.apply(this, arguments);
@@ -128,6 +129,8 @@ var PhasesPage = PageView.extend(
                                 StandardButton.save()
                             ]
                         });
+                        // Save phases as a collection.
+                        this.listenTo(m, 'finished', phases.save.bind(phases)),
                         gApplication.modal(m);
                     },
                     destroy: function() {
@@ -158,15 +161,10 @@ var PhasesPage = PageView.extend(
                 view: PhaseForm,
                 buttons: [ StandardButton.cancel(), StandardButton.create() ]
             });
+            this._phases.add(m.model);
             gApplication.modal(m);
-            this.listenTo(
-                    m,
-                    'finished',
-                    function() {
-                        this._phases.fetch(),
-                        this._phases.save()
-                    }
-                    );
+            // Save the entire collection to preserve the order.
+            this.listenTo(m, 'finished', this._phases.save.bind(this._phases));
         },
         render: function() {},
         template: $('#phasespage-template').html(),
