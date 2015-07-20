@@ -263,8 +263,8 @@ void aether::db::create(hades::connection& conn)
         );
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_batch_phase ( "
-        " batch_id INTEGER REFERENCES aether_batch(batch_id), "
-        " phase_id INTEGER REFERENCES aether_phase(phase_id), "
+        " batch_id INTEGER REFERENCES aether_batch(batch_id) ON DELETE CASCADE, "
+        " phase_id INTEGER REFERENCES aether_phase(phase_id) ON DELETE CASCADE, "
         " start INTEGER, "
         " UNIQUE(batch_id, phase_id) "
         " ) ",
@@ -272,8 +272,8 @@ void aether::db::create(hades::connection& conn)
         );
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_batch_phase_history ( "
-        " batch_id INTEGER REFERENCES aether_batch(batch_id), "
-        " phase_id INTEGER REFERENCES aether_phase(phase_id), "
+        " batch_id INTEGER REFERENCES aether_batch(batch_id) ON DELETE CASCADE, "
+        " phase_id INTEGER REFERENCES aether_phase(phase_id) ON DELETE CASCADE, "
         " start INTEGER, "
         " finish INTEGER "
         " ) ",
