@@ -167,7 +167,11 @@ NewBatchWizard.prototype = {
                     this._sensors = new SensorCollection;
                     this._sensors.fetch({
                         success: (function() {
-                            this.$('select[name=sensor]').val(this.model.get('sensor_id'));
+                            this.$('select[name=sensor]').val(
+                                this.model.has('sensor_id') ?
+                                    this.model.get('sensor_id') :
+                                    this._sensors.at(0).get('sensor_id')
+                            );
                         }).bind(this)
                     });
                     (new CollectionView({
@@ -193,6 +197,16 @@ NewBatchWizard.prototype = {
                         this.model.set({ sensor_id: sensor.id });
                         console.log('set sensor', sensor, sensor.id)
                     }
+                },
+                events: {
+                    'change input[name=movesensor]': 'checkSensorEnabled'
+                },
+                checkSensorEnabled: function() {
+                    console.log('check', this.$('input[name=movesensor]').prop('checked'))
+                    this.$('select[name=sensor]').prop(
+                        'disabled',
+                        !this.$('input[name=movesensor]').prop('checked')
+                    );
                 },
                 template: $('#sensorform-template').html(),
                 render: function() {

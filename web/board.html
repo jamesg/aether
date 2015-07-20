@@ -57,21 +57,45 @@
 <script type="text/template" id="phaseform-template">
 <h2>Choose a Starting Phase</h2>
 <p>Select the phase where the batch will be placed first.</p>
-<label>Phase<select name="phase_id"></select></label>
+<div class="group">
+    <div class="aligned">
+        <label>Phase<select name="phase_id"></select></label>
+    </div>
+</div>
 </script>
 
 <script type="text/template" id="varietyform-template">
 <h2>Choose a Variety</h2>
 <p>Select the family and the variety planted.</p>
-<label>Family<select name="family"></select></label>
-<label>Variety<select name="variety"></select></label>
+<div class="group">
+    <div class="aligned">
+        <label>Family<select name="family"></select></label>
+    </div>
+</div>
+<div class="group">
+    <div class="aligned">
+        <label>Variety<select name="variety"></select></label>
+    </div>
+</div>
 </script>
 
 <script type="text/template" id="sensorform-template">
 <h2>Assign a Sensor</h2>
 <p>If you are going to move a sensor to the batch as soon as it is planted,
 select the sensor here.</p>
-<label>Sensor<select name="sensor"></select></label>
+<div class="group">
+    <div class="aligned">
+        <label>
+            Move a sensor now
+            <input type="checkbox" name="movesensor"></input>
+        </label>
+    </div>
+</div>
+<div class="group">
+    <div class="aligned">
+        <label>Sensor<select name="sensor" disabled></select></label>
+    </div>
+</div>
 </script>
 
 <script type="text/template" id="confirmationform-template">

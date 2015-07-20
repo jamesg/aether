@@ -6,7 +6,7 @@ var SettingsPage = PageView.extend(
             PageView.prototype.render.apply(this);
             this._phases = new PhaseCollection;
             this._phases.fetch();
-            (new CollectionView({
+            this._phasesView = new CollectionView({
                 model: this._phases,
                 el: this.$('p[name=current-phases]'),
                 view: StaticView.extend({
@@ -18,7 +18,8 @@ var SettingsPage = PageView.extend(
                     tagName: 'span',
                     template: 'There are no phases.'
                 })
-            })).render();
+            });
+            this._phasesView.render();
             this._location = new Location;
             this._location.fetch();
             (new StaticView({
@@ -30,7 +31,9 @@ var SettingsPage = PageView.extend(
         render: function() {
         },
         reset: function() {
-            this._phases.fetch();
+            this._phases.fetch({
+                success: this._phasesView.render.bind(this._phasesView)
+            });
             this._location.fetch();
         },
         template: $('#settingspage-template').html(),
