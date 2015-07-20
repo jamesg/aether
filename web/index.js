@@ -126,7 +126,7 @@ var HomePage = PageView.extend(
                 model: phases,
                 theadView: StaticView.extend({
                     tagName: 'thead',
-                    template: '<th>Phase</th><th>Temperature</th>'
+                    template: '<th>Location</th><th>Temperature</th>'
                 }),
                 trView: StaticView.extend({
                     tagName: 'tr',

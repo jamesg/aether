@@ -310,11 +310,14 @@ NewBatchWizard.prototype = {
 
 var BatchInfoView = StaticView.extend(
     {
+        reset: function() {
+            this._history.fetch();
+        },
         initialize: function() {
             StaticView.prototype.initialize.apply(this, arguments);
             StaticView.prototype.render.apply(this);
 
-            var history = new (RestCollection.extend({
+            this._history = new (RestCollection.extend({
                 model: (Backbone.Model.extend({
                     defaults: {
                         phase_desc: '',
@@ -327,7 +330,7 @@ var BatchInfoView = StaticView.extend(
                     return model.get('start');
                 }
             }));
-            history.fetch();
+            this._history.fetch();
 
             (new CollectionView({
                 el: this.$('ul[name=history]'),
@@ -344,7 +347,7 @@ var BatchInfoView = StaticView.extend(
                         return params;
                     }
                 }),
-                model: history
+                model: this._history
             })).render();
         },
         render: function() {
@@ -364,19 +367,19 @@ var ChangePhaseForm = StaticView.extend(
             StaticView.prototype.render.apply(this);
             var phases = new PhaseCollection;
             phases.fetch({
-                    success: (function() {
-                        if(phases.length == 0) return;
-                        var currentPhaseIndex = phases.indexOf(
-                            phases.get(this.model.get('phase_id'))
-                            );
-                        this.$('select[name=phase]').val(
-                            phases.at(
-                                (phases.length > currentPhaseIndex) ?
-                                currentPhaseIndex + 1 : 0
-                                ).get('phase_id')
-                            );
-                    }).bind(this)
-                });
+                success: (function() {
+                    if(phases.length == 0) return;
+                    var currentPhaseIndex = phases.indexOf(
+                        phases.get(this.model.get('phase_id'))
+                        );
+                    this.$('select[name=phase]').val(
+                        phases.at(
+                            (phases.length > currentPhaseIndex) ?
+                            currentPhaseIndex + 1 : 0
+                            ).get('phase_id')
+                        );
+                }).bind(this)
+            });
             (new CollectionView({
                 el: this.$('select[name=phase]'),
                 model: phases,
@@ -396,14 +399,18 @@ var ChangePhaseForm = StaticView.extend(
         render: function() {
         },
         template: '\
-        <h1>Change Phase</h1>\
+        <h1>Change Location</h1>\
         <label>\
-            New Phase\
+            New Location\
             <select name="phase"></select>\
         </label>\
         ',
         save: function() {
             this.model.set('phase_id', this.$('select[name=phase]').val());
+            this.model.save(
+                {},
+                { success: this.trigger.bind(this, 'finished') }
+            );
         }
     }
     );
@@ -462,7 +469,7 @@ var PhaseView = StaticView.extend(
                         click: 'showBatchInfo'
                     },
                     showBatchInfo: function() {
-                        var m = new Modal({
+                        var infoModal = new Modal({
                             model: this.model,
                             view: BatchInfoView,
                             buttons: [
@@ -470,36 +477,37 @@ var PhaseView = StaticView.extend(
                                 StandardButton.close()
                             ]
                         });
-                        this.listenTo(m, 'move', this.moveOn.bind(this));
-                        this.listenTo(m, 'close', m.finish.bind(m));
-                        gApplication.modal(m);
-                    },
-                    moveOn: function() {
-                        var m = new Modal({
-                            model: this.model,
-                            view: ChangePhaseForm,
-                            buttons: [
-                                StandardButton.cancel(),
-                                StandardButton.ok()
-                            ]
-                        });
                         this.listenTo(
-                            m,
-                            'ok',
-                            (function() {
-                                this.model.save(
-                                    {},
-                                    {
-                                        success: function() {
-                                            gApplication.currentPage().reset()
-                                            m.finish();
-                                        }
-                                    }
-                                    );
+                            infoModal,
+                            'move',
+                            (function moveOn() {
+                                var moveModal = new Modal({
+                                    model: this.model,
+                                    view: ChangePhaseForm,
+                                    buttons: [
+                                        StandardButton.cancel(),
+                                        StandardButton.ok()
+                                    ]
+                                });
+                                this.listenTo(
+                                    moveModal,
+                                    'finished',
+                                    (function() {
+                                        // Reload the history list.
+                                        infoModal.view.reset();
+                                        gApplication.currentPage().reset();
+                                    }).bind(this)
+                                );
+                                this.listenTo(
+                                    moveModal,
+                                    'cancel',
+                                    moveModal.finish.bind(moveModal)
+                                );
+                                gApplication.modal(moveModal);
                             }).bind(this)
-                            );
-                        this.listenTo(m, 'cancel', m.finish.bind(m));
-                        gApplication.modal(m);
+                        );
+                        this.listenTo(infoModal, 'close', infoModal.finish.bind(infoModal));
+                        gApplication.modal(infoModal);
                     }
                 })
             })).render();

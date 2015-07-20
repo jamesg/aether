@@ -82,7 +82,7 @@ var PhaseForm = StaticView.extend(
 
 var PhasesPage = PageView.extend(
     {
-        pageTitle: 'Phases',
+        pageTitle: 'Locations',
         initialize: function() {
             PageView.prototype.initialize.apply(this, arguments);
             PageView.prototype.render.apply(this, arguments);
