@@ -106,6 +106,7 @@ namespace aether
         extern const char moisture_log[];
         extern const char sensor_at_batch[];
         extern const char sensor[];
+        extern const char sensor_data_received[];
 
         extern const char location[];
 
@@ -329,6 +330,12 @@ namespace aether
          */
         batch_phase_history(const batch_phase&);
     };
+
+    //
+    // Sensors.
+    //
+
+    // A wireless sensor unit.
     class sensor :
         public hades::tuple<attr::sensor_id, attr::sensor_desc>,
         public hades::has_candidate_key<attr::sensor_id>,
@@ -347,6 +354,7 @@ namespace aether
         {
         }
     };
+    // A sensor is assigned to zero or one batches.
     class sensor_at_batch :
         public hades::tuple<attr::sensor_id, attr::batch_id>,
         public hades::has_candidate_key<attr::batch_id>,
@@ -375,6 +383,13 @@ namespace aether
     // Sensor logs.
     //
 
+    // Log the last time data was received from the sensor.  This helps to
+    // identify 'lost' sensors.
+    typedef atlas::db::semi_temporal<
+        sensor::id_type,
+        relvar::sensor_data_received,
+        attr::log_time>
+        sensor_data_received;
     // Soil moisture is logged with respect to a batch of plants (the soil
     // moisture sensor can only take a local reading).
     typedef atlas::db::date_series<
@@ -391,6 +406,11 @@ namespace aether
         attr::temperature,
         attr::log_time>
         temperature_log;
+
+    //
+    // Configuration.
+    //
+
     // Singleton location.  The location of the installation.
     class location :
         public hades::tuple<

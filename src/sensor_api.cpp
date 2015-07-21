@@ -23,6 +23,11 @@ aether::sensor_api::sensor_api(
 
 void aether::sensor_api::install_sensor_api(hades::connection& conn)
 {
+    // Record the time sensor_id last sent data.
+    auto log_receipt = [&conn](const styx::int_type sensor_id) {
+        sensor_data_received(sensor::id_type{sensor_id}).save(conn);
+    };
+
     install<std::string>(
         "status",
         []() {
@@ -30,15 +35,17 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
         }
     );
     // Is the server ready to receive data from this sensor?
-    install<bool>(
+    install<bool, styx::int_type>(
         "ready_to_receive",
-        [&conn]() {
+        [&conn, log_receipt](const styx::int_type sensor_id) {
+            log_receipt(sensor_id);
             return hades::exists<sensor_at_batch>(conn);
         }
     );
-    install<bool, styx::int_type>(
+    install<bool, styx::int_type, styx::int_type>(
         "record_moisture",
-        [&conn](const styx::int_type moisture) {
+        [&conn, log_receipt](const styx::int_type sensor_id, const styx::int_type moisture) {
+            log_receipt(sensor_id);
             sensor default_sensor(hades::get_one<sensor>(conn));
             sensor_at_batch sab(
                 hades::get_one<sensor_at_batch>(
@@ -72,9 +79,10 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
             return true;
         }
         );
-    install<bool, double>(
+    install<bool, styx::int_type, double>(
         "record_temperature",
-        [&conn](const double temperature) {
+        [&conn, log_receipt](const styx::int_type sensor_id, const double temperature) {
+            log_receipt(sensor_id);
             sensor default_sensor(hades::get_one<sensor>(conn));
             sensor_at_phase sap(
                 hades::get_one<sensor_at_phase>(
@@ -109,16 +117,19 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
             return true;
         }
     );
-    install<std::string>(
+    install<std::string, styx::int_type>(
         "variety_cname",
-        [&conn]() {
-            sensor default_sensor(hades::get_one<sensor>(conn));
+        [&conn, log_receipt](const styx::int_type sensor_id) {
+            log_receipt(sensor_id);
+            sensor variety_sensor(
+                hades::get_by_id<sensor>(conn, sensor::id_type{sensor_id})
+            );
             sensor_at_batch sab(
                 hades::get_one<sensor_at_batch>(
                     conn,
                     hades::where(
                         "sensor_id = ? ",
-                        hades::row<styx::int_type>(default_sensor.get_int<attr::sensor_id>())
+                        hades::row<styx::int_type>(variety_sensor.get_int<attr::sensor_id>())
                     )
                 )
             );
@@ -144,10 +155,13 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
             return l.get_string<attr::location_city>();
         }
     );
-    install<std::string>(
+    install<std::string, styx::int_type>(
         "phase",
-        [&conn]() {
-            sensor default_sensor(hades::get_one<sensor>(conn));
+        [&conn, log_receipt](const styx::int_type sensor_id) {
+            log_receipt(sensor_id);
+            sensor variety_sensor(
+                hades::get_by_id<sensor>(conn, sensor::id_type{sensor_id})
+            );
             phase p = hades::custom_select_one<
                 phase,
                 hades::row<styx::int_type>,
@@ -160,7 +174,7 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
                 " LEFT OUTER JOIN aether_phase "
                 " ON aether_batch_phase.phase_id = aether_phase.phase_id "
                 " WHERE aether_sensor_at_batch.sensor_id = ? ",
-                hades::row<styx::int_type>(default_sensor.get_int<attr::sensor_id>())
+                hades::row<styx::int_type>(variety_sensor.get_int<attr::sensor_id>())
             );
             return p.get_string<attr::phase_desc>();
         }

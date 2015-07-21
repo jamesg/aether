@@ -118,6 +118,7 @@ const char aether::relvar::temperature_log[] = "aether_temperature_log";
 const char aether::relvar::moisture_log[] = "aether_moisture_log";
 const char aether::relvar::sensor_at_batch[] = "aether_sensor_at_batch";
 const char aether::relvar::sensor[] = "aether_sensor";
+const char aether::relvar::sensor_data_received[] = "aether_sensor_data_received";
 const char aether::relvar::location[] = "aether_location";
 const char aether::relvar::setting[] = "aether_setting";
 const char aether::relvar::forecast[] = "aether_forecast";
@@ -308,6 +309,13 @@ void aether::db::create(hades::connection& conn)
         " FROM aether_sensor_at_batch "
         " JOIN aether_batch_phase "
         " ON aether_sensor_at_batch.batch_id = aether_batch_phase.batch_id ",
+        conn
+    );
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_sensor_data_received ( "
+        " sensor_id INTEGER PRIMARY KEY REFERENCES aether_sensor(sensor_id), "
+        " log_time INTEGER "
+        " ) ",
         conn
     );
 
