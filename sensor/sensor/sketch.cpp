@@ -29,6 +29,9 @@ const int DS18B20_PIN = 11;
 // JSONRPC id of the last outgoing request.
 int last_request_id;
 
+// Network-unique id of this sensor.
+int sensor_id = 0;
+
 // Callback to use when a JSONRPC reply matching the last request is received.
 success_callback_type success_callback;
 
@@ -79,6 +82,13 @@ void setup()
     lcd_location_s[0] = '\0';
 
     lcd.begin(LCD_LINE_SIZE, LCD_LINE_COUNT);
+
+    if(config_mode())
+    {
+        reset_eeprom();
+        return;
+    }
+
     callback_timer.after(0, &print_startup);
 
     // Set up the DS18B20 sensor.
@@ -87,6 +97,11 @@ void setup()
 
     // Start the state machine.
     callback_timer.after(100, &send_status);
+}
+
+void reset_eeprom()
+{
+    EEPROM[0] = 255;
 }
 
 bool set_ds18b20_mode()
@@ -206,7 +221,7 @@ bool decode_moisture(int& out)
     out = analogRead(SOIL_MOISTURE_PIN) / (1023.0/100.0);
 }
 
-bool decode_temperature(float& out)
+bool kty81_resistance(int& resistance)
 {
     if(TEMPERATURE_SENSOR_PIN < 0)
         return false;
@@ -229,11 +244,35 @@ bool decode_temperature(float& out)
     // Rtemp = (Rconst * (Vm / Vin) ) / (1 - (Vm / Vin) )   Divide to get Rtemp
 
     float ratio = (float)reading / 1023.0f;
+
+    // A ratio close to 1 indicates and open circuit.  The resistance is too
+    // large to estimate with any accuracy.
+    if(ratio > 0.99f)
+        return false;
     // Compute the resistance of the temperature sensor in Ohms.  Will be
     // roughly 1000-3000 Ohms.
-    int resistance = ((float)TEMPERATURE_SENSOR_DIVIDER_R * ratio) /
+    resistance = ((float)TEMPERATURE_SENSOR_DIVIDER_R * ratio) /
         (1.0f - ratio);
+    return true;
+}
+
+bool config_mode()
+{
+    int resistance = 0;
+    if(!kty81_resistance(resistance))
+        return false;
+    // If the resistance is less than 100 Ohms, take it that a jumper has been
+    // installed.
+    return (resistance < 100);
+}
+
+bool decode_temperature(float& out)
+{
+    int resistance = 0;
+    if(!kty81_resistance(resistance))
+        return false;
     out = kty81_lookup(resistance);
+    return true;
 }
 
 float kty81_lookup(int resistance) {
@@ -269,6 +308,7 @@ void send_status()
     JsonObject& root = json_buffer.createObject();
     root["method"] = "status";
     JsonArray& params = root.createNestedArray("params");
+    params.add(sensor_id);
     root["id"] = last_request_id = 1;
     jsonrpc_request(root, &send_status_received, &send_status_error);
 }
@@ -293,6 +333,7 @@ void send_ready_to_receive()
     JsonObject& root = json_buffer.createObject();
     root["method"] = "ready_to_receive";
     JsonArray& params = root.createNestedArray("params");
+    params.add(sensor_id);
     root["id"] = 1;
     jsonrpc_request(
         root,
@@ -327,6 +368,7 @@ void send_moisture()
         JsonObject& root = json_buffer.createObject();
         root["method"] = "record_moisture";
         JsonArray& params = root.createNestedArray("params");
+        params.add(sensor_id);
         params.add(moisture_val);
         root["id"] = 2;
         jsonrpc_request(root, &send_moisture_received, &send_moisture_error);
@@ -359,6 +401,7 @@ void send_temperature()
         JsonObject& root = json_buffer.createObject();
         root["method"] = "record_temperature";
         JsonArray& params = root.createNestedArray("params");
+        params.add(sensor_id);
         params.add(ds18b20_temperature, 2);
         root["id"] = 3;
         jsonrpc_request(root, &send_temperature_received, &send_temperature_error);
@@ -414,6 +457,7 @@ void request_cname()
     JsonObject& root = json_buffer.createObject();
     root["method"] = "variety_cname";
     JsonArray& params = root.createNestedArray("params");
+    params.add(sensor_id);
     root["id"] = 5;
     jsonrpc_request(root, &cname_received, &cname_error);
 }
@@ -439,6 +483,7 @@ void request_phase()
     JsonObject& root = json_buffer.createObject();
     root["method"] = "phase";
     JsonArray& params = root.createNestedArray("params");
+    params.add(sensor_id);
     root["id"] = 6;
     jsonrpc_request(root, &phase_received, &phase_error);
 }

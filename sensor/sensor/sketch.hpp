@@ -9,6 +9,8 @@ typedef StaticJsonBuffer<100> json_buffer_type;
 typedef void(*success_callback_type)(JsonObject&);
 typedef void(*error_callback_type)(error_type, const char*);
 
+void reset_eeprom();
+
 bool set_ds18b20_mode();
 void request_ds18b20_temperature();
 void store_ds18b20_temperature();
@@ -74,10 +76,17 @@ void handle_jsonrpc_result(JsonObject&);
 // Take action if no JSONRPC reply has been received from the server.
 void handle_jsonrpc_timeout();
 
+bool decode_moisture(int& out);
+
+// Get the resistance across the temperature sensor pins.
+bool kty81_resistance(int& out);
+
+// Check if the sensor should start in configuration/reset mode (there is a
+// jumper installed on the temperature sensor pins).
+bool config_mode();
+
 // Read the temperature from the KTY81 sensor.
 bool decode_temperature(float& out);
-
-bool decode_moisture(int& out);
 
 extern "C"
 {
