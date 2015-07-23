@@ -11,6 +11,10 @@ NewBatchWizard.prototype = {
     showPhaseDialog: function() {
         var m = new Modal({
             model: this.model,
+            help: HelpView.extend({
+                title: 'Choosing a Start Location',
+                text: 'Choose a starting location for the plants.'
+            }),
             view: StaticView.extend({
                 initialize: function() {
                     StaticView.prototype.initialize.apply(this, arguments);
