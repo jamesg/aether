@@ -51,7 +51,7 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
                             "WITH RECURSIVE id_range(sensor_id) AS ( "
                             " SELECT 1 UNION ALL "
                             "  SELECT sensor_id + 1 FROM id_range LIMIT 255 "
-                            ") SELECT sensor_id "
+                            ") SELECT sensor_id FROM id_range "
                             "EXCEPT "
                             " SELECT sensor_id FROM aether_sensor "
                         )
