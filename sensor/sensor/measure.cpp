@@ -4,16 +4,16 @@
 
 #include "sketch.hpp"
 
-OneWire ds(DS18B20_PIN);
+OneWire sensor::ds(DS18B20_PIN);
 
-bool decode_moisture(int& out)
+bool sensor::decode_moisture(int& out)
 {
     if(SOIL_MOISTURE_PIN < 0)
         return false;
     out = analogRead(SOIL_MOISTURE_PIN) / (1023.0/100.0);
 }
 
-bool kty81_resistance(int& resistance)
+bool sensor::kty81_resistance(int& resistance)
 {
     if(TEMPERATURE_SENSOR_PIN < 0)
         return false;
@@ -48,7 +48,7 @@ bool kty81_resistance(int& resistance)
     return true;
 }
 
-bool config_mode()
+bool sensor::config_mode()
 {
     int resistance = 0;
     if(!kty81_resistance(resistance))
@@ -58,7 +58,7 @@ bool config_mode()
     return (resistance < 100);
 }
 
-bool decode_temperature(float& out)
+bool sensor::decode_temperature(float& out)
 {
     int resistance = 0;
     if(!kty81_resistance(resistance))
@@ -67,7 +67,7 @@ bool decode_temperature(float& out)
     return true;
 }
 
-float kty81_lookup(int resistance) {
+float sensor::kty81_lookup(int resistance) {
     int lookup_table[] = {
         // -50 to 50 degrees C in 10 degree increments
         1030, 1135, 1247, 1367, 1495, 1630, 1772, 1922, 2080, 2245, 2417
@@ -91,7 +91,7 @@ float kty81_lookup(int resistance) {
             ) * 10.0f;
 }
 
-bool set_ds18b20_mode()
+bool sensor::set_ds18b20_mode()
 {
     byte ds18b20_addr[8];
     ds.reset_search();
@@ -99,7 +99,7 @@ bool set_ds18b20_mode()
     return ds18b20_found;
 }
 
-void request_ds18b20_temperature()
+void sensor::request_ds18b20_temperature()
 {
     if(!ds.reset())
         return;

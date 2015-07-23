@@ -1,5 +1,6 @@
 #include "radio.hpp"
 
+#include "lcd.hpp"
 #include "measure.hpp"
 
 // JSONRPC id of the last outgoing request.
@@ -11,21 +12,21 @@ namespace
     int incoming_index;
 
     // Callback to use when a JSONRPC reply matching the last request is received.
-    success_callback_type success_callback;
+    sensor::success_callback_type success_callback;
 
     // Callback to use when a JSONRPC request has failed.
-    error_callback_type error_callback;
+    sensor::error_callback_type error_callback;
 
 }
 
-void reset_callbacks()
+void sensor::reset_callbacks()
 {
     last_request_id = INVALID_LAST_REQUEST_ID;
     success_callback = 0;
     error_callback = 0;
 }
 
-void radio_enable()
+void sensor::radio_enable()
 {
     if(RADIO_ENABLE_PIN > -1)
     {
@@ -35,13 +36,13 @@ void radio_enable()
     Serial.begin(RADIO_BAUDRATE);
 }
 
-void radio_disable()
+void sensor::radio_disable()
 {
     if(RADIO_ENABLE_PIN > -1)
         digitalWrite(RADIO_ENABLE_PIN, LOW);
 }
 
-void send_status()
+void sensor::send_status()
 {
     // Enable the radio module.
     radio_enable();
@@ -55,13 +56,13 @@ void send_status()
     jsonrpc_request(root, &send_status_received, &send_status_error);
 }
 
-void send_status_received(JsonObject& result)
+void sensor::send_status_received(JsonObject& result)
 {
     const char *status = result["result"];
     callback_timer.after(1000, &send_moisture);
 }
 
-void send_status_error(const error_type err, const char *error)
+void sensor::send_status_error(const error_type err, const char *error)
 {
     if(err == TIMEOUT)
         callback_timer.after(0, &short_wait);
@@ -69,7 +70,7 @@ void send_status_error(const error_type err, const char *error)
         callback_timer.after(0, &long_wait);
 }
 
-void send_ready_to_receive()
+void sensor::send_ready_to_receive()
 {
     json_buffer_type json_buffer;
     JsonObject& root = json_buffer.createObject();
@@ -84,7 +85,7 @@ void send_ready_to_receive()
     );
 }
 
-void send_ready_to_receive_received(JsonObject& result)
+void sensor::send_ready_to_receive_received(JsonObject& result)
 {
     bool ready = result["result"];
     if(ready)
@@ -93,7 +94,7 @@ void send_ready_to_receive_received(JsonObject& result)
         callback_timer.after(0, &long_wait);
 }
 
-void send_ready_to_receive_error(error_type err, const char*)
+void sensor::send_ready_to_receive_error(error_type err, const char*)
 {
     if(err == TIMEOUT)
         callback_timer.after(0, &short_wait);
@@ -101,7 +102,7 @@ void send_ready_to_receive_error(error_type err, const char*)
         callback_timer.after(0, &long_wait);
 }
 
-void send_moisture()
+void sensor::send_moisture()
 {
     int moisture_val;
     if(decode_moisture(moisture_val))
@@ -121,13 +122,13 @@ void send_moisture()
     }
 }
 
-void send_moisture_received(JsonObject& result)
+void sensor::send_moisture_received(JsonObject& result)
 {
     bool status = result["result"];
     callback_timer.after(1000, &send_temperature);
 }
 
-void send_moisture_error(const error_type err, const char *error)
+void sensor::send_moisture_error(const error_type err, const char *error)
 {
     if(err == TIMEOUT)
         callback_timer.after(0, &short_wait);
@@ -135,7 +136,7 @@ void send_moisture_error(const error_type err, const char *error)
         callback_timer.after(0, &long_wait);
 }
 
-void send_temperature()
+void sensor::send_temperature()
 {
     if(ds18b20_temperature != NAN)
     {
@@ -154,13 +155,13 @@ void send_temperature()
     }
 }
 
-void send_temperature_received(JsonObject& result)
+void sensor::send_temperature_received(JsonObject& result)
 {
     bool status = result["result"];
     callback_timer.after(1000, &request_location);
 }
 
-void send_temperature_error(const error_type err, const char *error)
+void sensor::send_temperature_error(const error_type err, const char *error)
 {
     if(err == TIMEOUT)
         callback_timer.after(0, &short_wait);
@@ -168,7 +169,7 @@ void send_temperature_error(const error_type err, const char *error)
         callback_timer.after(0, &long_wait);
 }
 
-void request_location()
+void sensor::request_location()
 {
     json_buffer_type json_buffer;
     JsonObject& root = json_buffer.createObject();
@@ -178,14 +179,14 @@ void request_location()
     jsonrpc_request(root, &location_received, &location_error);
 }
 
-void location_received(JsonObject& result)
+void sensor::location_received(JsonObject& result)
 {
     const char *location = result["result"];
     strncpy(lcd_location_s, location, sizeof(lcd_location_s));
     callback_timer.after(1000, &request_cname);
 }
 
-void location_error(error_type err, const char*)
+void sensor::location_error(error_type err, const char*)
 {
     if(err == TIMEOUT)
         callback_timer.after(0, &short_wait);
@@ -193,7 +194,7 @@ void location_error(error_type err, const char*)
         callback_timer.after(0, &long_wait);
 }
 
-void request_cname()
+void sensor::request_cname()
 {
     json_buffer_type json_buffer;
     JsonObject& root = json_buffer.createObject();
@@ -204,14 +205,14 @@ void request_cname()
     jsonrpc_request(root, &cname_received, &cname_error);
 }
 
-void cname_received(JsonObject& result)
+void sensor::cname_received(JsonObject& result)
 {
     const char *cname = result["result"];
     strncpy(lcd_variety_s, cname, sizeof(lcd_variety_s));
     callback_timer.after(0, &request_phase);
 }
 
-void cname_error(error_type err, const char*)
+void sensor::cname_error(error_type err, const char*)
 {
     if(err == TIMEOUT)
         callback_timer.after(0, &short_wait);
@@ -219,7 +220,7 @@ void cname_error(error_type err, const char*)
         callback_timer.after(0, &long_wait);
 }
 
-void request_phase()
+void sensor::request_phase()
 {
     json_buffer_type json_buffer;
     JsonObject& root = json_buffer.createObject();
@@ -230,14 +231,14 @@ void request_phase()
     jsonrpc_request(root, &phase_received, &phase_error);
 }
 
-void phase_received(JsonObject& result)
+void sensor::phase_received(JsonObject& result)
 {
     const char *phase_desc = result["result"];
     strncpy(lcd_phase_s, phase_desc, sizeof(lcd_phase_s));
     callback_timer.after(0, &long_wait);
 }
 
-void phase_error(error_type err, const char*)
+void sensor::phase_error(error_type err, const char*)
 {
     if(err == TIMEOUT)
         callback_timer.after(0, &short_wait);
@@ -245,19 +246,19 @@ void phase_error(error_type err, const char*)
         callback_timer.after(0, &long_wait);
 }
 
-void long_wait()
+void sensor::long_wait()
 {
     radio_disable();
     // One minute.
     callback_timer.after(60000, &send_status);
 }
 
-void short_wait()
+void sensor::short_wait()
 {
     callback_timer.after(1000, &send_ready_to_receive);
 }
 
-void jsonrpc_request(
+void sensor::jsonrpc_request(
         JsonObject& request,
         success_callback_type success,
         error_callback_type error
@@ -273,7 +274,7 @@ void jsonrpc_request(
     callback_timer.after(5000, &handle_jsonrpc_timeout);
 }
 
-void handle_jsonrpc_result(JsonObject& result)
+void sensor::handle_jsonrpc_result(JsonObject& result)
 {
     int jsonrpc_id = result["id"];
     // Ignore responses that do not match the last request sent.
@@ -298,7 +299,7 @@ void handle_jsonrpc_result(JsonObject& result)
     }
 }
 
-void handle_jsonrpc_timeout()
+void sensor::handle_jsonrpc_timeout()
 {
     error_callback_type cb = error_callback;
     reset_callbacks();
@@ -306,7 +307,7 @@ void handle_jsonrpc_timeout()
         cb(TIMEOUT, 0);
 }
 
-void check_incoming_message()
+void sensor::check_incoming_message()
 {
     while(Serial.available())
     {

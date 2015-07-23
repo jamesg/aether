@@ -4,68 +4,51 @@
 #include "EEPROM.h"
 #include "ArduinoJson.h"
 
+#include "configuration.hpp"
 #include "lcd.hpp"
 #include "measure.hpp"
 #include "radio.hpp"
 #include "timer.hpp"
 
 // Network-unique id of this sensor.
-int sensor_id = 0;
+unsigned char sensor::sensor_id = sensor::configuration::INVALID_SENSOR_ID;
 
-// HD44780 connections:
-// RS - 6
-// E  - 5
-// D4 - 4
-// D5 - 3
-// D6 - 2
-// D7 - 9
-LiquidCrystal lcd(6, 5, 4, 3, 2, 9);
+timer sensor::callback_timer;
 
-timer callback_timer;
+float sensor::ds18b20_temperature = NAN;
 
-float ds18b20_temperature;
-
-const char lcd_startup_s[] = "Aether";
-
-char lcd_temperature_s[LCD_LINE_SIZE];
-char lcd_phase_s[LCD_LINE_SIZE];
-char lcd_variety_s[LCD_LINE_SIZE];
-char lcd_location_s[LCD_LINE_SIZE];
+const char sensor::lcd_startup_s[] = "Aether";
 
 void setup()
 {
-    reset_callbacks();
-    ds18b20_temperature = NAN;
+    sensor::reset_callbacks();
 
-    lcd_temperature_s[0] = '\0';
-    lcd_phase_s[0] = '\0';
-    lcd_variety_s[0] = '\0';
-    lcd_location_s[0] = '\0';
+    sensor::lcd_init();
 
-    lcd.begin(LCD_LINE_SIZE, LCD_LINE_COUNT);
-
-    if(config_mode())
+    // If the configuration mode jumper is set or the configuratio nversion
+    // stored in EEPROM does not match the version required by this program.
+    if(
+        sensor::config_mode() ||
+        sensor::configuration_version() != sensor::CONFIGURATION_VERSION
+    )
     {
-        reset_eeprom();
-        return;
+        sensor::lcd.print("Reset");
+        // Reset the EEPROM with the default configuration.
+        sensor::configuration_reset();
+        delay(1000);
     }
 
-    callback_timer.after(0, &print_startup);
+    sensor::callback_timer.after(0, &sensor::print_startup);
 
     // Set up the DS18B20 sensor.
-    if(set_ds18b20_mode())
-        request_ds18b20_temperature();
+    if(sensor::set_ds18b20_mode())
+        sensor::request_ds18b20_temperature();
 
     // Start the state machine.
-    callback_timer.after(100, &send_status);
+    sensor::callback_timer.after(100, &sensor::send_status);
 }
 
-void reset_eeprom()
-{
-    EEPROM[0] = 255;
-}
-
-void store_ds18b20_temperature()
+void sensor::store_ds18b20_temperature()
 {
     if(!ds.reset())
     {
@@ -97,6 +80,6 @@ void store_ds18b20_temperature()
 
 void loop()
 {
-    callback_timer.update();
-    check_incoming_message();
+    sensor::callback_timer.update();
+    sensor::check_incoming_message();
 }

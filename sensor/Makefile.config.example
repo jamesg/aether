@@ -7,6 +7,7 @@ ARDUINO_AVR_DIR=${ARDUINO_DIR}/hardware/arduino/avr
 # Set PROJECT_SRC to a list of C++ files to build as part of this project.
 # ArduinoJson.cpp includes the library .cpp files from ArduinoJson/ .
 PROJECT_SRC=\
+			sensor/configuration.cpp \
 			sensor/lcd.cpp \
 			sensor/measure.cpp \
 			sensor/radio.cpp \

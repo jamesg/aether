@@ -63,7 +63,7 @@ C_FLAGS+=\
 		  -I${ARDUINO_AVR_DIR}/variants/standard
 
 CXX_FLAGS+=\
-	      -fno-exceptions -fno-threadsafe-statics
+	      -std=c++11 -fno-exceptions -fno-threadsafe-statics
 
 %.o:	${ARDUINO_AVR_DIR}/cores/arduino/%.c
 	avr-gcc -c ${C_FLAGS} -o $@ $<
