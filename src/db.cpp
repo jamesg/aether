@@ -287,7 +287,7 @@ void aether::db::create(hades::connection& conn)
 
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_sensor ( "
-        " sensor_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        " sensor_id INTEGER PRIMARY KEY, "
         " sensor_desc VARCHAR "
         " ) ",
         conn
@@ -473,20 +473,6 @@ void aether::db::create(hades::connection& conn)
         " ) ",
         conn
         );
-
-    //
-    // Initial data.
-    //
-
-    // Insert a default sensor.
-    // TODO allow for more than one sensor.
-    if(!hades::exists<sensor>(conn, hades::where("sensor_id = 0")))
-    {
-        sensor default_sensor;
-        default_sensor.get_int<attr::sensor_id>() = 0;
-        default_sensor.get_string<attr::sensor_desc>() = "Default Sensor";
-        default_sensor.insert(conn);
-    }
 }
 
 styx::object aether::db::settings(hades::connection& conn)

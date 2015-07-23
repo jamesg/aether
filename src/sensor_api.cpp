@@ -28,10 +28,44 @@ void aether::sensor_api::install_sensor_api(hades::connection& conn)
         sensor_data_received(sensor::id_type{sensor_id}).save(conn);
     };
 
+    // Get the status of the server.  If the server receives this message, it
+    // assumes that is is 'ok'.
     install<std::string>(
         "status",
         []() {
             return "ok";
+        }
+    );
+    // Register a new sensor.
+    install<styx::int_type>(
+        "register",
+        [&conn]() {
+            // Choose the next available id for the new sensor (old ids will be
+            // reused if a sensor has been deleted).
+            try
+            {
+                sensor next_sensor(
+                    styx::first(
+                        hades::custom_select<sensor, attr::sensor_id>(
+                            conn,
+                            "WITH RECURSIVE id_range(sensor_id) AS ( "
+                            " SELECT 1 UNION ALL "
+                            "  SELECT sensor_id + 1 FROM id_range LIMIT 255 "
+                            ") SELECT sensor_id "
+                            "EXCEPT "
+                            " SELECT sensor_id FROM aether_sensor "
+                        )
+                    )
+                );
+                next_sensor.get_string<attr::sensor_desc>() = hades::mkstr() <<
+                    "Sensor " << next_sensor.copy_int<attr::sensor_id>();
+                next_sensor.save(conn);
+                return next_sensor.copy_int<attr::sensor_id>();
+            }
+            catch(const styx::empty_list_exception&)
+            {
+                throw atlas::api::exception("no available sensor id");
+            }
         }
     );
     // Is the server ready to receive data from this sensor?
