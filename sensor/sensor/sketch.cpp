@@ -44,8 +44,16 @@ void setup()
     if(sensor::set_ds18b20_mode())
         sensor::request_ds18b20_temperature();
 
-    // Start the state machine.
-    sensor::callback_timer.after(100, &sensor::send_status);
+    sensor::configuration config;
+    sensor::configuration_load(config);
+    // The sensor id will be used often; take a copy.
+    sensor::sensor_id = config.sensor_id;
+    if(sensor::sensor_id == sensor::configuration::INVALID_SENSOR_ID)
+        // Register the sensor with the server.
+        sensor::start_registration();
+    else
+        // Start the routine transmission state machine.
+        sensor::start_transmission();
 }
 
 void sensor::store_ds18b20_temperature()

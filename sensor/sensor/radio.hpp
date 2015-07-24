@@ -1,18 +1,37 @@
 #ifndef SENSOR_RADIO_HPP
 #define SENSOR_RADIO_HPP
 
-#include "sketch.hpp"
+#include "ArduinoJson.h"
 
 namespace sensor
 {
+    enum error_type {TIMEOUT, JSONRPC};
+
     typedef StaticJsonBuffer<100> json_buffer_type;
     typedef void(*success_callback_type)(JsonObject&);
     typedef void(*error_callback_type)(error_type, const char*);
+    typedef void(*transmit_function_type)();
+
+    const bool USE_ARDUINO_RADIO_SHIELD = false;
+
+    const int RADIO_ENABLE_PIN = 10;
+    const int RADIO_BAUDRATE = 9600;
+
+    // Attempt each transmission a maximum of MAX_TRANSMIT_ATTEMPTS before
+    // giving up.
+    const constexpr int MAX_TRANSMIT_ATTEMPTS = 10;
 
     void reset_callbacks();
 
     void radio_enable();
     void radio_disable();
+
+    void start_registration();
+    void start_transmission();
+
+    void send_registration();
+    void send_registration_received(JsonObject&);
+    void send_registration_error(error_type, const char*);
 
     void send_status();
     void send_status_received(JsonObject&);
@@ -46,8 +65,12 @@ namespace sensor
     void phase_received(JsonObject&);
     void phase_error(error_type, const char *);
 
+    // Wait for a long period before starting routine data transmission.
     void long_wait();
-    void short_wait();
+    // Wait for a short period before retrying a transmission.  Returns true if
+    // transmit_function has been scheduled, false if there have already been
+    // too many transmission attempts and the transmission will be abandoned.
+    bool short_wait(transmit_function_type transmit_function);
 
     // Call a JSONRPC method on the server.
     void jsonrpc_request(

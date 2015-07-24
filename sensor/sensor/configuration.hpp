@@ -5,7 +5,7 @@ namespace sensor
 {
     struct configuration
     {
-        static const constexpr unsigned char INVALID_SENSOR_ID = 255;
+        static const constexpr unsigned char INVALID_SENSOR_ID = 0;
 
         // This sensor's network-unique id, assigned by the server.
         unsigned char sensor_id;

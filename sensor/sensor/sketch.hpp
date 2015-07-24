@@ -5,18 +5,8 @@
 
 #include "timer.hpp"
 
-#define INCOMING_SIZE 200
-#define INVALID_LAST_REQUEST_ID -1
-
 namespace sensor
 {
-    enum error_type {TIMEOUT, JSONRPC};
-
-    const bool USE_ARDUINO_RADIO_SHIELD = false;
-
-    const int RADIO_ENABLE_PIN = 10;
-    const int RADIO_BAUDRATE = 9600;
-
     const int SOIL_MOISTURE_PIN = -1;
 
     const int TEMPERATURE_SENSOR_DIVIDER_R = 1000;
