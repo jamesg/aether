@@ -112,6 +112,16 @@
     <h2>Name</h2>
     <div class="group">
         <label>
+            Genus Name
+            <input type="text" name="kb_variety_genus" value="<%-kb_variety_lname%>"></input>
+        </label>
+    </div>
+    <p class="advice">
+        Enter the latin name of the genus.  There may be multiple species
+        within a genus.
+    </p>
+    <div class="group">
+        <label>
             Latin Name
             <input type="text" name="kb_variety_lname" value="<%-kb_variety_lname%>"></input>
         </label>
@@ -130,6 +140,30 @@
         Enter the common name by which the species is usually known, or the
         epithet if the species has more than one distinct cultivar.
     </p>
+
+    <h2>Edible Part</h2>
+    <div class="group">
+        <label>
+            Edible
+            <input type="checkbox" name="edible" <%if(kb_edible_part != null){%>checked<%}%>></input>
+        </label>
+    </div>
+    <div class="group">
+        <label>
+            Edible part
+            <select name="ediblepart">
+                <option <%if(kb_edible_part == "Bud"){%>selected<%}%>>Bud</option>
+                <option <%if(kb_edible_part == "Bulb"){%>selected<%}%>>Bulb</option>
+                <option <%if(kb_edible_part == "Fruit"){%>selected<%}%>>Fruit</option>
+                <option <%if(kb_edible_part == "Leaf"){%>selected<%}%>>Leaf</option>
+                <option <%if(kb_edible_part == "Pod"){%>selected<%}%>>Pod</option>
+                <option <%if(kb_edible_part == "Root"){%>selected<%}%>>Root</option>
+                <option <%if(kb_edible_part == "Seed"){%>selected<%}%>>Seed</option>
+                <option <%if(kb_edible_part == "Stalk"){%>selected<%}%>>Stalk</option>
+                <option <%if(kb_edible_part == "Tuber"){%>selected<%}%>>Tuber</option>
+            </select>
+        </label>
+    </div>
 
     <h2>User Interface Colour</h2>
     <div name="colourpicker"></div>
@@ -152,6 +186,14 @@
             Edible part is produced from flowers
             <input type="checkbox" name="aether_kb_variety_flower"
                 <%if(aether_kb_variety_flower) {%>checked<%}%>>
+            </input>
+        </label>
+    </div>
+    <div class="group">
+        <label>
+            Perennial
+            <input type="checkbox" name="aether_kb_variety_perennial"
+                <%if(aether_kb_variety_perennial) {%>checked<%}%>>
             </input>
         </label>
     </div>

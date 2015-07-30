@@ -171,13 +171,6 @@ var VarietyForm = StaticView.extend(
         template: $('#varietyform-template').html(),
         initialize: function() {
             StaticView.prototype.initialize.apply(this, arguments);
-            if(!this.model.isNew())
-                this.model.fetch();
-            this.on('create', this.save.bind(this));
-            this.on('destroy', this.destroy.bind(this));
-            this.on('save', this.save.bind(this));
-        },
-        render: function() {
             StaticView.prototype.render.apply(this, arguments);
             this._colourPicker = new ColourPicker({
                 el: this.$('div[name=colourpicker]'),
@@ -186,35 +179,44 @@ var VarietyForm = StaticView.extend(
                 palette: PlantPalette
             });
             this._colourPicker.render();
+            if(!this.model.isNew())
+                this.model.fetch();
+            this.on('create', this.save.bind(this));
+            this.on('destroy', this.destroy.bind(this));
+            this.on('save', this.save.bind(this));
+        },
+        render: function() {
         },
         save: function() {
-            console.log('lname', this.$('input[name=kb_variety_lname]').val());
-            console.log('container', this.$('input[name=aether_kb_variety_container]').is(':checked'));
             this.model.set({
                 kb_variety_cname: this.$('input[name=kb_variety_cname]').val(),
                 kb_variety_lname: this.$('input[name=kb_variety_lname]').val(),
+                kb_edible_part: this.$('input[name=edible]').prop('checked') ?
+                    this.$('select[name=ediblepart]').val() : null,
                 aether_kb_variety_container:
-                    this.$('input[name=aether_kb_variety_container]').is(':checked'),
+                    this.$('input[name=aether_kb_variety_container]').prop('checked'),
                 aether_kb_variety_flower:
-                    this.$('input[name=aether_kb_variety_flower]').is(':checked'),
+                    this.$('input[name=aether_kb_variety_flower]').prop('checked'),
+                aether_kb_variety_perennial:
+                    this.$('input[name=aether_kb_variety_perennial]').prop('checked'),
                 aether_kb_variety_prefer_shade:
-                    this.$('input[name=aether_kb_variety_prefer_shade]').is(':checked'),
+                    this.$('input[name=aether_kb_variety_prefer_shade]').prop('checked'),
                 aether_kb_variety_prefer_sun:
-                    this.$('input[name=aether_kb_variety_prefer_sun]').is(':checked'),
+                    this.$('input[name=aether_kb_variety_prefer_sun]').prop('checked'),
                 kb_variety_colour: this._colourPicker.colour(),
                 harvest_mon: _.filter(
                     _.range(1, 13),
-                    function(i) { return this.$('#harvest_' + i).is(':checked'); },
+                    function(i) { return this.$('#harvest_' + i).prop('checked'); },
                     this
                     ),
                 plant_mon: _.filter(
                     _.range(1, 13),
-                    function(i) { return this.$('#plant_' + i).is(':checked'); },
+                    function(i) { return this.$('#plant_' + i).prop('checked'); },
                     this
                     ),
                 sow_mon: _.filter(
                     _.range(1, 13),
-                    function(i) { return this.$('#sow_' + i).is(':checked'); },
+                    function(i) { return this.$('#sow_' + i).prop('checked'); },
                     this
                     )
             });
@@ -239,4 +241,3 @@ var VarietyForm = StaticView.extend(
         }
     }
     );
-

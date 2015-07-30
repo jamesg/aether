@@ -2,6 +2,20 @@
  * Styles specfic to a plant monitoring application.
  */
 
+ /*
+  List of varieties with a large, coloured border on the left.
+  */
+ .variety-list {
+     list-style-type: none;
+     padding-left: 0;
+ }
+
+ .variety-list li {
+     border-left: 5px solid transparent;
+     padding-left: 1em;
+ }
+
+
 /*
  * Calendar containing months in what various activities should be carried out.
  * Each month may have a checkbox input.

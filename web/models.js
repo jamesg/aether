@@ -114,14 +114,22 @@ var Variety = RestModel.extend(
             kb_variety_cname: '',
             kb_variety_lname: '',
             kb_variety_weeks: 0,
+            kb_edible_part: null,
             kb_family_id: 0,
             aether_kb_variety_container: false,
             aether_kb_variety_flower: false,
+            aether_kb_variety_perennial: false,
             aether_kb_variety_prefer_sun: false,
             aether_kb_variety_prefer_shade: false,
             harvest_mon: [],
             plant_mon: [],
             sow_mon: []
+        },
+        parse: function(json) {
+            var result = RestModel.prototype.parse(json);
+            if(result['kb_edible_part'] == '')
+                result['kb_edible_part'] = null;
+            return result;
         },
         url: function() {
             return restUri(
@@ -137,6 +145,18 @@ var VarietyCollection = RestCollection.extend(
         url: restUri('kb/variety')
     }
     );
+
+var EdiblePart = RestModel.extend(
+    {
+        idAttribute: 'kb_edible_part'
+    }
+);
+
+var EdiblePartCollection = RestCollection.extend(
+    {
+        url: restUri('kb/edible_part')
+    }
+);
 
 //
 // Sensors.

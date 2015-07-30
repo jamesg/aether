@@ -11,12 +11,37 @@
 <link href="/atlas/css/modal.css" rel="stylesheet" type="text/css" media="all"></link>
 <link href="/atlas/css/navigation.css" rel="stylesheet" type="text/css" media="all"></link>
 <link href="/atlas/css/plant-theme.css" rel="stylesheet" type="text/css" media="all"></link>
+<link href="aether.css" rel="stylesheet" type="text/css" media="all"></link>
 <link
     href="/atlas/open-iconic/font/css/open-iconic.css"
     rel="stylesheet"
     type="text/css"
     media="all">
 </link>
+
+<style type="text/css">
+.sow-true {
+    color: blue;
+}
+.sow-false {
+    color: blue;
+    opacity: 0.1;
+}
+.plant-true {
+    color: lawngreen;
+}
+.plant-false {
+    color: lawngreen;
+    opacity: 0.1;
+}
+.harvest-true {
+    color: yellow;
+}
+.harvest-false {
+    color: yellow;
+    opacity: 0.1;
+}
+</style>
 
 </head>
 
@@ -46,7 +71,92 @@
 </div>
 <div id="template-content" class="content"></div>
 
-<script type="text/template" id="homepage-template">
+<script type="text/template" id="knowledgebasepage-template">
+    <div class="grid">
+        <div class="col-2-5">
+            Include the following categories in the list.
+            <h2>Families</h2>
+            <ul name="families" class="check-list"></ul>
+            <h2>Edible Part</h2>
+            <ul name="edible" class="check-list"></ul>
+            <h2>Other</h2>
+            <ul class="check-list">
+            <li><label><input type="checkbox" name="ornamental" checked></input>Ornamental</label></li>
+            </ul>
+        </div>
+        <div class="col-3-5">
+            <h2>Varieties</h2>
+            <ul name="varieties" class="action-list variety-list"></ul>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="varietypage-template">
+    <h1><%-kb_variety_cname%> (<%-kb_variety_genus%> <%-kb_variety_lname%>)</h1>
+
+    <p>Type: <%if(kb_edible_part == null){%>ornamental plant<%}else{%>edible plant<%}%>
+
+    <%if(kb_edible_part != null){%>
+    <p>Edible part: <%-kb_edible_part%>
+    <%}%>
+
+    <h3>Sowing Indoors</h3>
+    <table class="activity-calendar activity-sow">
+    <tr>
+        <th>J</th><th>F</th><th>M</th><th>A</th><th>M</th><th>J</th>
+        <th>J</th><th>A</th><th>S</th><th>O</th><th>N</th><th>D</th>
+    </tr>
+    <tr>
+        <%_.each(_.range(1, 13), function(i) {%>
+        <td>
+            <%if(_.contains(sow_mon, i)) {%>
+                <span class="oi sow-true" data-glyph="check" aria-hidden="true"> </span>
+            <%}else{%>
+                <span class="oi sow-false" data-glyph="x" aria-hidden="true"> </span>
+            <%}%>
+        </td>
+        <%});%>
+    </tr>
+    </table>
+
+    <h3>Sowing Outdoors/Planting Out</h3>
+    <table class="activity-calendar activity-plant">
+    <tr>
+        <th>J</th><th>F</th><th>M</th><th>A</th><th>M</th><th>J</th>
+        <th>J</th><th>A</th><th>S</th><th>O</th><th>N</th><th>D</th>
+    </tr>
+    <tr>
+        <%_.each(_.range(1, 13), function(i) {%>
+        <td>
+            <%if(_.contains(plant_mon, i)) {%>
+                <span class="oi plant-true" data-glyph="check" aria-hidden="true"> </span>
+            <%}else{%>
+                <span class="oi plant-false" data-glyph="x" aria-hidden="true"> </span>
+            <%}%>
+        </td>
+        <%});%>
+    </tr>
+    </table>
+
+    <h3>Harvest</h3>
+    <table class="activity-calendar activity-harvest">
+    <tr>
+        <th>J</th><th>F</th><th>M</th><th>A</th><th>M</th><th>J</th>
+        <th>J</th><th>A</th><th>S</th><th>O</th><th>N</th><th>D</th>
+    </tr>
+    <tr>
+        <%_.each(_.range(1, 13), function(i) {%>
+        <td>
+            <%if(_.contains(harvest_mon, i)) {%>
+                <span class="oi harvest-true" data-glyph="check" aria-hidden="true"> </span>
+            <%}else{%>
+                <span class="oi harvest-false" data-glyph="x" aria-hidden="true"> </span>
+            <%}%>
+        </td>
+        <%});%>
+    </tr>
+    </table>
+
 </script>
 
 <script type="text/javascript" src="/atlas/underscore.js"></script>
@@ -55,10 +165,10 @@
 <script type="text/javascript" src="/atlas/stacked_application.js"></script>
 <script type="text/javascript" src="application.js"></script>
 <script type="text/javascript" src="models.js"></script>
-<script type="text/javascript" src="index.js"></script>
+<script type="text/javascript" src="knowledgebase.js"></script>
 <script type="text/javascript">
 Backbone.$ = $;
-var gApplication = new StackedApplication(HomePage);
+var gApplication = new StackedApplication(KnowledgebasePage);
 gApplication.goHome();
 </script>
 
