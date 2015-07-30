@@ -4,6 +4,7 @@
 
 #include "aether/db.hpp"
 #include "hades/crud.ipp"
+#include "hades/custom_select.hpp"
 #include "hades/join.hpp"
 #include "styx/cast.hpp"
 
@@ -73,10 +74,17 @@ aether::kb_router::kb_router(
     install<int>(
         atlas::http::matcher("/variety/([0-9]+)", "GET"),
         [&conn](const int variety_id) {
-            kb::variety v = hades::get_by_id<kb::variety>(
-                conn,
-                kb::variety::id_type{variety_id}
-                );
+            kb::variety v(
+                styx::first(
+                    hades::equi_outer_join<kb::variety, kb::edible>(
+                        conn,
+                        hades::where(
+                            "aether_kb_variety.kb_variety_id = ?",
+                            hades::row<styx::int_type>(variety_id)
+                        )
+                    )
+                )
+            );
 
             styx::list harvest_mon = kb::variety_harvest_mon::get_collection(
                 conn,
@@ -179,6 +187,11 @@ aether::kb_router::kb_router(
         [&conn, save_months](kb::variety v, const int variety_id) {
             v.update(conn);
             save_months(v);
+            kb::edible ed(v);
+            if(styx::is_null(ed.get_element<attr::kb_edible_part>()))
+                ed.destroy(conn);
+            else
+                ed.save(conn);
             return atlas::http::json_response(v);
         },
         boost::bind(&atlas::auth::is_superuser, boost::ref(conn), _1)
@@ -187,7 +200,7 @@ aether::kb_router::kb_router(
         atlas::http::matcher("/variety", "GET"),
         [&conn]() {
             return atlas::http::json_response(
-                hades::get_collection<kb::variety>(conn)
+                hades::equi_outer_join<kb::variety, kb::edible>(conn)
                 );
         }
         );
@@ -196,6 +209,11 @@ aether::kb_router::kb_router(
         [&conn, save_months](kb::variety v) {
             v.insert(conn);
             save_months(v);
+            kb::edible ed(v);
+            if(styx::is_null(ed.get_element<attr::kb_edible_part>()))
+                ed.destroy(conn);
+            else
+                ed.insert(conn);
             return atlas::http::json_response(v);
         },
         boost::bind(&atlas::auth::is_superuser, boost::ref(conn), _1)
@@ -204,7 +222,7 @@ aether::kb_router::kb_router(
         atlas::http::matcher("/family/([0-9]+)/variety", "GET"),
         [&conn](const int family_id) {
             return atlas::http::json_response(
-                hades::get_collection<kb::variety>(
+                hades::equi_outer_join<kb::variety, kb::edible>(
                     conn,
                     hades::where(
                         "aether_kb_variety.kb_family_id = ?",
@@ -246,4 +264,15 @@ aether::kb_router::kb_router(
                     );
             }
             );
+    install<>(
+        atlas::http::matcher("/edible_part", "GET"),
+        [&conn]() {
+            return atlas::http::json_response(
+                hades::custom_select<kb::edible, attr::kb_edible_part>(
+                    conn,
+                    "SELECT DISTINCT kb_edible_part FROM aether_kb_edible "
+                )
+            );
+        }
+    );
 }

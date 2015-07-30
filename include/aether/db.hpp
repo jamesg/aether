@@ -20,6 +20,7 @@ namespace aether
         extern const char kb_family_desc[];
 
         extern const char kb_variety_id[];
+        extern const char kb_variety_genus[];
         extern const char kb_variety_cname[];
         extern const char kb_variety_lname[];
         extern const char kb_variety_weeks[];
@@ -30,6 +31,8 @@ namespace aether
         extern const char kb_variety_plant_mon_month[];
         extern const char kb_variety_sow_mon_month[];
         // kb_variety_id
+
+        extern const char kb_edible_part[];
 
         extern const char batch_id[];
         // kb_variety_id
@@ -95,6 +98,7 @@ namespace aether
         extern const char kb_variety_harvest_mon[];
         extern const char kb_variety_plant_mon[];
         extern const char kb_variety_sow_mon[];
+        extern const char kb_edible[];
 
         extern const char batch[];
         extern const char batch_phase[];
@@ -130,6 +134,7 @@ namespace aether
     {
         extern const char kb_variety_container[];
         extern const char kb_variety_flower[];
+        extern const char kb_variety_perennial[];
         extern const char kb_variety_prefer_shade[];
         extern const char kb_variety_prefer_sun[];
 
@@ -166,6 +171,7 @@ namespace aether
         class variety :
             public hades::tuple<
                 attr::kb_variety_id,
+                attr::kb_variety_genus,
                 attr::kb_variety_cname,
                 attr::kb_variety_lname,
                 attr::kb_family_id,
@@ -175,6 +181,7 @@ namespace aether
             public hades::has_flags<
                 flag::kb_variety_container,
                 flag::kb_variety_flower,
+                flag::kb_variety_perennial,
                 flag::kb_variety_prefer_shade,
                 flag::kb_variety_prefer_sun>,
             public hades::relation<relvar::kb_variety>,
@@ -242,6 +249,22 @@ namespace aether
             {
             }
             variety_sow_mon(const styx::element& e) :
+                styx::object(e)
+            {
+            }
+        };
+        // Indicate that part of a variety is edible (leaf, root etc.).
+        class edible :
+            public hades::tuple<attr::kb_variety_id, attr::kb_edible_part>,
+            public hades::has_candidate_key<attr::kb_variety_id>,
+            public hades::relation<relvar::kb_edible>,
+            public hades::crud<edible>
+        {
+        public:
+            edible()
+            {
+            }
+            edible(const styx::element& e) :
                 styx::object(e)
             {
             }

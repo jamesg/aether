@@ -64,6 +64,7 @@ const char aether::attr::kb_family_cname[] = "kb_family_cname";
 const char aether::attr::kb_family_lname[] = "kb_family_lname";
 const char aether::attr::kb_family_desc[] = "kb_family_desc";
 const char aether::attr::kb_variety_id[] = "kb_variety_id";
+const char aether::attr::kb_variety_genus[] = "kb_variety_genus";
 const char aether::attr::kb_variety_cname[] = "kb_variety_cname";
 const char aether::attr::kb_variety_lname[] = "kb_variety_lname";
 const char aether::attr::kb_variety_weeks[] = "kb_variety_weeks";
@@ -71,6 +72,7 @@ const char aether::attr::kb_variety_colour[] = "kb_variety_colour";
 const char aether::attr::kb_variety_harvest_mon_month[] = "kb_variety_harvest_mon_month";
 const char aether::attr::kb_variety_plant_mon_month[] = "kb_variety_plant_mon_month";
 const char aether::attr::kb_variety_sow_mon_month[] = "kb_variety_sow_mon_month";
+const char aether::attr::kb_edible_part[] = "kb_edible_part";
 const char aether::attr::batch_id[] = "batch_id";
 const char aether::attr::phase_id[] = "phase_id";
 const char aether::attr::phase_desc[] = "phase_desc";
@@ -109,6 +111,7 @@ const char aether::relvar::kb_variety[] = "aether_kb_variety";
 const char aether::relvar::kb_variety_harvest_mon[] = "aether_kb_variety_harvest_mon";
 const char aether::relvar::kb_variety_plant_mon[] = "aether_kb_variety_plant_mon";
 const char aether::relvar::kb_variety_sow_mon[] = "aether_kb_variety_sow_mon";
+const char aether::relvar::kb_edible[] = "aether_kb_edible";
 const char aether::relvar::batch[] = "aether_batch";
 const char aether::relvar::batch_phase[] = "aether_batch_phase";
 const char aether::relvar::batch_phase_history[] = "aether_batch_phase_history";
@@ -132,6 +135,7 @@ const char aether::view::sensor_at_phase[] = "aether_sensor_at_phase";
 const char aether::view::phase_temperature[] = "aether_phase_temperature";
 const char aether::flag::kb_variety_container[] = "aether_kb_variety_container";
 const char aether::flag::kb_variety_flower[] = "aether_kb_variety_flower";
+const char aether::flag::kb_variety_perennial[] = "aether_kb_variety_perennial";
 const char aether::flag::kb_variety_prefer_shade[] = "aether_kb_variety_prefer_shade";
 const char aether::flag::kb_variety_prefer_sun[] = "aether_kb_variety_prefer_sun";
 const char aether::flag::favourite_variety[] = "aether_favourite_variety";
@@ -164,6 +168,7 @@ void aether::db::create(hades::connection& conn)
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_kb_variety ( "
         " kb_variety_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        " kb_variety_genus VARCHAR, "
         " kb_variety_cname VARCHAR, "
         " kb_variety_lname VARCHAR, "
         " kb_variety_weeks INTEGER, "
@@ -200,6 +205,14 @@ void aether::db::create(hades::connection& conn)
         " ) ",
         conn
         );
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_kb_edible ( "
+        " kb_variety_id INTEGER, "
+        " kb_edible_part VARCHAR, "
+        " UNIQUE(kb_variety_id, kb_edible_part) "
+        " ) ",
+        conn
+    );
 
     //
     // Knowledge base variety flags.
@@ -214,6 +227,13 @@ void aether::db::create(hades::connection& conn)
         );
     hades::devoid(
         "CREATE TABLE IF NOT EXISTS aether_kb_variety_flower ( "
+        " kb_variety_id INTEGER PRIMARY KEY, "
+        " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) ON DELETE CASCADE "
+        " ) ",
+        conn
+        );
+    hades::devoid(
+        "CREATE TABLE IF NOT EXISTS aether_kb_variety_perennial ( "
         " kb_variety_id INTEGER PRIMARY KEY, "
         " FOREIGN KEY(kb_variety_id) REFERENCES aether_kb_variety(kb_variety_id) ON DELETE CASCADE "
         " ) ",
