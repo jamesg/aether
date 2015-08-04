@@ -5,7 +5,6 @@
 #include "ArduinoJson.h"
 
 #include "configuration.hpp"
-#include "lcd.hpp"
 #include "measure.hpp"
 #include "radio.hpp"
 #include "timer.hpp"
@@ -21,24 +20,21 @@ const char sensor::lcd_startup_s[] = "Aether";
 
 void setup()
 {
+    sensor::radio_enable();
+    Serial.println("HELLO");
     sensor::reset_callbacks();
 
-    sensor::lcd_init();
-
-    // If the configuration mode jumper is set or the configuratio nversion
+    // If the configuration mode jumper is set or the configuration version
     // stored in EEPROM does not match the version required by this program.
     if(
         sensor::config_mode() ||
         sensor::configuration_version() != sensor::CONFIGURATION_VERSION
     )
     {
-        sensor::lcd.print("Reset");
         // Reset the EEPROM with the default configuration.
         sensor::configuration_reset();
         delay(1000);
     }
-
-    sensor::callback_timer.after(0, &sensor::print_startup);
 
     // Set up the DS18B20 sensor.
     if(sensor::set_ds18b20_mode())

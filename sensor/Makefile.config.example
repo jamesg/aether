@@ -8,7 +8,6 @@ ARDUINO_AVR_DIR=${ARDUINO_DIR}/hardware/arduino/avr
 # ArduinoJson.cpp includes the library .cpp files from ArduinoJson/ .
 PROJECT_SRC=\
 			sensor/configuration.cpp \
-			sensor/lcd.cpp \
 			sensor/measure.cpp \
 			sensor/radio.cpp \
 			sensor/sketch.cpp \
@@ -23,7 +22,7 @@ PROJECT_SRC=\
 DEVICE=/dev/ttyUSB0
 
 # Type of Arduino board: DUE for Arduino Duemilanove or UNO for Arduino Uno.
-TARGET=UNO
+TARGET=DUE
 
 C_FLAGS+=\
 	-I${ARDUINO_AVR_DIR}/cores/arduino\

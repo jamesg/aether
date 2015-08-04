@@ -40,27 +40,40 @@
 include Makefile.config
 
 ifeq (${TARGET},DUE)
+	PROGRAMMER=arduino
 	PROGRAM_BAUDRATE=57600
 	TARGET_C_FLAGS=\
-		  -DUSB_VID=null -DUSB_PID=null -DARDUINO=105 \
-		  -D__PROG_TYPES_COMPAT__
+		-DARDUINO=105 \
+		-DF_CPU=16000000L
 endif
 
 ifeq (${TARGET},UNO)
+	PROGRAMMER=arduino
 	PROGRAM_BAUDRATE=115200
 	TARGET_C_FLAGS=\
 		-DARDUINO=10603 -DARDUINO_AVR_UNO \
+		-DF_CPU=16000000L \
 		-DARDUINO_ARCH_AVR
 endif
 
+ifeq (${TARGET},BARE)
+	PROGRAMMER=stk500v1
+	PROGRAM_BAUDRATE=19200
+	TARGET_C_FLAGS=\
+		-DARDUINO=10603 -DARDUINO_AVR_UNO \
+		-DF_CPU=1000000L \
+		-DARDUINO_ARCH_AVR
+endif
+
+
 C_FLAGS+=\
-		  -g -Os -w -ffunction-sections -fdata-sections \
-		  -MMD -mmcu=atmega328p \
-		  -DF_CPU=16000000L \
-		  -DUSB_VID=null -DUSB_PID=null -DARDUINO=105 \
-		  -D__PROG_TYPES_COMPAT__ \
-		  -I${ARDUINO_AVR_DIR}/cores/arduino \
-		  -I${ARDUINO_AVR_DIR}/variants/standard
+		-g -Os -w -ffunction-sections -fdata-sections \
+		-MMD -mmcu=atmega328p \
+		-DUSB_VID=null -DUSB_PID=null \
+		${TARGET_C_FLAGS} \
+		-D__PROG_TYPES_COMPAT__ \
+		-I${ARDUINO_AVR_DIR}/cores/arduino \
+		-I${ARDUINO_AVR_DIR}/variants/standard
 
 CXX_FLAGS+=\
 	      -std=c++11 -fno-exceptions -fno-threadsafe-statics
@@ -107,9 +120,26 @@ sketch.hex:	sketch.elf
 
 .PHONY:	upload
 
+# Upload the sketch using the Arduino-as-ISP interface.
 upload:	sketch.hex
-	avrdude -v -patmega328p -carduino -P${DEVICE} -b${PROGRAM_BAUDRATE} -D \
-		-Uflash:w:sketch.hex:i -F
+	avrdude -v -patmega328p -c${PROGRAMMER} -P${DEVICE} -b${PROGRAM_BAUDRATE} \
+		-D -Uflash:w:sketch.hex:i -F
+
+.PHONY:	setfuses
+
+# Set the fuses to the default values, except the clock, which uses an external
+# crystal and the /8 divider.
+setfuses:
+	avrdude -v -patmega328p -cstk500v1 -P${DEVICE} -b${PROGRAM_BAUDRATE} -D \
+		-U lfuse:w:0x7f:m -U hfuse:w:0xd9:m -U efuse:w:0xff:m -F
+
+.PHONY:	bootloader
+
+# Burn the Arduino bootloader to the chip.  Should not be used under normal
+# circumstances.
+bootloader:
+	avrdude -patmega328p -cstk500v1 -P${DEVICE} -b${PROGRAM_BAUDRATE} -D -e -F \
+		-U flash:w:optiboot_atmega328_96_1.hex
 
 .PHONY:	monitor
 
@@ -120,4 +150,3 @@ monitor:
 
 clean:
 	rm -f core.a ${dependencies} ${objects} sketch.elf sketch.eep sketch.hex
-

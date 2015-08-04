@@ -48,4 +48,3 @@ timer::entry::entry() :
     time(0)
 {
 }
-
