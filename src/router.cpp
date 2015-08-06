@@ -103,6 +103,7 @@ aether::router::router(
                     batch,
                     batch_phase,
                     phase,
+                    sensor_at_batch,
                     kb::variety,
                     kb::family>(
                         conn,
@@ -124,6 +125,7 @@ aether::router::router(
                     batch,
                     batch_phase,
                     phase,
+                    sensor_at_batch,
                     kb::variety,
                     kb::family>(
                         conn,
@@ -144,22 +146,22 @@ aether::router::router(
     install<int>(
         atlas::http::matcher("/api/batch/([0-9]+)", "GET"),
         [&conn](const int batch_id) {
-            styx::list batches(
-                hades::outer_join<
+            return atlas::http::json_response(
+                styx::first(
+                    hades::outer_join<
                         batch,
                         batch_phase,
+                        sensor_at_batch,
                         kb::variety,
                         kb::family>(
                             conn,
                             hades::where(
                                 "aether_batch.batch_id = ? ",
                                 hades::row<styx::int_type>(batch_id)
-                                )
-                            )
-                );
-            if(batches.size() == 0)
-                return atlas::http::json_error_response("batch not found");
-            return atlas::http::json_response(batches.at(0));
+                        )
+                    )
+                )
+            );
         }
     );
     // Get the history of a batch (all phases it has been in) including the
@@ -206,6 +208,13 @@ aether::router::router(
 
             if(b.has_key("sensor_id"))
             {
+                // Remove the sensor from any batch it is currently assigned to.
+                hades::devoid(
+                    "DELETE FROM aether_sensor_at_batch WHERE "
+                    " sensor_id = ? ",
+                    hades::row<styx::int_type>(b.get_int("sensor_id")),
+                    conn
+                );
                 sensor_at_batch sab;
                 sab.set_id(b.id());
                 sab.get_int<attr::sensor_id>() = b.get_int("sensor_id");
@@ -248,6 +257,16 @@ aether::router::router(
                 sab.set_id(b.id());
                 if(b.has_key("sensor_id"))
                 {
+                    // Remove any sensor at this batch.
+                    sab.destroy(conn);
+                    // Remove the sensor from any batch it is currently assigned
+                    // to.
+                    hades::devoid(
+                        "DELETE FROM aether_sensor_at_batch WHERE "
+                        " sensor_id = ? ",
+                        hades::row<styx::int_type>(b.get_int("sensor_id")),
+                        conn
+                    );
                     sab.get_int<attr::sensor_id>() = b.get_int("sensor_id");
                     sab.insert(conn);
                 }
@@ -278,6 +297,7 @@ aether::router::router(
                     batch,
                     hades::row<styx::int_type, styx::int_type>,
                     attr::batch_id,
+                    attr::sensor_id,
                     attr::phase_id, attr::phase_desc,
                     attr::kb_variety_id, attr::kb_variety_cname, attr::kb_variety_lname,
                     attr::kb_variety_colour,
@@ -287,6 +307,7 @@ aether::router::router(
                     >(
                     conn,
                     "SELECT aether_batch.batch_id, "
+                    " aether_sensor_at_batch.sensor_id, "
                     " aether_phase.phase_id, aether_phase.phase_desc, "
                     " aether_kb_variety.kb_variety_id, aether_kb_variety.kb_variety_cname, "
                     " aether_kb_variety.kb_variety_lname, aether_kb_variety.kb_variety_colour, "
@@ -295,6 +316,8 @@ aether::router::router(
                     " aether_batch_phase.start, MIN(batch_history.start) AS sowing "
                     "FROM "
                     " aether_batch "
+                    " LEFT OUTER JOIN aether_sensor_at_batch "
+                    "  ON aether_batch.batch_id = aether_sensor_at_batch.batch_id "
                     " JOIN aether_phase "
                     " JOIN aether_batch_phase "
                     " JOIN aether_kb_variety "

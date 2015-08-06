@@ -334,6 +334,7 @@ var BatchInfoView = StaticView.extend(
         initialize: function() {
             StaticView.prototype.initialize.apply(this, arguments);
             StaticView.prototype.render.apply(this);
+            this.render();
 
             this._history = new (RestCollection.extend({
                 model: (Backbone.Model.extend({
@@ -369,9 +370,26 @@ var BatchInfoView = StaticView.extend(
             })).render();
         },
         render: function() {
+            if(this.model.get('sensor_id') == null) {
+                (new StaticView({
+                    el: this.$('div[name=sensor]'),
+                    template: 'No sensor is assigned to this batch.'
+                })).render();
+            } else {
+                var sensor =
+                    new Sensor({ sensor_id: this.model.get('sensor_id') });
+                sensor.fetch();
+                (new StaticView({
+                    el: this.$('div[name=sensor]'),
+                    template: '<%-sensor_desc%>',
+                    model: sensor
+                })).render();
+            }
         },
         template: '\
             <h1>Batch of <%-kb_family_cname%> <%-kb_variety_lname%> (<%-kb_variety_cname%>)</h1>\
+            <h2>Sensor</h2>\
+            <div name="sensor"></div>\
             <h2>History</h2>\
             <ul name="history"></ul>\
             '
@@ -433,6 +451,62 @@ var ChangePhaseForm = StaticView.extend(
     }
     );
 
+var MoveSensorForm = StaticView.extend(
+    {
+        template: $('#movesensorform-template').html(),
+        reset: function() {
+            this._sensors.fetch();
+        },
+        initialize: function() {
+            StaticView.prototype.initialize.apply(this, arguments);
+            StaticView.prototype.render.apply(this);
+            this._sensors = new SensorCollection;
+            this._sensors.fetch({
+                success: (function() {
+                    this.$('select[name=sensor]').val(
+                        this.model.has('sensor_id') ?
+                            this.model.get('sensor_id') :
+                            this._sensors.at(0).get('sensor_id')
+                    );
+                }).bind(this)
+            });
+            (new CollectionView({
+                el: this.$('select[name=sensor]'),
+                model: this._sensors,
+                view: StaticView.extend({
+                    tagName: 'option',
+                    attributes: function() {
+                        return { value: this.model.id };
+                    },
+                    template: '<%-sensor_desc%>'
+                })
+            })).render();
+
+            this.on(
+                'save',
+                (function() {
+                    var sensor = this._sensors.at(
+                        this.$('select[name=sensor]')[0].selectedIndex
+                        );
+                    if(sensor) {
+                        this.model.set({ sensor_id: sensor.id });
+                        this.model.save(
+                            {},
+                            {
+                                success: (function() {
+                                    this.trigger('finished');
+                                }).bind(this)
+                            }
+                        );
+                    }
+                }).bind(this)
+            );
+        },
+        render: function() {
+        }
+    }
+);
+
 var PhaseView = StaticView.extend(
     {
         initialize: function() {
@@ -491,7 +565,12 @@ var PhaseView = StaticView.extend(
                             model: this.model,
                             view: BatchInfoView,
                             buttons: [
-                                new ModalButton({ name: 'move', label: 'Plant On' }),
+                                new ModalButton(
+                                    { name: 'movesensor', label: 'Move Sensor' }
+                                ),
+                                new ModalButton(
+                                    { name: 'move', label: 'Plant On' }
+                                ),
                                 StandardButton.close()
                             ]
                         });
@@ -522,6 +601,18 @@ var PhaseView = StaticView.extend(
                                     moveModal.finish.bind(moveModal)
                                 );
                                 gApplication.modal(moveModal);
+                            }).bind(this)
+                        );
+                        this.listenTo(
+                            infoModal,
+                            'movesensor',
+                            (function() {
+                                var m = new Modal({
+                                    view: MoveSensorForm,
+                                    buttons: [ StandardButton.cancel(), StandardButton.save() ],
+                                    model: this.model
+                                });
+                                gApplication.modal(m);
                             }).bind(this)
                         );
                         this.listenTo(infoModal, 'close', infoModal.finish.bind(infoModal));
