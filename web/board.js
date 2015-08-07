@@ -507,6 +507,67 @@ var MoveSensorForm = StaticView.extend(
     }
 );
 
+var SplitBatchForm = StaticView.extend(
+    {
+        template: $('#splitbatchform-template').html(),
+        reset: function() {
+            this._phases.fetch();
+        },
+        initialize: function() {
+            StaticView.prototype.initialize.apply(this, arguments);
+            StaticView.prototype.render.apply(this);
+            this._phases = new PhaseCollection;
+            this._phases.fetch({
+                success: (function() {
+                    this.$('select[name=phase]').val(
+                        this.model.has('phase_id') ?
+                            this.model.get('phase_id') :
+                            this._phases.at(0).get('phase_id')
+                    );
+                }).bind(this)
+            });
+            (new CollectionView({
+                el: this.$('select[name=phase]'),
+                model: this._phases,
+                view: StaticView.extend({
+                    tagName: 'option',
+                    attributes: function() {
+                        return { value: this.model.id };
+                    },
+                    template: '<%-phase_desc%>'
+                })
+            })).render();
+
+            this.on(
+                'save',
+                (function() {
+                    var phase = this._phases.at(
+                        this.$('select[name=phase]')[0].selectedIndex
+                    );
+                    var newBatch = new Batch;
+                    newBatch.fetch({
+                        url: restUri('batch/' + this.model.id + '/copy'),
+                        success: (function() {
+                            newBatch.save(
+                                {
+                                    phase_id: phase.id
+                                },
+                                {
+                                    success: (function() {
+                                        this.trigger('finished');
+                                    }).bind(this)
+                                }
+                            )
+                        }).bind(this)
+                    })
+                }).bind(this)
+            );
+        },
+        render: function() {
+        }
+    }
+);
+
 var PhaseView = StaticView.extend(
     {
         initialize: function() {
@@ -571,6 +632,9 @@ var PhaseView = StaticView.extend(
                                 new ModalButton(
                                     { name: 'move', label: 'Plant On' }
                                 ),
+                                new ModalButton(
+                                    { name: 'split', label: 'Split Batch' }
+                                ),
                                 StandardButton.close()
                             ]
                         });
@@ -609,6 +673,18 @@ var PhaseView = StaticView.extend(
                             (function() {
                                 var m = new Modal({
                                     view: MoveSensorForm,
+                                    buttons: [ StandardButton.cancel(), StandardButton.save() ],
+                                    model: this.model
+                                });
+                                gApplication.modal(m);
+                            }).bind(this)
+                        );
+                        this.listenTo(
+                            infoModal,
+                            'split',
+                            (function() {
+                                var m = new Modal({
+                                    view: SplitBatchForm,
                                     buttons: [ StandardButton.cancel(), StandardButton.save() ],
                                     model: this.model
                                 });

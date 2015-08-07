@@ -143,33 +143,34 @@ aether::router::router(
         }
     );
     // Get a single batch.
-    install<int>(
-        atlas::http::matcher("/api/batch/([0-9]+)", "GET"),
-        [&conn](const int batch_id) {
-            return atlas::http::json_response(
-                styx::first(
-                    hades::outer_join<
-                        batch,
-                        batch_phase,
-                        sensor_at_batch,
-                        kb::variety,
-                        kb::family>(
-                            conn,
-                            hades::where(
-                                "aether_batch.batch_id = ? ",
-                                hades::row<styx::int_type>(batch_id)
-                        )
+    auto get_batch = [&conn](const styx::int_type batch_id) -> atlas::http::response {
+        return atlas::http::json_response(
+            styx::first(
+                hades::outer_join<
+                    batch,
+                    batch_phase,
+                    sensor_at_batch,
+                    kb::variety,
+                    kb::family>(
+                        conn,
+                        hades::where(
+                            "aether_batch.batch_id = ? ",
+                            hades::row<styx::int_type>(batch_id)
                     )
                 )
-            );
-        }
+            )
+        );
+    };
+    install<styx::int_type>(
+        atlas::http::matcher("/api/batch/([0-9]+)", "GET"),
+        get_batch
     );
     // Get the history of a batch (all phases it has been in) including the
     // start and finish dates in each phase.  The finish date will be null if
     // the batch is currently in a phase.
-    install<int>(
+    install<styx::int_type>(
         atlas::http::matcher("/api/batch/([0-9]+)/history", "GET"),
-        [&conn](const int batch_id) {
+        [&conn](const styx::int_type batch_id) {
             return atlas::http::json_response(
                 hades::custom_select<
                     batch,
@@ -226,6 +227,46 @@ aether::router::router(
             // implies
             return !db::bool_setting(conn, "permission_create_batch", false) ||
                 atlas::auth::is_superuser(conn, token);
+        }
+    );
+    install<styx::int_type>(
+        atlas::http::matcher("/api/batch/([0-9]+)/copy", "GET"),
+        [&conn, get_batch](const styx::int_type batch_id) {
+            batch b(hades::get_by_id<batch>(conn, batch::id_type{batch_id}));
+            b.remove_id();
+            b.insert(conn);
+
+            styx::list bpl(
+                batch_phase::get_collection(
+                    conn,
+                    hades::where(
+                        "batch_id = ?",
+                        hades::row<styx::int_type>(batch_id)
+                    )
+                )
+            );
+            for(batch_phase bp : bpl)
+            {
+                bp.get_int<attr::batch_id>() = b.copy_int<attr::batch_id>();
+                bp.insert(conn);
+            }
+
+            styx::list bphl(
+                batch_phase_history::get_collection(
+                    conn,
+                    hades::where(
+                        "batch_id = ?",
+                        hades::row<styx::int_type>(batch_id)
+                    )
+                )
+            );
+            for(batch_phase_history bph : bpl)
+            {
+                bph.get_int<attr::batch_id>() = b.copy_int<attr::batch_id>();
+                bph.insert(conn);
+            }
+
+            return get_batch(b.copy_int<attr::batch_id>());
         }
     );
     install_json<batch, int>(
