@@ -10,7 +10,7 @@ namespace sensor
     const int SOIL_MOISTURE_PIN = -1;
 
     const int TEMPERATURE_SENSOR_DIVIDER_R = 1000;
-    const int TEMPERATURE_SENSOR_PIN = 3;
+    const int TEMPERATURE_SENSOR_PIN = 9;
 
     const int DS18B20_PIN = 11;
 

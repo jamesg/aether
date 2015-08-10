@@ -120,7 +120,7 @@ sketch.hex:	sketch.elf
 
 .PHONY:	upload
 
-# Upload the sketch using the Arduino-as-ISP interface.
+# Upload the sketch using the appropriate interface for the target.
 upload:	sketch.hex
 	avrdude -v -patmega328p -c${PROGRAMMER} -P${DEVICE} -b${PROGRAM_BAUDRATE} \
 		-D -Uflash:w:sketch.hex:i -F

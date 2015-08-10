@@ -33,8 +33,8 @@ void sensor::radio_enable()
 {
     if(RADIO_ENABLE_PIN > -1)
     {
-        pinMode(8, OUTPUT);
-        digitalWrite(8, HIGH);
+        pinMode(RADIO_ENABLE_PIN, OUTPUT);
+        digitalWrite(RADIO_ENABLE_PIN, HIGH);
     }
     Serial.begin(RADIO_BAUDRATE);
 }

@@ -20,8 +20,6 @@ const char sensor::lcd_startup_s[] = "Aether";
 
 void setup()
 {
-    sensor::radio_enable();
-    Serial.println("HELLO");
     sensor::reset_callbacks();
 
     // If the configuration mode jumper is set or the configuration version

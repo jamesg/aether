@@ -16,7 +16,7 @@ namespace sensor
     // radio is always powered.
     const int RADIO_ENABLE_PIN = 8;
     // Long required for 115200 baud.
-    const long RADIO_BAUDRATE = 115200;
+    const long RADIO_BAUDRATE = 9600;
 
     // Time to wait for the radio module to come online after it is powered.
     const constexpr int RADIO_MODULE_POWER_MS = 100;
