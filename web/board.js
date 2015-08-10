@@ -570,24 +570,28 @@ var SplitBatchForm = StaticView.extend(
 
 var PhaseView = StaticView.extend(
     {
-        initialize: function() {
+        initialize: function(options) {
             StaticView.prototype.initialize.apply(this, arguments);
             StaticView.prototype.render.apply(this);
 
-            var batches = new BatchCollection(
-                [],
-                {
-                    url: (function() {
-                        return restUri('phase/' + this.model.get('phase_id') + '/batch');
-                    }).bind(this)
-                }
-                );
-            this._batches = batches;
-            this._batches.fetch();
+            var phase_id = options.phase_id;
+            // var batches = new BatchCollection(
+            //     [],
+            //     {
+            //         url: (function() {
+            //             return restUri('phase/' + this.model.get('phase_id') + '/batch');
+            //         }).bind(this)
+            //     }
+            //     );
+            // this._batches = batches;
+            // this._batches.fetch();
 
             (new CollectionView({
                 el: this.$('ul[name=batches]'),
-                model: this._batches,
+                model: options.batches,
+                filter: function(batch) {
+                    return (batch.get('phase_id') == phase_id);
+                },
                 emptyView: StaticView.extend({
                     template: '\
                     <div class="box">There are no batches in this phase.</div>\
@@ -604,7 +608,15 @@ var PhaseView = StaticView.extend(
                         <td><%-kb_family_cname%> <%-kb_variety_lname%> (<%-kb_variety_cname%>)</td>\
                     </tr>\
                     <tr><td>Sown</td><td><%-sowing_s%></td></tr>\
-                    <tr><td>Planted</td><td><%-start_s%></td></tr>\
+                    <tr><td>Planted</td><td><%-planting_s%></td></tr>\
+                    <%if(sensor_desc!=""){%>\
+                        <tr>\
+                        <td>Sensor</td>\
+                        <td>\
+                        <span class="oi" data-glyph="wifi" aria-hidden="true"> </span>\
+                        <%-sensor_desc%></td>\
+                        </tr>\
+                    <%}%>\
                     </table>\
                     </div>\
                     </div>\
@@ -614,7 +626,7 @@ var PhaseView = StaticView.extend(
                             _.clone(this.model.attributes),
                             {
                                 sowing_s: formatUtcDate(this.model.get('sowing')),
-                                start_s: formatUtcDate(this.model.get('start'))
+                                planting_s: formatUtcDate(this.model.get('planting'))
                             }
                             );
                     },
@@ -720,10 +732,20 @@ var BoardPage = PageView.extend(
             this._phases = new PhaseCollection;
             this._phases.fetch();
 
+            var batches = new BatchCollection;
+            batches.fetch();
+
             this._phasesView = new CollectionView({
                 el: this.$('div[name=phases]'),
                 model: this._phases,
                 view: PhaseView,
+                constructView: function(model) {
+                    return new PhaseView({
+                        phase_id: model.get('phase_id'),
+                        model: model,
+                        batches: batches
+                    });
+                },
                 emptyView: StaticView.extend({
                     tagName: 'p',
                     className: 'advice',

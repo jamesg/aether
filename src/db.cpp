@@ -106,6 +106,8 @@ const char aether::attr::forecast_wind_deg[] = "forecast_wind_deg";
 const char aether::attr::forecast_wind_gust[] = "forecast_wind_gust";
 const char aether::attr::forecast_temp_day[] = "forecast_temp_day";
 const char aether::attr::forecast_temp_night[] = "forecast_temp_night";
+const char aether::attr::sowing[] = "sowing";
+const char aether::attr::planting[] = "planting";
 const char aether::relvar::kb_family[] = "aether_kb_family";
 const char aether::relvar::kb_variety[] = "aether_kb_variety";
 const char aether::relvar::kb_variety_harvest_mon[] = "aether_kb_variety_harvest_mon";
@@ -133,6 +135,8 @@ const char aether::relvar::forecast_wind[] = "aether_forecast_wind";
 const char aether::relvar::daily_forecast[] = "aether_daily_forecast";
 const char aether::view::sensor_at_phase[] = "aether_sensor_at_phase";
 const char aether::view::phase_temperature[] = "aether_phase_temperature";
+const char aether::view::batch_sowing[] = "aether_batch_sowing";
+const char aether::view::batch_planting[] = "aether_batch_planting";
 const char aether::flag::kb_variety_container[] = "aether_kb_variety_container";
 const char aether::flag::kb_variety_flower[] = "aether_kb_variety_flower";
 const char aether::flag::kb_variety_perennial[] = "aether_kb_variety_perennial";
@@ -493,6 +497,32 @@ void aether::db::create(hades::connection& conn)
         " ) ",
         conn
         );
+
+    // Fully temporal table including the history and current status of each
+    // batch_phase.
+    hades::devoid(
+        "CREATE VIEW IF NOT EXISTS aether_batch_history AS "
+        "  SELECT batch_id, start, NULL AS finish, phase_id FROM aether_batch_phase "
+        " UNION "
+        "  SELECT batch_id, start, finish, phase_id FROM aether_batch_phase_history ",
+        conn
+    );
+
+    // The first phase a batch was assigned to.
+    hades::devoid(
+        "CREATE VIEW IF NOT EXISTS aether_batch_sowing AS "
+        " SELECT batch_id, MIN(start) AS sowing, phase_id FROM aether_batch_phase_history "
+        " GROUP BY batch_id ",
+        conn
+    );
+
+    // The last phase a batch was moved to.
+    hades::devoid(
+        "CREATE VIEW IF NOT EXISTS aether_batch_planting AS "
+        " SELECT batch_id, start AS planting, phase_id FROM aether_batch_phase "
+        " GROUP BY batch_id ",
+        conn
+    );
 }
 
 styx::object aether::db::settings(hades::connection& conn)

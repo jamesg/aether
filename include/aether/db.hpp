@@ -90,6 +90,9 @@ namespace aether
 
         extern const char forecast_temp_day[];
         extern const char forecast_temp_night[];
+
+        extern const char sowing[];
+        extern const char planting[];
     }
     namespace relvar
     {
@@ -129,6 +132,8 @@ namespace aether
     {
         extern const char sensor_at_phase[];
         extern const char phase_temperature[];
+        extern const char batch_sowing[];
+        extern const char batch_planting[];
     }
     namespace flag
     {
@@ -561,6 +566,28 @@ namespace aether
         public hades::has_candidate_key<attr::forecast_dt>,
         public hades::relation<relvar::daily_forecast>,
         public hades::crud<daily_forecast>
+    {
+    };
+
+    class batch_sowing :
+        public hades::tuple<
+            attr::batch_id,
+            attr::sowing,
+            attr::phase_id>,
+        public hades::has_candidate_key<attr::batch_id>,
+        public hades::relation<view::batch_sowing>,
+        public hades::crud<batch_sowing>
+    {
+    };
+
+    class batch_planting :
+        public hades::tuple<
+            attr::batch_id,
+            attr::planting,
+            attr::phase_id>,
+        public hades::has_candidate_key<attr::batch_id>,
+        public hades::relation<view::batch_planting>,
+        public hades::crud<batch_planting>
     {
     };
 
