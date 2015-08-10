@@ -122,55 +122,6 @@ aether::router::router(
             );
         }
     );
-    // return atlas::http::json_response(
-    //     hades::custom_select<
-    //         batch,
-    //         hades::row<styx::int_type, styx::int_type>,
-    //         attr::batch_id,
-    //         attr::sensor_id, attr::sensor_desc,
-    //         attr::phase_id, attr::phase_desc,
-    //         attr::kb_variety_id, attr::kb_variety_cname, attr::kb_variety_lname,
-    //         attr::kb_variety_colour,
-    //         attr::kb_family_id, attr::kb_family_cname, attr::kb_family_lname,
-    //         attr::kb_family_desc,
-    //         attr::start, sowing
-    //         >(
-    //         conn,
-    //         "SELECT aether_batch.batch_id, "
-    //         " aether_sensor_at_batch.sensor_id, aether_sensor.sensor_desc, "
-    //         " aether_phase.phase_id, aether_phase.phase_desc, "
-    //         " aether_kb_variety.kb_variety_id, aether_kb_variety.kb_variety_cname, "
-    //         " aether_kb_variety.kb_variety_lname, aether_kb_variety.kb_variety_colour, "
-    //         " aether_kb_family.kb_family_id, aether_kb_family.kb_family_cname, "
-    //         " aether_kb_family.kb_family_lname, aether_kb_family.kb_family_desc, "
-    //         " aether_batch_phase.start, MIN(batch_history.start) AS sowing "
-    //         "FROM "
-    //         " aether_batch "
-    //         " LEFT OUTER JOIN aether_sensor_at_batch "
-    //         "  ON aether_batch.batch_id = aether_sensor_at_batch.batch_id "
-    //         " LEFT OUTER JOIN aether_sensor "
-    //         "  ON aether_sensor_at_batch.sensor_id = aether_sensor.sensor_id "
-    //         " JOIN aether_phase "
-    //         " JOIN aether_batch_phase "
-    //         " JOIN aether_kb_variety "
-    //         " JOIN aether_kb_family "
-    //         " JOIN ( "
-    //         "  SELECT batch_id, start, NULL AS finish, phase_id FROM aether_batch_phase "
-    //         " UNION "
-    //         "  SELECT batch_id, start, finish, phase_id FROM aether_batch_phase_history "
-    //         " ) AS batch_history "
-    //         " WHERE "
-    //         "  aether_batch.batch_id = aether_batch_phase.batch_id AND "
-    //         "  aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id AND "
-    //         "  aether_kb_variety.kb_family_id = aether_kb_family.kb_family_id AND "
-    //         "  aether_batch_phase.phase_id = aether_phase.phase_id AND "
-    //         "  aether_batch.batch_id = batch_history.batch_id AND "
-    //         "  aether_batch.batch_id IS NOT NULL AND "
-    //         "  aether_batch_phase.phase_id = ? "
-    //         " GROUP BY aether_batch.batch_id ",
-    //         hades::row<styx::int_type, styx::int_type>(phase_id, phase_id)
-    //     )
-    // );
 
     // Get all batches ordered by the date they entered their current phase,
     // descending.
@@ -201,22 +152,34 @@ aether::router::router(
     );
     // Get a single batch.
     auto get_batch = [&conn](const styx::int_type batch_id) -> atlas::http::response {
-        return atlas::http::json_response("test");
-        //     styx::first(
-        //         hades::outer_join<
-        //             batch,
-        //             batch_phase,
-        //             sensor_at_batch,
-        //             kb::variety,
-        //             kb::family>(
-        //                 conn,
-        //                 hades::where(
-        //                     "aether_batch.batch_id = ? ",
-        //                     hades::row<styx::int_type>(batch_id)
-        //             )
-        //         )
-        //     )
-        // );
+        return atlas::http::json_response(
+            styx::first(
+                hades::outer_join<
+                    batch,
+                    sensor_at_batch,
+                    sensor,
+                    batch_phase,
+                    phase,
+                    kb::variety,
+                    kb::family,
+                    batch_sowing,
+                    batch_planting>(
+                    conn,
+                    "aether_batch.batch_id = aether_sensor_at_batch.sensor_id",
+                    "aether_sensor_at_batch.sensor_id = aether_sensor.sensor_id",
+                    "aether_batch.batch_id = aether_batch_phase.phase_id",
+                    "aether_batch_phase.phase_id = aether_phase.phase_id",
+                    "aether_batch.kb_variety_id = aether_kb_variety.kb_variety_id",
+                    "aether_kb_variety.kb_variety_id = aether_kb_family.kb_family_id",
+                    "aether_batch.batch_id = aether_batch_sowing.batch_id",
+                    "aether_batch.batch_id = aether_batch_planting.batch_id",
+                    hades::where(
+                        "aether_batch.batch_id = ?",
+                        hades::row<styx::int_type>(batch_id)
+                    )
+                )
+            )
+        );
     };
     install<styx::int_type>(
         atlas::http::matcher("/api/batch/([0-9]+)", "GET"),
