@@ -35,6 +35,9 @@ var SensorsPage = PageView.extend(
             (new TableView({
                 el: this.$('table[name=batches]'),
                 model: batches,
+                filter: function(batch) {
+                    return (batch.get('sensor_id') != null);
+                },
                 theadView: StaticView.extend({
                     tagName: 'thead',
                     template: '<th>Variety</th>'
@@ -225,7 +228,7 @@ var SensorForecastPage = PageView.extend(
                                     x: moment(point.get('forecast_dt'), 'X').format('HH:mm'),
                                     y: Number.parseFloat(point.get('forecast_main_temp')),
                                     symbol: coalesce(
-                                        weatherIcon[point.get('forecast_weather_main')],
+                                        weatherIcon(point.get('forecast_weather_main')),
                                         'question-mark'
                                     )
                                 };
