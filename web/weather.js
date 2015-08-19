@@ -121,7 +121,7 @@ var PhasesView = CollectionView.extend({
         tagName: 'div',
         template: '\
         <label>\
-            <input <%if(first){%>checked<%}%> type="radio" name="phase" value="<%-phase_id%>"></input>\
+            <input type="radio" name="phase" value="<%-phase_id%>"></input>\
             <div class="weather-container weather-container-active">\
                 <%-phase_desc%><br>\
                 <span class="oi" data-glyph="chevron-right" aria-hidden="true"> </span>\
@@ -194,7 +194,8 @@ var WeatherForecastView = StaticView.extend(
             this.$('h1[name=weather-title]').html(
                 'Weather for ' +
                 moment(date).format('dddd Do MMMM YYYY')
-                );
+            );
+            this._forecast.reset();
             this._forecast.fetch({
                 // Provide the timezone offset in minutes so that the
                 // server will only provide weather for one day at the
@@ -295,14 +296,12 @@ var WeatherForecastView = StaticView.extend(
             };
         },
         _initializeCharts: function() {
-            console.log('init chart');
             // Day summary.
             (new SummaryView({
                 el: this.$('div[name=summary]'),
                 model: this._forecast
             })).render();
 
-console.log('init', this.chartData());
             this._chart.setData(this.chartData());
 
             this.fadeIn();

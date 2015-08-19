@@ -22,11 +22,39 @@
 
 <style type="text/css" media="all">
 /* Temperature curve. */
-#temperaturechart .color0 .line {
-    stroke: rgb(248, 168, 27);
+#temperaturechart .main.color0 .line {
+    stroke: red;
 }
-#temperaturechart .color0 .fill {
-  fill: rgba(248, 168, 27, 0.1);
+
+/* Sensor data curve. */
+#temperaturechart .comp.color0 .line {
+    stroke: green;
+}
+
+/* Temperature model curve. */
+#temperaturechart .comp.color1 .line {
+    stroke: blue;
+}
+
+.legend {
+    list-style: none;
+    padding-left: 0;
+}
+.legend span {
+    border: 1px solid black;
+    border-radius: 5px;
+    float: left;
+    width: 1em;
+    height: 1em;
+}
+.legend .forecast {
+    background-color: red;
+}
+.legend .sensordata {
+    background-color: green;
+}
+.legend .temperaturemodel {
+    background-color: blue;
 }
 </style>
 
@@ -59,8 +87,8 @@
 <div id="template-content" class="content"></div>
 
 <script type="text/template" id="weatherpage-template">
-    <div name="days" class="weather-list"></div>
-    <div name="phases" class="weather-list"></div>
+    <div name="days" class="weather-list day-list"></div>
+    <div name="phases" class="weather-list phase-list"></div>
     <div name="forecast"></div>
 </script>
 
@@ -69,7 +97,15 @@
 
     <div name="location"></div>
     <div class="grid">
-        <div name="summary" class="col-1-5"></div>
+        <div class="col-1-5">
+            <div name="summary"></div>
+            <h2>Chart Legend</h2>
+            <ul class="legend">
+                <li><span class="forecast"></span> Forecast temperature</li>
+                <li><span class="sensordata"></span> Sensor Temperature</li>
+                <li><span class="temperaturemodel"></span> Predicted Sensor Temperature</li>
+            </ul>
+        </div>
         <div class="col-4-5">
             <h2>Temperature (&deg;C)</h2>
             <figure

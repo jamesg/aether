@@ -132,11 +132,18 @@
 
 .weather-list > div {
     float: left;
-    height: 12em;
     text-align: center;
     margin-bottom: 1.2em;
     padding: 0.6em;
     background-origin: content-box;
+}
+
+.weather-list.day-list > div {
+    height: 12em;
+}
+
+.weather-list.phase-list > div {
+    height: 5em;
 }
 
 /*Very large screens can display seven weather cards.*/
