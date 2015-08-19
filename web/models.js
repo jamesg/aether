@@ -69,6 +69,12 @@ var Batch = RestModel.extend(
             return this.isNew() ?
                 restUri('batch') :
                 restUri('batch/' + this.get('batch_id'));
+        },
+        parse: function() {
+            var out = RestModel.prototype.parse.apply(this, arguments);
+            if(out['sensor_id'] == '')
+                out.sensor_id = null;
+            return out;
         }
     }
     );

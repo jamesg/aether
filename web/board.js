@@ -11,9 +11,11 @@ NewBatchWizard.prototype = {
     showPhaseDialog: function() {
         var m = new Modal({
             model: this.model,
-            help: HelpView.extend({
-                title: 'Choosing a Start Location',
-                text: 'Choose a starting location for the plants.'
+            help: StaticView.extend({
+                template: '\
+                <h2>Choosing a Start Location</h2>\
+                <p>Choose a starting location for the plants.</p>\
+                '
             }),
             view: StaticView.extend({
                 initialize: function() {
@@ -136,6 +138,12 @@ NewBatchWizard.prototype = {
                 render: function() {
                 }
             }),
+            help: StaticView.extend({
+                template: '\
+                <h2>Choosing a Variety</h2>\
+                <p>Choose the variety you are about to sow or plant.</p>\
+                '
+            }),
             buttons: [
                 StandardButton.cancel(),
                 StandardButton.prev(),
@@ -215,6 +223,14 @@ NewBatchWizard.prototype = {
                 template: $('#sensorform-template').html(),
                 render: function() {
                 }
+            }),
+            help: StaticView.extend({
+                template: '\
+                <h2>Choosing a Sensor</h2>\
+                <p>If you are going to move a sensor to this batch as soon \
+                as it is planted, select the sensor here.  It will be \
+                unassigned from any batches currently monitored.</p>\
+                '
             }),
             buttons: [
                 StandardButton.cancel(),
@@ -645,10 +661,22 @@ var PhaseView = StaticView.extend(
                                     { name: 'move', label: 'Plant On' }
                                 ),
                                 new ModalButton(
-                                    { name: 'split', label: 'Split Batch' }
+                                    { name: 'split', label: 'Split' }
                                 ),
                                 StandardButton.close()
-                            ]
+                            ],
+                            help: StaticView.extend({
+                                template: '\
+                                <h2>Batch Information</h2>\
+                                <p><emph>Move Sensor</emph> - Move a sensor to \
+                                this batch of plants.</p>\
+                                <p><emph>Plant On</emph> - Move the entire \
+                                batch to a new location as plants grow.</p>\
+                                <p><emph>Split</emph> - Move some of the \
+                                plants to a new location, leaving some in the \
+                                current location.</p>\
+                                '
+                            })
                         });
                         this.listenTo(
                             infoModal,

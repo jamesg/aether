@@ -176,11 +176,14 @@ var LoadingView = StaticView.extend(
 
 // Map of forecast_weather_main content to an appropriate icon.
 var weatherIcon = function(name) {
-    return {
+    var icon = {
         Clear: 'sun',
         Clouds: 'cloud',
         Rain: 'rain'
     }[name];
+    if(icon == null)
+        console.log('unknown weather type', name);
+    return icon;
 };
 
 /*

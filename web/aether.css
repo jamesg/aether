@@ -162,25 +162,42 @@
     }
 }
 
+.weather-list label {
+    display: block;
+    height: inherit;
+    margin: 0;
+    padding: 0;
+}
 
-.weather-container {
+label .weather-container {
     margin: 0.6em;
     width: 100%;
     height: inherit;
     text-align: center;
 }
 
-.weather-list div .weather-container-active {
+.weather-list input {
+    display: none;
+}
+
+.weather-list .weather-container-active {
     cursor: pointer;
     background-color: #65b9eb;
 }
 
-.weather-list div .weather-container-active:hover {
+.weather-list .weather-container-active:hover {
     background-color: #407594;
 }
 
-.weather-list div .weather-container-inactive {
+.weather-list .weather-container-inactive {
     background-color: #7b9bad;
+}
+
+/*
+ The selected weather-container.
+ */
+.weather-list input:checked + div {
+    border: 0.5em solid #7b9bad;
 }
 
 /*Container for two columns of weather data.*/
