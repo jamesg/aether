@@ -17,8 +17,6 @@ atlas_add_web_library(
         models.js
         palette.html
         palette.js
-        sensors.html
-        sensors.js
         settings.html
         settings.js
         weather.html

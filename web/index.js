@@ -119,21 +119,6 @@ var HomePage = PageView.extend(
                 model: plantVarieties
             })).render();
 
-            var phases = new PhaseCollection;
-            phases.fetch();
-            (new TableView({
-                el: this.$('table[name=phases]'),
-                model: phases,
-                theadView: StaticView.extend({
-                    tagName: 'thead',
-                    template: '<th>Location</th><th>Temperature</th>'
-                }),
-                trView: StaticView.extend({
-                    tagName: 'tr',
-                    template: '<td><%-phase_desc%></td><td><%-temperature%></td>'
-                })
-            })).render();
-
             var todaysWeather = new DailyForecast;
             todaysWeather.fetch({ url: restUri('/weather/today') });
             (new WeatherCardView({ model: todaysWeather, el: this.$('div[name=weather]')})).render();
