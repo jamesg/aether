@@ -59,6 +59,7 @@
 <h1>System <small>Change system settings</small></h1>
 <button type="button" name="users">Accounts</button>
 <button type="button" name="permissions">Permissions</button>
+<button type="button" name="api_key">OpenWeatherMap API Key</button>
 </script>
 
 <script type="text/template" id="phasespage-template">
@@ -115,6 +116,17 @@ seeds indoors, 'outdoors' will be last if you plant older plants outdoors.
         <label>
             Longitude
             <input type="text" name="location_lon" value="<%-location_lon%>"></input>
+        </label>
+    </div>
+</div>
+</script>
+
+<script type="text/template" id="api-key-form-template">
+<div class="aligned">
+    <div class="group">
+        <label>
+            API Key
+            <input type="text" name="api_key" value="<%-openweathermap_api_key%>"></input>
         </label>
     </div>
 </div>

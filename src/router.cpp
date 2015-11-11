@@ -485,13 +485,14 @@ aether::router::router(
 
     install_json_async<location>(
         atlas::http::matcher("/api/location/search", "POST"),
-        [io](
+        [&conn, io](
             location l,
             atlas::http::uri_success_callback_type success,
             atlas::http::uri_callback_type error
             )
         {
             openweathermap::city_to_location(
+                conn,
                 io,
                 l.get_string<attr::location_city>(),
                 [success](location l) {

@@ -6,6 +6,7 @@
 #include "styx/serialise_json.hpp"
 
 void aether::openweathermap::city_to_location(
+        hades::connection& conn,
         boost::shared_ptr<boost::asio::io_service> io,
         const std::string& city_name,
         boost::function<void(location)> success,
@@ -19,7 +20,8 @@ void aether::openweathermap::city_to_location(
         io,
         hades::mkstr() <<
             "http://api.openweathermap.org/data/2.5/forecast?q=" <<
-            city_name,
+            city_name <<
+            "&APPID=" << db::string_setting(conn, "openweathermap_api_key"),
         [success, failure, city_name](styx::element e) {
             try
             {

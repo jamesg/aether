@@ -215,7 +215,8 @@ var Settings = RestModel.extend(
     {
         defaults: {
             permission_create_batch: false,
-            permission_move_batch: false
+            permission_move_batch: false,
+            openweathermap_api_key: ''
         },
         url: restUri('settings')
     }

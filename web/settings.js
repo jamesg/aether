@@ -41,7 +41,8 @@ var SettingsPage = PageView.extend(
             'click button[name=phases]': 'showPhases',
             'click button[name=location]': 'showLocation',
             'click button[name=permissions]': 'showPermissions',
-            'click button[name=users]': 'showUsers'
+            'click button[name=users]': 'showUsers',
+            'click button[name=api_key]': 'showApiKey'
         },
         showPhases: function() {
             gApplication.pushPage(PhasesPage);
@@ -54,6 +55,32 @@ var SettingsPage = PageView.extend(
         },
         showUsers: function() {
             gApplication.pushPage(UsersPage);
+        },
+        showApiKey: function() {
+            var m = new Modal({
+                view: StaticView.extend({
+                    initialize: function() {
+                        StaticView.prototype.initialize.apply(this, arguments);
+                        this.model.fetch();
+                        this.on(
+                            'save',
+                            (function() {
+                                this.model.set({
+                                    openweathermap_api_key: this.$('input[name=api_key]').val()
+                                });
+                                this.model.save(
+                                    {},
+                                    { success: this.trigger.bind(this, 'finished') }
+                                    );
+                            }).bind(this)
+                            );
+                    },
+                    template: $('#api-key-form-template').html()
+                }),
+                model: new Settings,
+                buttons: [ StandardButton.save(), StandardButton.cancel() ]
+            });
+            gApplication.modal(m);
         }
     }
     );

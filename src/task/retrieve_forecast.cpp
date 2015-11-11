@@ -50,7 +50,8 @@ void aether::task::retrieve_forecast::request_daily_forecast()
                 "http://api.openweathermap.org/data/2.5/forecast/daily" <<
                 "?units=metric" <<
                 "&lat=" << l.get_double<attr::location_lat>() <<
-                "&lon=" << l.get_double<attr::location_lon>(),
+                "&lon=" << l.get_double<attr::location_lon>() <<
+                "&APPID=" << db::string_setting(connection(), "openweathermap_api_key"),
             boost::bind(
                 &retrieve_forecast::daily_forecast_received,
                 shared_from_this(),
@@ -150,7 +151,8 @@ void aether::task::retrieve_forecast::request_forecast()
                 "http://api.openweathermap.org/data/2.5/forecast" <<
                 "?units=metric" <<
                 "&lat=" << l.get_double<attr::location_lat>() <<
-                "&lon=" << l.get_double<attr::location_lon>(),
+                "&lon=" << l.get_double<attr::location_lon>() <<
+                "&APPID=" << db::string_setting(connection(), "openweathermap_api_key"),
             boost::bind(
                 &retrieve_forecast::forecast_received,
                 shared_from_this(),
