@@ -8,7 +8,7 @@
 
 namespace
 {
-    const int feature_count = 11;
+    const int feature_count = /*11*/2;
 }
 
 aether::temperature_model::temperature_model(
@@ -121,7 +121,7 @@ aether::temperature_model::feature_vector(styx::object example)
         // Bias unit.
         1,
         // Forecast temperature.
-        temperature,
+        temperature/*,
         // Forecast cloud cover.
         example.get_double("forecast_clouds_all"),
         // Time is between midnight and 3am.
@@ -139,7 +139,7 @@ aether::temperature_model::feature_vector(styx::object example)
         // Time is between 6pm and 9pm.
         (example_tod.hours() >= 18 && example_tod.hours() < 21) * temperature,
         // Time is between 9pm and midnight.
-        (example_tod.hours() >= 21 && example_tod.hours() < 24) * temperature;
+        (example_tod.hours() >= 21 && example_tod.hours() < 24) * temperature*/;
     return out;
 }
 
